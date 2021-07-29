@@ -1,1 +1,1 @@
-[![Build Status](https://dev.azure.com/eawagu/Higson/_apis/build/status/Higson%20Framework%20Private%20Feed?branchName=master)](https://dev.azure.com/eawagu/Higson/_build/latest?definitionId=11&branchName=master)
+[![Build Status](https://dev.azure.com/solhigson/solhigson-public/_apis/build/status/solhigson-public.solhigson.framework?branchName=master)](https://dev.azure.com/solhigson/solhigson-public/_build/latest?definitionId=1&branchName=master)
