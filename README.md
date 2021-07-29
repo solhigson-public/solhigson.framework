@@ -1,0 +1,1 @@
+[![Build Status](https://dev.azure.com/eawagu/Higson/_apis/build/status/Higson%20Framework%20Private%20Feed?branchName=master)](https://dev.azure.com/eawagu/Higson/_build/latest?definitionId=11&branchName=master)

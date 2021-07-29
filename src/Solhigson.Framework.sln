@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework", "Solhigson.Framework\Solhigson.Framework.csproj", "{06FE3C7A-D9D8-409E-B198-2B61E9CB02BD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Playground", "Solhigson.Framework.Playground\Solhigson.Framework.Playground.csproj", "{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{6A7AFA1C-86FB-4AF1-9322-67A5A097574F}"
+ProjectSection(SolutionItems) = preProject
+	..\azure-pipelines.yml = ..\azure-pipelines.yml
+	..\.gitignore = ..\.gitignore
+	..\README.md = ..\README.md
+EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{06FE3C7A-D9D8-409E-B198-2B61E9CB02BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06FE3C7A-D9D8-409E-B198-2B61E9CB02BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06FE3C7A-D9D8-409E-B198-2B61E9CB02BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06FE3C7A-D9D8-409E-B198-2B61E9CB02BD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

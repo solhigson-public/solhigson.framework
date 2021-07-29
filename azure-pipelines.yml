@@ -1,0 +1,66 @@
+# ASP.NET Core (.NET Framework)
+# Build and test ASP.NET Core projects targeting the full .NET Framework.
+# Add steps that publish symbols, save build artifacts, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+  - dev
+  - master
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  solution: '**/Solhigson.Framework/Solhigson.Framework.csproj'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  isDev: $[eq(variables['Build.SourceBranchName'], 'dev')]
+  isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
+
+stages:
+  - stage: build
+    condition: eq(variables.isDev, true)
+    displayName: Validate Check-in
+    jobs:
+      - job:
+        displayName: Build
+        steps:
+          - task: NuGetToolInstaller@1
+            displayName: Install Nuget Tool
+
+          - task: NuGetCommand@2
+            displayName: Restore Nuget Packages
+            inputs:
+              command: 'restore'
+              restoreSolution: '$(solution)'
+              feedsToUse: 'config'
+
+          - task: VSBuild@1
+            displayName: Build Project
+            inputs:
+              solution: '$(solution)'
+              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+              platform: '$(buildPlatform)'
+              configuration: '$(buildConfiguration)'
+
+  - stage: nuget_package_external
+    condition: eq(variables.isMaster, true)
+    displayName: Deploy to Nuget.Org
+    jobs:
+      - job:
+        displayName: Package & Push
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: 'Package'
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(solution)'
+              versioningScheme: 'off'
+
+          - task: NuGetCommand@2
+            displayName: 'Push'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'nuget'

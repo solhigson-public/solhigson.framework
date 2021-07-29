@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <PackageId>solhigson.framework</PackageId>
+        <Authors>Solhigson</Authors>
+        <Description>Utility Library</Description>
+        <IsPackable>true</IsPackable>
+        <Version>2.0.4</Version>
+        <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
+        <PackageReference Include="Hangfire.AspNetCore" Version="1.7.23" />
+        <PackageReference Include="Hangfire.SqlServer" Version="1.7.23" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="5.0.8">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.8" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer.Design" Version="2.0.0-preview1-final" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.8">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="5.0.8" />
+        <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.1.2" />
+        <PackageReference Include="NLog.Web.AspNetCore" Version="4.12.0" />
+        <PackageReference Include="System.Runtime.Caching" Version="6.0.0-preview.6.21352.12" />
+    </ItemGroup>
+
+</Project>
