@@ -40,12 +40,14 @@ namespace Solhigson.Framework.Infrastructure
 
         #region Application Startup
 
-        public static void UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString)
+        public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
+            int cacheExpirationPeriodMinutes = 1440)
         {
             CacheManager.Initialize(connectionString);
+            return app;
         }
 
-        public static void UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
+        public static IApplicationBuilder UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
             DefaultNLogParameters defaultNLogParameters = null, IHttpContextAccessor httpContextAccessor = null)
         {
             defaultNLogParameters ??= new DefaultNLogParameters();
@@ -70,9 +72,10 @@ namespace Solhigson.Framework.Infrastructure
             NLog.LogManager.Configuration = config;
             LogManager.SetLogLevel(defaultNLogParameters.LogLevel);
             LogManager.HttpContextAccessor = httpContextAccessor;
+            return app;
         }
 
-        public static void UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
+        public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
             DefaultNLogAzureLogAnalyticsTarget defaultNLogAzureLogAnalyticsTarget = null)
         {
             defaultNLogAzureLogAnalyticsTarget ??= new DefaultNLogAzureLogAnalyticsTarget();
@@ -85,7 +88,7 @@ namespace Solhigson.Framework.Infrastructure
                 InternalLogger.Error(
                     "Unable to initalize NLog Azure Analytics Target because one or more the the required parameters are missing: " +
                     "[WorkspaceId, Sharedkey or LogName].");
-                return;
+                return app;
             }
 
             var config = new LoggingConfiguration();
@@ -114,6 +117,8 @@ namespace Solhigson.Framework.Infrastructure
             config.AddRule(LogLevel.Info, LogLevel.Error, fallbackGroupTarget);
 
             NLog.LogManager.Configuration = config;
+
+            return app;
         }
 
         #endregion
