@@ -1,1 +1,0 @@
-[![Build Status](https://dev.azure.com/solhigson/solhigson-public/_apis/build/status/solhigson-public.solhigson.framework?branchName=master)](https://dev.azure.com/solhigson/solhigson-public/_build/latest?definitionId=1&branchName=master)
