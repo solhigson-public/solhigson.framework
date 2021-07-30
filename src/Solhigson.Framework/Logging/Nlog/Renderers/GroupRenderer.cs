@@ -4,7 +4,7 @@ using NLog.LayoutRenderers;
 
 namespace Solhigson.Framework.Logging.Nlog.Renderers
 {
-    [LayoutRenderer("fp-group")]
+    [LayoutRenderer("solhigson-group")]
     public class GroupRenderer : LayoutRenderer
     {
         public const string Name = "group";

@@ -20,8 +20,12 @@ namespace Solhigson.Framework.Data
         private static int _cacheExpirationPeriodMinutes;
         
 
-        private static MemoryCache DefaultMemoryCache { get; } = new MemoryCache("Fp::Data::Cache::Manager");
+        private static MemoryCache DefaultMemoryCache { get; } = new MemoryCache("Solhigson::Data::Cache::Manager");
         private static ConcurrentBag<string> CacheKeys { get; } = new ConcurrentBag<string>();
+        
+        const string changeTrackerTableName = "Solhigson_CacheChangeTracker";
+        const string updateChangeTrackerSpName = "Solhigson_Usp_UpdateChangeTracker";
+        const string getChangeTrackerSpName = "Solhigson_Usp_GetChangeTrackerId";
 
         internal static void Initialize(string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
             int cacheExpirationPeriodMinutes = 1440)
@@ -38,36 +42,36 @@ namespace Solhigson.Framework.Data
             var sBuilder = new StringBuilder();
             var getChangeTrackerBuilder = new StringBuilder();
             var updateChangeTrackerBuilder = new StringBuilder();
-            sBuilder.Append("IF OBJECT_ID(N'[__FpCacheChangeTracker]') IS NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{changeTrackerTableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append("CREATE TABLE [__FpCacheChangeTracker] ( ");
+            sBuilder.Append($"CREATE TABLE [{changeTrackerTableName}] ( ");
             sBuilder.Append("[ChangeId] int NOT NULL ");
-            sBuilder.Append("CONSTRAINT [PK__FpCacheChangeTracker] PRIMARY KEY ([ChangeId])); ");
-            sBuilder.Append("INSERT INTO [__FpCacheChangeTracker] (ChangeId) VALUES (1); END;");
+            sBuilder.Append($"CONSTRAINT [PK__{changeTrackerTableName}] PRIMARY KEY ([ChangeId])); ");
+            sBuilder.Append($"INSERT INTO [{changeTrackerTableName}] (ChangeId) VALUES (1); END;");
 
-            sBuilder.Append("IF OBJECT_ID(N'[__FpUsp_UpdateChangeTracker]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{updateChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append("DROP PROCEDURE [__FpUsp_UpdateChangeTracker] ");
+            sBuilder.Append($"DROP PROCEDURE [{updateChangeTrackerSpName}] ");
             sBuilder.Append("END;");
             sBuilder.Append(Environment.NewLine);
-            sBuilder.Append("IF OBJECT_ID(N'[__FpUsp_GetChangeTrackerId]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{getChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append("DROP PROCEDURE [__FpUsp_GetChangeTrackerId] ");
+            sBuilder.Append($"DROP PROCEDURE [{getChangeTrackerSpName}] ");
             sBuilder.Append("END;");
 
-            getChangeTrackerBuilder.Append("CREATE PROCEDURE [__FpUsp_GetChangeTrackerId] ");
+            getChangeTrackerBuilder.Append($"CREATE PROCEDURE [{getChangeTrackerSpName}] ");
             getChangeTrackerBuilder.Append("AS ");
-            getChangeTrackerBuilder.Append("SELECT ChangeId from [__FpCacheChangeTracker] (NOLOCK) ");
+            getChangeTrackerBuilder.Append($"SELECT ChangeId from [{changeTrackerTableName}] (NOLOCK) ");
 
-            updateChangeTrackerBuilder.Append("CREATE PROCEDURE [__FpUsp_UpdateChangeTracker] ");
+            updateChangeTrackerBuilder.Append($"CREATE PROCEDURE [{updateChangeTrackerSpName}] ");
             updateChangeTrackerBuilder.Append("AS ");
             updateChangeTrackerBuilder.Append("DECLARE @id INT ");
-            updateChangeTrackerBuilder.Append("select @id = ChangeId from [__FpCacheChangeTracker] (NOLOCK) ");
+            updateChangeTrackerBuilder.Append($"select @id = ChangeId from [{changeTrackerTableName}] (NOLOCK) ");
             updateChangeTrackerBuilder.Append("IF(@id > 1000) ");
             updateChangeTrackerBuilder.Append("BEGIN ");
             updateChangeTrackerBuilder.Append("SET @id = 1 ");
             updateChangeTrackerBuilder.Append("END ");
-            updateChangeTrackerBuilder.Append("UPDATE dbo.[__FpCacheChangeTracker] SET ChangeId = @id + 1 ");
+            updateChangeTrackerBuilder.Append($"UPDATE dbo.[{changeTrackerTableName}] SET ChangeId = @id + 1 ");
 
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, sBuilder.ToString()).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, updateChangeTrackerBuilder.ToString()).Wait();
@@ -92,7 +96,7 @@ namespace Solhigson.Framework.Data
         {
             try
             {
-                return AdoNetUtils.ExecuteScalarAsync<int>(_connectionString, "[__FpUsp_GetChangeTrackerId]",
+                return AdoNetUtils.ExecuteScalarAsync<int>(_connectionString, $"[{getChangeTrackerSpName}]",
                     isStoredProcedure: true).Result;
             }
             catch (Exception e)
@@ -122,7 +126,7 @@ namespace Solhigson.Framework.Data
         {
             try
             {
-                await AdoNetUtils.ExecuteNonQueryAsync(_connectionString, "[__FpUsp_UpdateChangeTracker]");
+                await AdoNetUtils.ExecuteNonQueryAsync(_connectionString, $"[{updateChangeTrackerSpName}]");
                 return true;
             }
             catch (Exception e)

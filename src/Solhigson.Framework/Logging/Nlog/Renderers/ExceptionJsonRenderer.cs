@@ -5,7 +5,7 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Logging.Nlog.Renderers
 {
-    [LayoutRenderer("fp-exception")]
+    [LayoutRenderer("solhigson-exception")]
     public class ExceptionJsonRenderer : LayoutRenderer
     {
         protected override void Append(StringBuilder builder, LogEventInfo logEvent)

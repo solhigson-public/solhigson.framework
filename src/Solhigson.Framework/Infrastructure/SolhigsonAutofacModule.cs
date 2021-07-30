@@ -4,7 +4,7 @@ using Solhigson.Framework.Web.Api;
 
 namespace Solhigson.Framework.Infrastructure
 {
-    public class FpAutofacModule : Module
+    public class SolhigsonAutofacModule : Module
     {
         protected override void Load(ContainerBuilder builder)
         {

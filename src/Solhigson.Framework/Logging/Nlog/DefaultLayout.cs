@@ -13,10 +13,10 @@ namespace Solhigson.Framework.Logging.Nlog
                 new JsonAttribute("ServiceUrl", "${event-properties:item=url}", true),
                 new JsonAttribute("Status", "${event-properties:item=status}", true),
 
-                new JsonAttribute("Group", "${fp-group}", true),
-                new JsonAttribute("Exception", "${fp-exception}", true),
-                new JsonAttribute("Data", "${fp-data}", true),
-                new JsonAttribute("User", "${fp-user}", true),
+                new JsonAttribute("Group", "${solhigson-group}", true),
+                new JsonAttribute("Exception", "${solhigson-exception}", true),
+                new JsonAttribute("Data", "${solhigson-data}", true),
+                new JsonAttribute("User", "${solhigson-user}", true),
 
                 new JsonAttribute("LogLevel", "${level}", true),
                 new JsonAttribute("Description", "${message}", true),
