@@ -8,7 +8,7 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Logging.Nlog.Renderers
 {
-    [LayoutRenderer("fp-data")]
+    [LayoutRenderer("solhigson-data")]
     public class CustomDataRenderer : LayoutRenderer
     {
         public const string Name = "data";

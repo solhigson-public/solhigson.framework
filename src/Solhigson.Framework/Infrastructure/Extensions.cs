@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
+using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,12 @@ namespace Solhigson.Framework.Infrastructure
 
         #region Application Startup
 
+        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder)
+        {
+            builder.RegisterModule(new SolhigsonAutofacModule());
+            return builder;
+        }
+        
         public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
             int cacheExpirationPeriodMinutes = 1440)
         {

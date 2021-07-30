@@ -4,7 +4,7 @@ using NLog.LayoutRenderers;
 
 namespace Solhigson.Framework.Logging.Nlog.Renderers
 {
-    [LayoutRenderer("fp-user")]
+    [LayoutRenderer("solhigson-user")]
     public class UserRenderer : LayoutRenderer
     {
         public const string Name = "user";

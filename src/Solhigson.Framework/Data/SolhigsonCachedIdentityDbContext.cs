@@ -7,9 +7,9 @@ using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Data
 {
-    public class FpIdentityDbContext<T> : IdentityDbContext<T> where T : IdentityUser
+    public class SolhigsonCachedIdentityDbContext<T> : IdentityDbContext<T> where T : IdentityUser
     {
-        public FpIdentityDbContext(DbContextOptions options)
+        public SolhigsonCachedIdentityDbContext(DbContextOptions options)
             : base(options)
         {
         }

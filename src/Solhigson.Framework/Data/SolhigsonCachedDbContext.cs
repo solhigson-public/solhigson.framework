@@ -5,9 +5,9 @@ using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Data
 {
-    public class FpDbContext : DbContext
+    public class SolhigsonCachedDbContext : DbContext
     {
-        public FpDbContext(DbContextOptions options)
+        public SolhigsonCachedDbContext(DbContextOptions options)
             : base(options)
         {
         }
