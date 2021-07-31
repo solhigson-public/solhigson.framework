@@ -60,7 +60,7 @@ namespace Solhigson.Framework.Infrastructure
             defaultNLogParameters ??= new DefaultNLogParameters();
             if (defaultNLogParameters.LogApiTrace)
             {
-                app.UseMiddleware<SolhigsonRequestResponseLogger>();
+                app.UseMiddleware<SolhigsonApiTraceMiddleware>();
             }
             ConfigurationItemFactory.Default.CreateInstance = type =>
                 type == typeof(CustomDataRenderer)

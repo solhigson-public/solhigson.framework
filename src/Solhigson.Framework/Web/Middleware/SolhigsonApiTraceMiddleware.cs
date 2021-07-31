@@ -14,24 +14,22 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Web.Middleware
 {
-    public class SolhigsonRequestResponseLogger
+    public sealed class SolhigsonApiTraceMiddleware : IMiddleware
     {
-        private static readonly LogWrapper Logger = new LogWrapper("SolhigsonRequestResponseLogger");
-        private readonly RequestDelegate _next;
+        private static readonly LogWrapper Logger = new LogWrapper(nameof(SolhigsonApiTraceMiddleware));
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public SolhigsonRequestResponseLogger(RequestDelegate next)
+        public SolhigsonApiTraceMiddleware()
         {
-            _next = next;
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             var url = context.Request.GetDisplayUrl();
             if (!url.ToLower().Contains("api/v")) //only log api calls [hack, should fix this later :)]
             {
-                await _next(context);
+                await next(context);
                 return;
             }
 
@@ -46,7 +44,7 @@ namespace Solhigson.Framework.Web.Middleware
             context.Response.Body = responseBody;
 
             //Continue down the Middleware pipeline, eventually returning to this class
-            await _next(context);
+            await next(context);
 
             //Format the response from the server
             await GetResponseData(context.Response, traceData);
@@ -106,7 +104,7 @@ namespace Solhigson.Framework.Web.Middleware
             };
         }
 
-        private async Task GetResponseData(HttpResponse response, ApiTraceData traceData)
+        private static async Task GetResponseData(HttpResponse response, ApiTraceData traceData)
         {
             //We need to read the response stream from the beginning...
             response.Body.Seek(0, SeekOrigin.Begin);

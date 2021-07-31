@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using NLog;
 using NLog.LayoutRenderers;
 using Solhigson.Framework.Infrastructure;
@@ -12,8 +14,13 @@ namespace Solhigson.Framework.Logging.Nlog.Renderers
     public class CustomDataRenderer : LayoutRenderer
     {
         public const string Name = "data";
-
         private readonly List<string> _protectedFields;
+        private static readonly JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
 
         public CustomDataRenderer(string protectedFields)
         {
@@ -52,7 +59,7 @@ namespace Solhigson.Framework.Logging.Nlog.Renderers
                 }
             }
 
-            builder.Append(new {Type = typeName, Data = data}.SerializeToJson());
+            builder.Append(new {Type = typeName, Data = data}.SerializeToJson(JsonSerializerSettings));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Web.Api;
+using Solhigson.Framework.Web.Middleware;
 
 namespace Solhigson.Framework.Infrastructure
 {
@@ -21,6 +22,9 @@ namespace Solhigson.Framework.Infrastructure
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             builder.RegisterType<ApiRequestService>().AsSelf().SingleInstance()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
+            builder.RegisterType<SolhigsonApiTraceMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
         }
     }

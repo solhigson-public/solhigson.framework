@@ -6,7 +6,7 @@
         <Authors>Solhigson</Authors>
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
-        <Version>1.0.3</Version>
+        <Version>1.0.4</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
@@ -32,6 +32,10 @@
         <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.1.2" />
         <PackageReference Include="NLog.Web.AspNetCore" Version="4.12.0" />
         <PackageReference Include="System.Runtime.Caching" Version="6.0.0-preview.6.21352.12" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Web\Filters" />
     </ItemGroup>
 
 </Project>
