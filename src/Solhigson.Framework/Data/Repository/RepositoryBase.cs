@@ -14,14 +14,14 @@ namespace Solhigson.Framework.Data.Repository
             DbContext = dbContext;
         }
 
-        public IQueryable<T> FindAll()
+        public IQueryable<T> GetAll()
         {
             return DbContext.Set<T>().AsNoTracking();
         }
 
-        public IQueryable<T> FindByCondition(Expression<Func<T, bool>> expression)
+        public IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression)
         {
-            return DbContext.Set<T>().Where(expression).AsNoTracking();
+            return DbContext.Set<T>().Where(expression);
         }
 
         public void Create(T entity)
