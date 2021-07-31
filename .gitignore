@@ -331,4 +331,5 @@ ASALocalRun/
 deployments/creds/
 
 # Playground Project
-src/Solhigson.Framework.Playground
+src/Solhigson.Framework.Playground/Whiteboard
+*.development.json

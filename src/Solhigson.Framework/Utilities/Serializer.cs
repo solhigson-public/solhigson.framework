@@ -9,12 +9,26 @@ using System.Xml;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using Solhigson.Framework.Logging.Dto;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Solhigson.Framework.Utilities
 {
     public static class Serializer
     {
+        private static readonly XmlWriterSettings DefaultXmlWriterSettings = new XmlWriterSettings {OmitXmlDeclaration = true};
+
+        private static readonly XmlSerializerNamespaces DefaultXmlSerializerNamespaces =
+            new XmlSerializerNamespaces(new[] {XmlQualifiedName.Empty});
+        
+        private static readonly JsonSerializerSettings DefaultJsonSerializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        };
+
+
         public static IDictionary<string, string> SerializeToKeyValue(this object obj)
         {
             while (true)
@@ -52,7 +66,6 @@ namespace Solhigson.Framework.Utilities
                 return new Dictionary<string, string> {{token.Path, value}};
             }
         }
-
 
         public static string SerializeToBinaryString(this object obj)
         {
@@ -101,11 +114,8 @@ namespace Solhigson.Framework.Utilities
             XmlWriterSettings settings = null)
         {
             if (obj == null) return null;
-            xmlsn ??= new XmlSerializerNamespaces(new[] {XmlQualifiedName.Empty});
-            settings ??= new XmlWriterSettings
-            {
-                OmitXmlDeclaration = true
-            };
+            xmlsn ??= DefaultXmlSerializerNamespaces;
+            settings ??= DefaultXmlWriterSettings;
 
             var serializer = new XmlSerializer(obj.GetType());
 
@@ -119,11 +129,8 @@ namespace Solhigson.Framework.Utilities
             XmlWriterSettings settings = null)
         {
             if (obj == null) return null;
-            xmlsn ??= new XmlSerializerNamespaces(new[] {XmlQualifiedName.Empty});
-            settings ??= new XmlWriterSettings
-            {
-                OmitXmlDeclaration = true
-            };
+            xmlsn ??= DefaultXmlSerializerNamespaces;
+            settings ??= DefaultXmlWriterSettings;
 
             var serializer = new XmlSerializer(obj.GetType());
 
@@ -132,20 +139,17 @@ namespace Solhigson.Framework.Utilities
             serializer.Serialize(writer, obj, xmlsn);
             return stream.ToString();
         }
-
-        public static string SerializeToJson(this object obj)
+        
+        public static string SerializeToJson(this object obj, JsonSerializerSettings jsonSerializerSettings = null)
         {
             if (obj == null)
             {
                 return null;
             }
 
-            var ss = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            };
-            return JsonConvert.SerializeObject(obj, Formatting.None, ss);
+            jsonSerializerSettings ??= DefaultJsonSerializerSettings;
+                
+            return JsonConvert.SerializeObject(obj, Formatting.None, jsonSerializerSettings);
         }
 
         private static object DeserializeFromJson(this string jsonString, Type objType)
