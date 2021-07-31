@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,16 +31,16 @@ namespace Solhigson.Framework.Data
         const string getChangeTrackerSpName = "Solhigson_Usp_GetChangeTrackerId";
 
         internal static void Initialize(string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-            int cacheExpirationPeriodMinutes = 1440)
+            int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null)
         {
             _connectionString = connectionString;
             _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
             _cacheDependencyChangeTrackerTimerIntervalMilliseconds = cacheDependencyChangeTrackerTimerIntervalMilliseconds;
-            InitializeCacheChangeTracker();
+            InitializeCacheChangeTracker(databaseModelsAssembly);
             StartCacheTimer(_cacheDependencyChangeTrackerTimerIntervalMilliseconds);
         }
 
-        private static void InitializeCacheChangeTracker()
+        private static void InitializeCacheChangeTracker(Assembly databaseModelsAssembly)
         {
             var sBuilder = new StringBuilder();
             var getChangeTrackerBuilder = new StringBuilder();
@@ -76,6 +79,46 @@ namespace Solhigson.Framework.Data
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, sBuilder.ToString()).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, updateChangeTrackerBuilder.ToString()).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, getChangeTrackerBuilder.ToString()).Wait();
+
+            if (databaseModelsAssembly == null)
+            {
+                return;
+            }
+
+            var cachedEntityType = typeof(ICachedEntity);
+            foreach (var type in databaseModelsAssembly.GetTypes()
+                .Where(t => cachedEntityType.IsAssignableFrom(t) && !t.IsInterface))
+            {
+                AddCacheTrackerTrigger(type);
+            }
+        }
+
+        private static void AddCacheTrackerTrigger(Type entityType)
+        {
+            string tableName = null;
+            try
+            {
+                var tableAttribute = entityType.GetAttribute<TableAttribute>();
+                tableName = tableAttribute?.Name ?? entityType.Name;
+                var triggerName = $"Solhigson_UTrig_{tableName}_UpdateChangeTracker";
+
+                var deleteScriptBuilder = new StringBuilder();
+                deleteScriptBuilder.Append($"IF OBJECT_ID(N'[{triggerName}]') IS NOT NULL ");
+                deleteScriptBuilder.Append("BEGIN ");
+                deleteScriptBuilder.Append($"DROP PROCEDURE [{triggerName}] ");
+                deleteScriptBuilder.Append("END;");
+
+                var createTriggerScriptBuilder = new StringBuilder();
+                createTriggerScriptBuilder.Append($"CREATE TRIGGER [{triggerName}] ON [{tableName}] AFTER INSERT, DELETE, UPDATE AS ");
+                createTriggerScriptBuilder.Append($"BEGIN SET NOCOUNT ON; EXEC [{updateChangeTrackerSpName}] END");
+            
+                AdoNetUtils.ExecuteNonQueryAsync(_connectionString, deleteScriptBuilder.ToString()).Wait();
+                AdoNetUtils.ExecuteNonQueryAsync(_connectionString, createTriggerScriptBuilder.ToString()).Wait();
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, $"Creating Cache Trigger on {entityType.Name} => {tableName}");
+            }
         }
 
         private static void StartCacheTimer(int interval)

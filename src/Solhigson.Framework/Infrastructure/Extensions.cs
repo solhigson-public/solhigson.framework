@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -48,9 +49,9 @@ namespace Solhigson.Framework.Infrastructure
         }
         
         public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-            int cacheExpirationPeriodMinutes = 1440)
+            int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null)
         {
-            CacheManager.Initialize(connectionString);
+            CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly);
             return app;
         }
 
@@ -260,12 +261,12 @@ namespace Solhigson.Framework.Infrastructure
             return $"{query.ElementType}_{query.Expression}";
         }
 
-        public static IList<T> FromCacheCollection<T>(this IQueryable<T> query) where T : class, ICachedData
+        public static IList<T> FromCacheCollection<T>(this IQueryable<T> query) where T : class, ICachedEntity
         {
             return GetCacheData<T, List<T>>(query, ResolveToList);
         }
 
-        public static T FromCacheSingle<T>(this IQueryable<T> query) where T : class, ICachedData
+        public static T FromCacheSingle<T>(this IQueryable<T> query) where T : class, ICachedEntity
         {
             return GetCacheData<T, T>(query, ResolveToSingle);
         }
@@ -304,25 +305,6 @@ namespace Solhigson.Framework.Infrastructure
             return query.FirstOrDefault();
         }
 
-        internal static void CheckAndUpdateCachedData(this DbContext context)
-        {
-            if (context == null)
-            {
-                return;
-            }
-
-            var entries = context.ChangeTracker
-                .Entries()
-                .Where(e => e.Entity is ICachedData && (e.State == EntityState.Added ||
-                                                        e.State == EntityState.Modified ||
-                                                        e.State == EntityState.Deleted));
-
-            if (entries.Any())
-            {
-                _ = CacheManager.ResyncCache();
-            }
-        }
-        
         public static async Task<PagedList<T>> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int pageSize)
         {
             var count = await source.CountAsync();
@@ -368,6 +350,52 @@ namespace Solhigson.Framework.Infrastructure
             return new LinkedList<T>(source);
         }
 
+        #endregion
+        
+        #region Attributes 
+        
+        public static T GetAttribute<T>(this object obj, bool includeInheritance = true) where T : Attribute
+        {
+            if (obj is null)
+            {
+                return null;
+            }
+            var attributes = obj.GetType().GetCustomAttributes(typeof(T), includeInheritance);
+
+            if (attributes.Length > 0)
+            {
+                return attributes[0] as T;
+            }
+
+            return null;
+        }
+
+        public static T GetAttribute<T>(this Type type, bool includeInheritance = true) where T : Attribute
+        {
+            if (type == null)
+            {
+                return null;
+            }
+            var attributes = type.GetCustomAttributes(typeof(T), includeInheritance);
+
+            if (attributes.Length > 0)
+            {
+                return attributes[0] as T;
+            }
+
+            return null;
+        }
+
+        public static bool HasAttribute<T>(this Type type, bool includeInheritance = true) where T : Attribute
+        {
+            return type.GetAttribute<T>(includeInheritance) != null;
+        }
+        
+        public static bool HasAttribute<T>(this object obj, bool includeInheritance = true) where T : Attribute
+        {
+            return obj.GetAttribute<T>(includeInheritance) != null;
+        }
+        
         #endregion
     }
 }
