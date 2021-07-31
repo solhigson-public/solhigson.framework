@@ -1,6 +1,6 @@
 ﻿namespace Solhigson.Framework.Data
 {
-    public interface ICachedData
+    public interface ICachedEntity
     {
     }
 }
