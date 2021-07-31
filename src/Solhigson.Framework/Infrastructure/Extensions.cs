@@ -297,12 +297,12 @@ namespace Solhigson.Framework.Infrastructure
 
         private static object ResolveToList<T>(IQueryable<T> query) where T : class
         {
-            return query.ToList();
+            return query.AsNoTrackingWithIdentityResolution().ToList();
         }
 
         private static object ResolveToSingle<T>(IQueryable<T> query) where T : class
         {
-            return query.FirstOrDefault();
+            return query.AsNoTrackingWithIdentityResolution().FirstOrDefault();
         }
 
         public static async Task<PagedList<T>> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int pageSize)
