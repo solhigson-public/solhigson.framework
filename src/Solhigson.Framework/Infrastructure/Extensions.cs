@@ -196,44 +196,17 @@ namespace Solhigson.Framework.Infrastructure
         #endregion
 
         #region Identity & Jwt
-
-        public static string GetUserId(this IIdentity identity)
-        {
-            return GetClaimValue(identity, ClaimTypes.NameIdentifier);
-        }
-
-        public static string GetPartnershipToken(this IIdentity identity)
-        {
-            return GetClaimValue(identity, ClaimTypes.GivenName);
-        }
-
-        public static string GetEmail(this IIdentity identity)
-        {
-            return GetClaimValue(identity, ClaimTypes.Email);
-        }
-
-        private static string GetClaimValue(this IEnumerable<Claim> claims, string claimType)
-        {
-            if (claims == null)
-            {
-                return null;
-            }
-
-            var claimsList = new List<Claim>(claims);
-            var claim = claimsList.Find(c => c.Type == claimType);
-            return claim?.Value;
-        }
-
-        private static string GetClaimValue(this IIdentity identity, string claimType)
+        public static string GetClaimValue(this IIdentity identity, string claimType)
         {
             var claimIdentity = (ClaimsIdentity) identity;
-            return claimIdentity?.Claims?.GetClaimValue(claimType);
+            return claimIdentity?.Claims?.FirstOrDefault(c => c.Type == claimType)?.Value;
         }
-
-        public static string GetUserEmail(this IHttpContextAccessor httpContextAccessor)
+        
+        public static string GetEmailClaim(this IHttpContextAccessor httpContextAccessor)
         {
             return httpContextAccessor?.HttpContext?.User?.Identity?.GetClaimValue(ClaimTypes.Email);
         }
+
 
         public static ClaimsPrincipal GetPrincipal(string jwtTokenString, string secret,
             TokenValidationParameters validationParameters,

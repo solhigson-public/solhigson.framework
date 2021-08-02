@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Security.Claims;
 using NLog;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging.Nlog.Renderers;
@@ -30,7 +31,7 @@ namespace Solhigson.Framework.Logging
             eventInfo.Properties[GroupRenderer.Name] = group;
             eventInfo.Properties["status"] = status;
             eventInfo.Properties["url"] = endPointUrl;
-            var authenticatedEmail = LogManager.HttpContextAccessor.GetUserEmail();
+            var authenticatedEmail = LogManager.HttpContextAccessor.GetEmailClaim();
             if (string.IsNullOrWhiteSpace(authenticatedEmail))
             {
                 authenticatedEmail = userEmail;
