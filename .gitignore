@@ -332,4 +332,5 @@ deployments/creds/
 
 # Playground Project
 src/Solhigson.Framework.Playground/Whiteboard
+src/Solhigson.Framework.Playground/Migrations
 *.development.json

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Common;
 using NLog.Config;
 using NLog.Targets;
@@ -29,6 +31,8 @@ namespace Solhigson.Framework.Infrastructure
 {
     public static class Extensions
     {
+        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        
         #region Api Extensions
 
         public static Dictionary<string, string> AddAuthorizationHeader(this Dictionary<string, string> headers,
@@ -191,7 +195,7 @@ namespace Solhigson.Framework.Infrastructure
 
         #endregion
 
-        #region Identity
+        #region Identity & Jwt
 
         public static string GetUserId(this IIdentity identity)
         {
@@ -231,11 +235,44 @@ namespace Solhigson.Framework.Infrastructure
             return httpContextAccessor?.HttpContext?.User?.Identity?.GetClaimValue(ClaimTypes.Email);
         }
 
+        public static ClaimsPrincipal GetPrincipal(string jwtTokenString, string secret,
+            TokenValidationParameters validationParameters,
+            string issuer, string audience = null)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = (JwtSecurityToken)tokenHandler.ReadToken(jwtTokenString);
+                if (jwtToken == null)
+                    return null;
+                var key = Encoding.UTF8.GetBytes(secret);
+                validationParameters ??= new TokenValidationParameters
+                {
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    ValidateLifetime = true,
+                    RequireExpirationTime = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero
+                };
+                return tokenHandler.ValidateToken(jwtTokenString,
+                    validationParameters, out _);
+            }
+            catch(Exception e)
+            {
+                Logger.Error(e);
+            }
+
+            return null;
+        }
+
         #endregion
 
         #region EntityFramework Data Extensions
 
-        public static string GetCacheKey(this IQueryable query)
+        public static string GetCacheKey(this IQueryable query, bool hash = true)
         {
             var expression = query.Expression;
 
@@ -248,9 +285,10 @@ namespace Solhigson.Framework.Infrastructure
             // use the string representation of the expression for the cache key
             var key = $"{query.ElementType}{expression}";
 
-            // the key is potentially very long, so use an md5 fingerprint
-            // (fine if the query result data isn't critically sensitive)
-            key = key.ToSha256();
+            if (hash)
+            {
+                key = key.ToSha256();
+            }
 
             return key;
         }
@@ -278,9 +316,11 @@ namespace Solhigson.Framework.Infrastructure
             var data = CacheManager.GetFromCache<TK>(key);
             if (data != null)
             {
+                Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
                 return data;
             }
 
+            Logger.Debug($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             lock (key)
             {
                 data = CacheManager.GetFromCache<TK>(key);
@@ -290,7 +330,12 @@ namespace Solhigson.Framework.Infrastructure
                 }
 
                 data = func(query) as TK;
-                CacheManager.InsertItem(key, data);
+                if (data != null)
+                {
+                    CacheManager.InsertItem(key, data,
+                        new TableChangeMonitor(CacheManager.GetTableChangeTracker(query.ElementType)));
+                }
+
                 return data;
             }
         }
