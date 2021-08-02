@@ -10,7 +10,7 @@ namespace Solhigson.Framework.Web.Api
         {
             Uri = uri;
             TimeOut = 0;
-            Format = ApiRequestService.ContentTypeJson;
+            Format = ApiRequestHelper.ContentTypeJson;
             HttpMethod = httpMethod;
             Payload = payload;
             ExpectContinue = true;

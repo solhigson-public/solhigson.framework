@@ -21,9 +21,6 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<AzureLogAnalyticsService>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<ApiRequestService>().AsSelf().SingleInstance()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-            
             builder.RegisterType<SolhigsonApiTraceMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
         }
