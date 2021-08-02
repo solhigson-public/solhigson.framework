@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
@@ -11,6 +12,7 @@ using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Common;
 using NLog.Config;
 using NLog.Targets;
@@ -193,7 +195,7 @@ namespace Solhigson.Framework.Infrastructure
 
         #endregion
 
-        #region Identity
+        #region Identity & Jwt
 
         public static string GetUserId(this IIdentity identity)
         {
@@ -231,6 +233,39 @@ namespace Solhigson.Framework.Infrastructure
         public static string GetUserEmail(this IHttpContextAccessor httpContextAccessor)
         {
             return httpContextAccessor?.HttpContext?.User?.Identity?.GetClaimValue(ClaimTypes.Email);
+        }
+
+        public static ClaimsPrincipal GetPrincipal(string jwtTokenString, string secret,
+            TokenValidationParameters validationParameters,
+            string issuer, string audience = null)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var jwtToken = (JwtSecurityToken)tokenHandler.ReadToken(jwtTokenString);
+                if (jwtToken == null)
+                    return null;
+                var key = Encoding.UTF8.GetBytes(secret);
+                validationParameters ??= new TokenValidationParameters
+                {
+                    ValidIssuer = issuer,
+                    ValidAudience = audience,
+                    ValidateLifetime = true,
+                    RequireExpirationTime = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ClockSkew = TimeSpan.Zero
+                };
+                return tokenHandler.ValidateToken(jwtTokenString,
+                    validationParameters, out _);
+            }
+            catch(Exception e)
+            {
+                Logger.Error(e);
+            }
+
+            return null;
         }
 
         #endregion

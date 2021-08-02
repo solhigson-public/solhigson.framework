@@ -34,10 +34,10 @@ namespace Solhigson.Framework.Data
         private static MemoryCache DefaultMemoryCache { get; } = new MemoryCache("Solhigson::Data::Cache::Manager");
         private static ConcurrentBag<string> CacheKeys { get; } = new ConcurrentBag<string>();
 
-        private const string ChangeTrackerTableName = "Solhigson_CacheChangeTracker";
-        private const string UpdateChangeTrackerSpName = "Solhigson_Usp_UpdateChangeTracker";
-        private const string GetAllChangeTrackerSpName = "Solhigson_Usp_GetAllChangeTrackerIds";
-        private const string GetTableChangeTrackerSpName = "Solhigson_Usp_GetTableChangeTrackerId";
+        private const string ChangeTrackerTableName = "__SolhigsonCacheChangeTracker";
+        private const string UpdateChangeTrackerSpName = "__SolhigsonUpdateChangeTracker";
+        private const string GetAllChangeTrackerSpName = "__SolhigsonGetAllChangeTrackerIds";
+        private const string GetTableChangeTrackerSpName = "__SolhigsonGetTableChangeTrackerId";
         private const string TableNameColumnName = "TableName";
         private const string ChangeIdColumnName = "ChangeId";
 
