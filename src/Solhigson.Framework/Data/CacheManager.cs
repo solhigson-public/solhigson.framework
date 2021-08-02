@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +9,8 @@ using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Solhigson.Framework.Data.Dto;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 
@@ -14,21 +18,33 @@ namespace Solhigson.Framework.Data
 {
     public static class CacheManager
     {
-        private static string _connectionString;
-        //private static SolhigsonServicesWrapper _servicesWrapper;
         private static Timer _timer;
-        private static int _currentChangeTrackerId;
+
+        private static string _connectionString;
         private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
         private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
         private static int _cacheExpirationPeriodMinutes;
+        public static event EventHandler OnTableChangeTimerElapsed;
+
+
+        private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeMonitors =
+            new ConcurrentDictionary<string, TableChangeTracker>();
         
 
         private static MemoryCache DefaultMemoryCache { get; } = new MemoryCache("Solhigson::Data::Cache::Manager");
         private static ConcurrentBag<string> CacheKeys { get; } = new ConcurrentBag<string>();
-        
-        const string changeTrackerTableName = "Solhigson_CacheChangeTracker";
-        const string updateChangeTrackerSpName = "Solhigson_Usp_UpdateChangeTracker";
-        const string getChangeTrackerSpName = "Solhigson_Usp_GetChangeTrackerId";
+
+        private const string ChangeTrackerTableName = "Solhigson_CacheChangeTracker";
+        private const string UpdateChangeTrackerSpName = "Solhigson_Usp_UpdateChangeTracker";
+        private const string GetAllChangeTrackerSpName = "Solhigson_Usp_GetAllChangeTrackerIds";
+        private const string GetTableChangeTrackerSpName = "Solhigson_Usp_GetTableChangeTrackerId";
+        private const string TableNameColumnName = "TableName";
+        private const string ChangeIdColumnName = "ChangeId";
+
+        private static string GetParameterName(string tableName)
+        {
+            return $"@{tableName}";
+        }
 
         internal static void Initialize(string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
             int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null)
@@ -37,48 +53,81 @@ namespace Solhigson.Framework.Data
             _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
             _cacheDependencyChangeTrackerTimerIntervalMilliseconds = cacheDependencyChangeTrackerTimerIntervalMilliseconds;
             InitializeCacheChangeTracker(databaseModelsAssembly);
-            StartCacheTimer(_cacheDependencyChangeTrackerTimerIntervalMilliseconds);
+            StartCacheTimer();
+        }
+
+        private static void StartCacheTimer()
+        {
+            _timer = new Timer(_cacheDependencyChangeTrackerTimerIntervalMilliseconds);
+            _timer.Elapsed += TimerOnElapsed;
+            _timer.Start();
+        }
+
+        private static void TimerOnElapsed(object sender, ElapsedEventArgs e)
+        {
+            var changes = GetAllChangeTrackerIds().Result;
+            if (changes != null)
+            {
+                var changeTrackers = changes.ToDictionary(changeTracker => changeTracker.TableName,
+                    changeTracker => changeTracker.ChangeId);
+                OnTableChangeTimerElapsed?.Invoke(null, new ChangeTrackerEventArgs(changeTrackers));
+            }
         }
 
         private static void InitializeCacheChangeTracker(Assembly databaseModelsAssembly)
         {
             var sBuilder = new StringBuilder();
-            var getChangeTrackerBuilder = new StringBuilder();
+            var getAllChangeTrackerBuilder = new StringBuilder();
+            var getTableChangeTrackerBuilder = new StringBuilder();
             var updateChangeTrackerBuilder = new StringBuilder();
-            sBuilder.Append($"IF OBJECT_ID(N'[{changeTrackerTableName}]') IS NULL ");
+            
+            sBuilder.Append($"IF OBJECT_ID(N'[{ChangeTrackerTableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{changeTrackerTableName}] ( ");
-            sBuilder.Append("[ChangeId] int NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{changeTrackerTableName}] PRIMARY KEY ([ChangeId])); ");
-            sBuilder.Append($"INSERT INTO [{changeTrackerTableName}] (ChangeId) VALUES (1); END;");
+            sBuilder.Append($"CREATE TABLE [{ChangeTrackerTableName}] ( ");
+            sBuilder.Append($"{TableNameColumnName} VARCHAR(255) NOT NULL, {ChangeIdColumnName} SMALLINT NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{ChangeTrackerTableName}] PRIMARY KEY ([{TableNameColumnName}])); END;");
 
-            sBuilder.Append($"IF OBJECT_ID(N'[{updateChangeTrackerSpName}]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{UpdateChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"DROP PROCEDURE [{updateChangeTrackerSpName}] ");
+            sBuilder.Append($"DROP PROCEDURE [{UpdateChangeTrackerSpName}] ");
             sBuilder.Append("END;");
             sBuilder.Append(Environment.NewLine);
-            sBuilder.Append($"IF OBJECT_ID(N'[{getChangeTrackerSpName}]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{GetAllChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"DROP PROCEDURE [{getChangeTrackerSpName}] ");
+            sBuilder.Append($"DROP PROCEDURE [{GetAllChangeTrackerSpName}] ");
+            sBuilder.Append("END;");
+            sBuilder.Append(Environment.NewLine);
+            sBuilder.Append($"IF OBJECT_ID(N'[{GetTableChangeTrackerSpName}]') IS NOT NULL ");
+            sBuilder.Append("BEGIN ");
+            sBuilder.Append($"DROP PROCEDURE [{GetTableChangeTrackerSpName}] ");
             sBuilder.Append("END;");
 
-            getChangeTrackerBuilder.Append($"CREATE PROCEDURE [{getChangeTrackerSpName}] ");
-            getChangeTrackerBuilder.Append("AS ");
-            getChangeTrackerBuilder.Append($"SELECT ChangeId from [{changeTrackerTableName}] (NOLOCK) ");
+            getAllChangeTrackerBuilder.Append($"CREATE PROCEDURE [{GetAllChangeTrackerSpName}] ");
+            getAllChangeTrackerBuilder.Append("AS ");
+            getAllChangeTrackerBuilder.Append($"SELECT [{TableNameColumnName}], [{ChangeIdColumnName}] from [{ChangeTrackerTableName}] (NOLOCK)");
 
-            updateChangeTrackerBuilder.Append($"CREATE PROCEDURE [{updateChangeTrackerSpName}] ");
+            getTableChangeTrackerBuilder.Append($"CREATE PROCEDURE [{GetTableChangeTrackerSpName}] ({GetParameterName(TableNameColumnName)} VARCHAR(255)) ");
+            getTableChangeTrackerBuilder.Append("AS ");
+            getTableChangeTrackerBuilder.Append($"SELECT [{ChangeIdColumnName}] from [{ChangeTrackerTableName}] (NOLOCK) WHERE [{TableNameColumnName}] = {GetParameterName(TableNameColumnName)}");
+
+            updateChangeTrackerBuilder.Append($"CREATE PROCEDURE [{UpdateChangeTrackerSpName}] ({GetParameterName(TableNameColumnName)} VARCHAR(255)) ");
             updateChangeTrackerBuilder.Append("AS ");
-            updateChangeTrackerBuilder.Append("DECLARE @id INT ");
-            updateChangeTrackerBuilder.Append($"select @id = ChangeId from [{changeTrackerTableName}] (NOLOCK) ");
-            updateChangeTrackerBuilder.Append("IF(@id > 1000) ");
-            updateChangeTrackerBuilder.Append("BEGIN ");
-            updateChangeTrackerBuilder.Append("SET @id = 1 ");
-            updateChangeTrackerBuilder.Append("END ");
-            updateChangeTrackerBuilder.Append($"UPDATE dbo.[{changeTrackerTableName}] SET ChangeId = @id + 1 ");
+            updateChangeTrackerBuilder.Append($"DECLARE {GetParameterName(ChangeIdColumnName)} INT ");
+            updateChangeTrackerBuilder.Append($"SELECT {GetParameterName(ChangeIdColumnName)} = [{ChangeIdColumnName}] FROM [{ChangeTrackerTableName}] (NOLOCK) WHERE [{TableNameColumnName}] = {GetParameterName(TableNameColumnName)} ");
+            updateChangeTrackerBuilder.Append($"IF({GetParameterName(ChangeIdColumnName)} IS NULL) " +
+                                              $"BEGIN " +
+                                              $"INSERT INTO [{ChangeTrackerTableName}] ([{TableNameColumnName}], [{ChangeIdColumnName}]) VALUES ({GetParameterName(TableNameColumnName)}, 0) RETURN 1 " +
+                                              $"END ");
+            updateChangeTrackerBuilder.Append($"IF({GetParameterName(ChangeIdColumnName)} > 1000) ");
+            updateChangeTrackerBuilder.Append($"BEGIN " +
+                                              $"SET {GetParameterName(ChangeIdColumnName)} = 1 " +
+                                              $"END ");
+            updateChangeTrackerBuilder.Append($"UPDATE dbo.[{ChangeTrackerTableName}] SET [{ChangeIdColumnName}] = {GetParameterName(ChangeIdColumnName)} + 1 WHERE [{TableNameColumnName}] = {GetParameterName(TableNameColumnName)}");
 
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, sBuilder.ToString()).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, updateChangeTrackerBuilder.ToString()).Wait();
-            AdoNetUtils.ExecuteNonQueryAsync(_connectionString, getChangeTrackerBuilder.ToString()).Wait();
+            AdoNetUtils.ExecuteNonQueryAsync(_connectionString, getAllChangeTrackerBuilder.ToString()).Wait();
+            AdoNetUtils.ExecuteNonQueryAsync(_connectionString, getTableChangeTrackerBuilder.ToString()).Wait();
 
             if (databaseModelsAssembly == null)
             {
@@ -93,24 +142,29 @@ namespace Solhigson.Framework.Data
             }
         }
 
+        internal static string GetTableName(Type entityType)
+        {
+            var tableAttribute = entityType.GetAttribute<TableAttribute>();
+            return  tableAttribute?.Name ?? entityType.Name;
+        }
+
         private static void AddCacheTrackerTrigger(Type entityType)
         {
             string tableName = null;
             try
             {
-                var tableAttribute = entityType.GetAttribute<TableAttribute>();
-                tableName = tableAttribute?.Name ?? entityType.Name;
+                tableName = GetTableName(entityType);
                 var triggerName = $"Solhigson_UTrig_{tableName}_UpdateChangeTracker";
 
                 var deleteScriptBuilder = new StringBuilder();
                 deleteScriptBuilder.Append($"IF OBJECT_ID(N'[{triggerName}]') IS NOT NULL ");
                 deleteScriptBuilder.Append("BEGIN ");
-                deleteScriptBuilder.Append($"DROP PROCEDURE [{triggerName}] ");
+                deleteScriptBuilder.Append($"DROP TRIGGER [{triggerName}] ");
                 deleteScriptBuilder.Append("END;");
 
                 var createTriggerScriptBuilder = new StringBuilder();
                 createTriggerScriptBuilder.Append($"CREATE TRIGGER [{triggerName}] ON [{tableName}] AFTER INSERT, DELETE, UPDATE AS ");
-                createTriggerScriptBuilder.Append($"BEGIN SET NOCOUNT ON; EXEC [{updateChangeTrackerSpName}] END");
+                createTriggerScriptBuilder.Append($"BEGIN TRY SET NOCOUNT ON; EXEC [{UpdateChangeTrackerSpName}] {GetParameterName(TableNameColumnName)} = N'{tableName}' END TRY BEGIN CATCH END CATCH");
             
                 AdoNetUtils.ExecuteNonQueryAsync(_connectionString, deleteScriptBuilder.ToString()).Wait();
                 AdoNetUtils.ExecuteNonQueryAsync(_connectionString, createTriggerScriptBuilder.ToString()).Wait();
@@ -121,26 +175,27 @@ namespace Solhigson.Framework.Data
             }
         }
 
-        private static void StartCacheTimer(int interval)
-        {
-            if (interval > 20000 || interval < 5000)
-            {
-                interval = 5000;
-            }
-
-            _currentChangeTrackerId = GetChangeId();
-            _timer = new Timer(interval);
-
-            _timer.Start();
-            _timer.Elapsed += TimerOnElapsed;
-        }
-
-        private static int GetChangeId()
+        private static async Task<List<ChangeTrackerDto>> GetAllChangeTrackerIds()
         {
             try
             {
-                return AdoNetUtils.ExecuteScalarAsync<int>(_connectionString, $"[{getChangeTrackerSpName}]",
-                    isStoredProcedure: true).Result;
+                return await AdoNetUtils.GetListAsync<ChangeTrackerDto>
+                    (_connectionString, $"[{GetAllChangeTrackerSpName}]", isStoredProcedure: true);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e, "Unable to get Cache Change Tracker Id");
+            }
+
+            return null;
+        }
+        
+        internal static async Task<short> GetTableChangeTrackerId(string tableName)
+        {
+            try
+            {
+                return await AdoNetUtils.GetSingleOrDefaultAsync<short>
+                    (_connectionString, $"EXEC [{GetTableChangeTrackerSpName}]  {GetParameterName(TableNameColumnName)} = N'{tableName}'");
             }
             catch (Exception e)
             {
@@ -150,55 +205,34 @@ namespace Solhigson.Framework.Data
             return 0;
         }
 
-        private static void TimerOnElapsed(object sender, ElapsedEventArgs e)
-        {
-            var changeId = GetChangeId();
-            if (changeId == _currentChangeTrackerId)
-            {
-                return;
-            }
-
-            _currentChangeTrackerId = changeId;
-            foreach (var key in CacheKeys)
-            {
-                DefaultMemoryCache.Remove(key);
-            }
-        }
-
-        public static async Task<bool> ResyncCache()
-        {
-            try
-            {
-                await AdoNetUtils.ExecuteNonQueryAsync(_connectionString, $"[{updateChangeTrackerSpName}]");
-                return true;
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e);
-            }
-
-            return false;
-        }
 
         public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
         {
             if (string.IsNullOrWhiteSpace(key) || value == null)
             {
+                changeMonitor?.Dispose();
                 return;
             }
 
-            var policy = new CacheItemPolicy
+            try
             {
-                AbsoluteExpiration = DateTime.Now.AddMinutes(_cacheExpirationPeriodMinutes),
-            };
+                var policy = new CacheItemPolicy();
+                if (changeMonitor != null)
+                {
+                    policy.ChangeMonitors.Add(changeMonitor);
+                }
+                else
+                {
+                    policy.AbsoluteExpiration = DateTime.UtcNow.AddMinutes(_cacheExpirationPeriodMinutes);
+                }
 
-            if (changeMonitor != null)
-            {
-                policy.ChangeMonitors.Add(changeMonitor);
+                DefaultMemoryCache.Set(key, value, policy);
+                CacheKeys.Add(key);
             }
-
-            DefaultMemoryCache.Set(key, value, policy);
-            CacheKeys.Add(key);
+            catch (Exception e)
+            {
+                Logger.Error(e, "Adding item to cache", value);
+            }
         }
 
         public static T GetFromCache<T>(string key) where T : class
@@ -209,6 +243,31 @@ namespace Solhigson.Framework.Data
         private static object GetItem(string key)
         {
             return DefaultMemoryCache.Get(key);
+        }
+
+        internal static TableChangeTracker GetTableChangeTracker(Type type)
+        {
+            return GetTableChangeTracker(GetTableName(type));
+        }
+
+
+        private static TableChangeTracker GetTableChangeTracker(string tableName)
+        {
+            if (ChangeMonitors.TryGetValue(tableName, out var tableChangeTracker))
+            {
+                return tableChangeTracker;
+            }
+            
+            tableChangeTracker = new TableChangeTracker(tableName);
+            try
+            {
+                ChangeMonitors.TryAdd(tableName, tableChangeTracker);
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
+            return tableChangeTracker;
         }
     }
 }

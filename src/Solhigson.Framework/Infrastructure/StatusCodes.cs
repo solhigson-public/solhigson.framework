@@ -4,6 +4,9 @@
     {
         public const string ErrorFromServiceProvider = "11011";
         public const string NotSupportedByServiceProvider = "11012";
+        
+        public static string MessageIntegrityValidationFailed = "20050";
+
         public const string InsufficientFunds = "62002";
         public const string InvalidAccountNumber = "60001";
         public const string TransactionNotFound = "50001";
