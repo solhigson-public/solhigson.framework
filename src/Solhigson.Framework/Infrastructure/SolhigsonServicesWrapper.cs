@@ -17,7 +17,6 @@ namespace Solhigson.Framework.Infrastructure
 
         public SolhigsonConfigurationCache ConfigurationCache { get; }
         public IHttpContextAccessor HttpContextAccessor { get; }
-        public ApiRequestService ApiRequestService { get; set; }
         public IConfiguration Configuration { get; set; }
     }
 }
