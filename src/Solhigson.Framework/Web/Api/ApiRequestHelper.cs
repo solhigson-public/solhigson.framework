@@ -23,7 +23,7 @@ namespace Solhigson.Framework.Web.Api
 
         #region GET Requests
 
-        public static async Task<ApiRequestServiceResponse> GetDataJsonAsync(string uri,
+        public static async Task<ApiRequestResponse> GetDataJsonAsync(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -32,7 +32,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
         }
 
-        public static async Task<ApiRequestServiceResponse> GetDataXmlAsync(string uri,
+        public static async Task<ApiRequestResponse> GetDataXmlAsync(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -42,7 +42,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
         }
 
-        public static async Task<ApiRequestServiceResponse> GetDataPlainAsync(string uri,
+        public static async Task<ApiRequestResponse> GetDataPlainAsync(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -52,7 +52,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
         }
 
-        public static async Task<ApiRequestServiceResponse<T>> GetDataJsonAsync<T>(string uri,
+        public static async Task<ApiRequestResponse<T>> GetDataJsonAsync<T>(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0) where T : class
@@ -61,7 +61,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
         }
 
-        public static async Task<ApiRequestServiceResponse<T>> GetDataXmlAsync<T>(string uri,
+        public static async Task<ApiRequestResponse<T>> GetDataXmlAsync<T>(string uri,
             Dictionary<string, string> headers = null,
             string serviceName = null, string serviceDescription = null, string serviceType = null, int timeOut = 0)
             where T : class
@@ -75,7 +75,7 @@ namespace Solhigson.Framework.Web.Api
 
         #region POST Requests
 
-        public static async Task<ApiRequestServiceResponse> PostDataJsonAsync(string uri, string data,
+        public static async Task<ApiRequestResponse> PostDataJsonAsync(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -84,7 +84,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
         }
 
-        public static async Task<ApiRequestServiceResponse> PostDataXmlAsync(string uri, string data,
+        public static async Task<ApiRequestResponse> PostDataXmlAsync(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -94,7 +94,7 @@ namespace Solhigson.Framework.Web.Api
                 timeOut);
         }
 
-        public static async Task<ApiRequestServiceResponse> PostDataAsync(string uri, string data, string contentType,
+        public static async Task<ApiRequestResponse> PostDataAsync(string uri, string data, string contentType,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -104,7 +104,7 @@ namespace Solhigson.Framework.Web.Api
                 timeOut);
         }
 
-        public static async Task<ApiRequestServiceResponse<T>> PostDataJsonAsync<T>(string uri, string data,
+        public static async Task<ApiRequestResponse<T>> PostDataJsonAsync<T>(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0) where T : class
@@ -113,7 +113,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
         }
 
-        public static async Task<ApiRequestServiceResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
+        public static async Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
             string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
@@ -123,7 +123,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceName, serviceDescription, serviceType, timeOut);
         }
 
-        public static async Task<ApiRequestServiceResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
+        public static async Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
             IDictionary<string, string> data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
@@ -134,7 +134,7 @@ namespace Solhigson.Framework.Web.Api
                 headers, serviceName, serviceDescription, serviceType, timeOut);
         }
 
-        public static async Task<ApiRequestServiceResponse> PostDataXWwwFormUrlencodedAsync(string uri,
+        public static async Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri,
             IDictionary<string, string> data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
@@ -145,7 +145,7 @@ namespace Solhigson.Framework.Web.Api
         }
 
 
-        public static async Task<ApiRequestServiceResponse> PostDataXWwwFormUrlencodedAsync(string uri, string data,
+        public static async Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0)
@@ -155,7 +155,7 @@ namespace Solhigson.Framework.Web.Api
         }
 
 
-        public static async Task<ApiRequestServiceResponse<T>> PostDataXmlAsync<T>(string uri, string data,
+        public static async Task<ApiRequestResponse<T>> PostDataXmlAsync<T>(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
             int timeOut = 0) where T : class
@@ -169,7 +169,7 @@ namespace Solhigson.Framework.Web.Api
 
         #region Helpers
 
-        private static async Task<ApiRequestServiceResponse> SendRequestAsync(string uri, HttpMethod method,
+        private static async Task<ApiRequestResponse> SendRequestAsync(string uri, HttpMethod method,
             string data = "", string format = ContentTypeJson,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
@@ -180,7 +180,7 @@ namespace Solhigson.Framework.Web.Api
                 timeOut);
         }
 
-        private static async Task<ApiRequestServiceResponse<T>> SendRequestAsync<T>(string uri, HttpMethod method,
+        private static async Task<ApiRequestResponse<T>> SendRequestAsync<T>(string uri, HttpMethod method,
             string data = "", string format = ContentTypeJson,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
             string serviceType = null,
@@ -204,22 +204,22 @@ namespace Solhigson.Framework.Web.Api
                 Logger.Error(e);
             }
 
-            return new ApiRequestServiceResponse<T>();
+            return new ApiRequestResponse<T>();
         }
 
 
-        public static async Task<ApiRequestServiceResponse> SendRequestAsync(ApiRequestDetails apiRequestDetails)
+        public static async Task<ApiRequestResponse> SendRequestAsync(ApiRequestDetails apiRequestDetails)
         {
             return await SendRequestAsync<object>(apiRequestDetails);
         }
 
-        public static async Task<ApiRequestServiceResponse<T>> SendRequestAsync<T>(ApiRequestDetails apiRequestDetails)
+        public static async Task<ApiRequestResponse<T>> SendRequestAsync<T>(ApiRequestDetails apiRequestDetails)
             where T : class
         {
             return await SendRequestInternalAsync<T>(apiRequestDetails);
         }
 
-        private static async Task<ApiRequestServiceResponse<T>> SendRequestInternalAsync<T>(
+        private static async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
             ApiRequestDetails apiRequestDetails)
             where T : class
         {
@@ -241,7 +241,7 @@ namespace Solhigson.Framework.Web.Api
                 serviceType = Constants.ServiceType.External;
             }
 
-            var apiRequestHelperResponse = new ApiRequestServiceResponse<T>();
+            var apiRequestHelperResponse = new ApiRequestResponse<T>();
             Client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
             var request = new HttpRequestMessage();
             //HttpResponseMessage httpResponseMsg = null;
@@ -402,17 +402,17 @@ namespace Solhigson.Framework.Web.Api
             return apiRequestHelperResponse;
         }
 
-        private static void GetStatusCode(WebException we, ApiRequestServiceResponse apiRequestServiceResponse)
+        private static void GetStatusCode(WebException we, ApiRequestResponse apiRequestResponse)
         {
             if (we.Message.ToLower().Contains("timed out")
                 || we.Status == WebExceptionStatus.Timeout
                 || we.Status == WebExceptionStatus.Pending)
             {
-                apiRequestServiceResponse.HttpStatusCode = HttpStatusCode.RequestTimeout;
+                apiRequestResponse.HttpStatusCode = HttpStatusCode.RequestTimeout;
             }
         }
 
-        private static void ExtractObject<T>(ApiRequestServiceResponse<T> apiRequestServiceResponse, string format)
+        private static void ExtractObject<T>(ApiRequestResponse<T> apiRequestResponse, string format)
             where T : class
         {
             try
@@ -422,26 +422,26 @@ namespace Solhigson.Framework.Web.Api
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(apiRequestServiceResponse.Response))
+                if (string.IsNullOrWhiteSpace(apiRequestResponse.Response))
                 {
                     return;
                 }
 
-                var content = apiRequestServiceResponse.Response.Trim();
+                var content = apiRequestResponse.Response.Trim();
 
                 if (HelperFunctions.IsValidJson(content))
                 {
-                    apiRequestServiceResponse.Result = content.DeserializeFromJson<T>();
+                    apiRequestResponse.Result = content.DeserializeFromJson<T>();
                 }
                 else if (HelperFunctions.IsValidXml(content))
                 {
-                    apiRequestServiceResponse.Result = content.DeserializeFromXml<T>();
+                    apiRequestResponse.Result = content.DeserializeFromXml<T>();
                 }
             }
             catch (Exception e)
             {
                 Logger.Error(e, $"While deserializing response: " +
-                                $"{apiRequestServiceResponse.Response} from: {format}");
+                                $"{apiRequestResponse.Response} from: {format}");
             }
         }
 

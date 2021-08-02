@@ -4,7 +4,7 @@ using System.Net.Http;
 
 namespace Solhigson.Framework.Web.Api
 {
-    public class ApiRequestServiceResponse
+    public class ApiRequestResponse
     {
         public HttpStatusCode HttpStatusCode { get; set; }
 
@@ -32,7 +32,7 @@ namespace Solhigson.Framework.Web.Api
         
     }
 
-    public class ApiRequestServiceResponse<T> : ApiRequestServiceResponse
+    public class ApiRequestResponse<T> : ApiRequestResponse
     {
         public T Result { get; set; }
     }

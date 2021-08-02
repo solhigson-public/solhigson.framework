@@ -1,17 +1,26 @@
 ﻿using System;
+using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
 namespace Solhigson.Framework.Infrastructure
 {
     public class ResponseInfo
     {
-        [JsonIgnore] public object ErrorData { get; set; }
+        [Newtonsoft.Json.JsonIgnore] 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public object ErrorData { get; set; }
 
-        [JsonIgnore] public bool IsSuccessful => StatusCode == Infrastructure.StatusCode.Successful;
+        [Newtonsoft.Json.JsonIgnore] 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsSuccessful => StatusCode == Infrastructure.StatusCode.Successful;
 
-        [JsonProperty("statusCode")] public string StatusCode { get; set; }
+        [JsonProperty("statusCode")] 
+        [JsonPropertyName("statusCode")]
+        public string StatusCode { get; set; }
 
-        [JsonProperty("message")] public string Message { get; set; }
+        [JsonProperty("message")] 
+        [JsonPropertyName("message")]
+        public string Message { get; set; }
 
         public ResponseInfo SetResponseCode(string responseCode)
         {
@@ -66,7 +75,9 @@ namespace Solhigson.Framework.Infrastructure
 
     public class ResponseInfo<T> : ResponseInfo
     {
-        [JsonProperty("data")] public T Data { get; private set; }
+        [JsonProperty("data")] 
+        [JsonPropertyName("data")]
+        public T Data { get; private set; }
 
         public ResponseInfo<T> Success(T result, string message = "")
         {
