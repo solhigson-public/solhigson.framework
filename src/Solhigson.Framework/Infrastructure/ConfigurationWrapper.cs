@@ -1,15 +1,16 @@
 ﻿using System;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 
 namespace Solhigson.Framework.Infrastructure
 {
     public class ConfigurationWrapper
     {
-        private readonly IConfiguration _configuration;
+        public IConfiguration Configuration { get; }
 
         public ConfigurationWrapper(IConfiguration configuration)
         {
-            _configuration = configuration;
+            Configuration = configuration;
         }
 
         public string GetFromAppSettingFileOnly(string group, string key = null, string defaultValue = null)
@@ -30,7 +31,7 @@ namespace Solhigson.Framework.Infrastructure
         {
             var configKey = group;
             if (!string.IsNullOrWhiteSpace(key)) configKey += $":{key}";
-            var value = _configuration[configKey];
+            var value = Configuration[configKey];
 
             if (value != null) return value;
 
