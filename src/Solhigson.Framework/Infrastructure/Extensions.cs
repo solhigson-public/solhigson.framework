@@ -304,12 +304,23 @@ namespace Solhigson.Framework.Infrastructure
                 }
 
                 data = func(query) as TK;
-                if (data != null)
+                var type = typeof(T);
+                try
                 {
-                    CacheManager.InsertItem(key, data,
-                        new TableChangeMonitor(CacheManager.GetTableChangeTracker(query.ElementType)));
+                    if (query.Expression is System.Linq.Expressions.MethodCallExpression me)
+                    {
+                        if (me.Arguments.Count > 0 && me.Arguments[0].Type.GenericTypeArguments?.Length > 0)
+                        {
+                            type = me.Arguments[0].Type.GenericTypeArguments[0];
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Logger.Error(e);
                 }
 
+                CacheManager.AddToCache(key, data, type);
                 return data;
             }
         }

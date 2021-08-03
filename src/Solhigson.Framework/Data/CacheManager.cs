@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Solhigson.Framework.Data.Dto;
+using Solhigson.Framework.Data.Repository;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 
@@ -145,7 +146,7 @@ namespace Solhigson.Framework.Data
         internal static string GetTableName(Type entityType)
         {
             var tableAttribute = entityType.GetAttribute<TableAttribute>();
-            return  tableAttribute?.Name ?? entityType.Name;
+            return tableAttribute?.Name ?? entityType.Name;
         }
 
         private static void AddCacheTrackerTrigger(Type entityType)
@@ -205,6 +206,22 @@ namespace Solhigson.Framework.Data
             return 0;
         }
 
+        public static void AddToCache(string key, object value, Type type)
+        {
+            if (string.IsNullOrWhiteSpace(key) || value == null || type is null)
+            {
+                return;
+            }
+
+            if (!typeof(ICachedEntity).IsAssignableFrom(type))
+            {
+                Logger.Warn($"Data of type: [{value.GetType()}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
+                return;
+            }
+
+            InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(type)));
+
+        }
 
         public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
         {
