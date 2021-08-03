@@ -267,12 +267,12 @@ namespace Solhigson.Framework.Infrastructure
         }
 
 
-        public static IList<T> FromCacheCollection<T>(this IQueryable<T> query) where T : class, ICachedEntity
+        public static IList<T> FromCacheCollection<T>(this IQueryable<T> query) where T : class
         {
             return GetCacheData<T, List<T>>(query, ResolveToList);
         }
 
-        public static T FromCacheSingle<T>(this IQueryable<T> query) where T : class, ICachedEntity
+        public static T FromCacheSingle<T>(this IQueryable<T> query) where T : class
         {
             return GetCacheData<T, T>(query, ResolveToSingle);
         }
