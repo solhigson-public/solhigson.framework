@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Solhigson.Framework.Data.Repository
 {
-    public class RepositoryBase<T> : IRepositoryBase<T> where T : class
+    public class RepositoryBase<T, TK> : IRepositoryBase<T> where T : class where TK : DbContext
     {
-        protected DbContext DbContext { get; set; }
+        protected TK DbContext { get; }
 
-        public RepositoryBase(DbContext dbContext)
+        public RepositoryBase(TK dbContext)
         {
             DbContext = dbContext;
         }
