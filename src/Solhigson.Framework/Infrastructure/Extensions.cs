@@ -267,11 +267,6 @@ namespace Solhigson.Framework.Infrastructure
         }
 
 
-        public static string FromCache(this IQueryable query) // where T : ICachedTable
-        {
-            return $"{query.ElementType}_{query.Expression}";
-        }
-
         public static IList<T> FromCacheCollection<T>(this IQueryable<T> query) where T : class, ICachedEntity
         {
             return GetCacheData<T, List<T>>(query, ResolveToList);
