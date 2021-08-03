@@ -284,11 +284,17 @@ namespace Solhigson.Framework.Infrastructure
             var data = CacheManager.GetFromCache<TK>(key);
             if (data != null)
             {
-                Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+                if (Logger.IsDebugEnabled)
+                {
+                    Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+                }
                 return data;
             }
 
-            Logger.Debug($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.Debug($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
+            }
             lock (key)
             {
                 data = CacheManager.GetFromCache<TK>(key);
