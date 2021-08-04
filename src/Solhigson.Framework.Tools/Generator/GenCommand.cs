@@ -46,8 +46,7 @@ namespace Solhigson.Framework.Tools.Generator
             const string dtoClassType = "Dto";
 
             Console.WriteLine("Running...");
-            //var path = $"{Environment.CurrentDirectory}/TOOLSGEN";
-            var path = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground/WhiteBoard";
+            var path = $"{Environment.CurrentDirectory}";
 
             foreach (var entity in Models)
             {
