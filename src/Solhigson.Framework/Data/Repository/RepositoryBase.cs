@@ -24,7 +24,7 @@ namespace Solhigson.Framework.Data.Repository
             return DbContext.Set<T>().Where(expression);
         }
 
-        public void Create(T entity)
+        public void Add(T entity)
         {
             DbContext.Set<T>().Add(entity);
         }

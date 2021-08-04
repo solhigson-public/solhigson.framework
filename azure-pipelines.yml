@@ -11,11 +11,15 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/Solhigson.Framework/Solhigson.Framework.csproj'
+  solution: '**/*.sln'
+  frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
+  toolsProj: '**/Solhigson.Framework.Tools/Solhigson.Framework.Tools.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   isDev: $[eq(variables['Build.SourceBranchName'], 'dev')]
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
+  packageTool: true
+  packageFramework: false
 
 stages:
   - stage: build
@@ -43,18 +47,40 @@ stages:
               platform: '$(buildPlatform)'
               configuration: '$(buildConfiguration)'
 
-  - stage: nuget_package_external
-    condition: eq(variables.isMaster, true)
-    displayName: Deploy to Nuget.Org
+  - stage: nuget_package_framework
+    condition: and(eq(variables.isMaster, true), eq(varialbes.packageFramework, true))
+    displayName: Deploy Framework to Nuget.Org
     jobs:
       - job:
-        displayName: Package & Push
+        displayName: Package & Push Framework
         steps:
           - task: DotNetCoreCLI@2
             displayName: 'Package'
             inputs:
               command: 'pack'
-              packagesToPack: '$(solution)'
+              packagesToPack: '$(frameworkProj)'
+              versioningScheme: 'off'
+
+          - task: NuGetCommand@2
+            displayName: 'Push'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'nuget'
+
+  - stage: nuget_package_tools
+    condition: and(eq(variables.isMaster, true), eq(variables.packageTool, true))
+    displayName: Deploy Tools to Nuget.Org
+    jobs:
+      - job:
+        displayName: Package & Push Tools
+        steps:
+          - task: DotNetCoreCLI@2
+            displayName: 'Package'
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(toolsProj)'
               versioningScheme: 'off'
 
           - task: NuGetCommand@2

@@ -8,7 +8,7 @@ namespace Solhigson.Framework.Data.Repository
     {
         IQueryable<T> GetAll();
         IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression);
-        void Create(T entity);
+        void Add(T entity);
         void Update(T entity);
         void Delete(T entity);
     }

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>solhigson</ToolCommandName>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
+        <OutputType>Exe</OutputType>
+        <PackageId>Solhigson.Framework.Tools</PackageId>
+        <Authors>Solhigson</Authors>
+        <Description>Code gen for repository pattern from efcore models</Description>
+        <IsPackable>true</IsPackable>
+        <Version>1.0.0-beta</Version>
+        <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    </PropertyGroup>
+
+</Project>
