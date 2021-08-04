@@ -18,6 +18,7 @@ namespace Solhigson.Framework.Tools
                 Console.WriteLine("-------------");
                 Console.WriteLine("\nUsage:");
                 Console.WriteLine("  solhigson <message>");
+                return;
             }
             
             ShowBot(string.Join(' ', args));
