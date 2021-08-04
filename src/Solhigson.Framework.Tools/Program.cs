@@ -20,11 +20,21 @@ namespace Solhigson.Framework.Tools
                 Console.WriteLine("  solhigson <message>");
                 return;
             }
-            
-            ShowBot(string.Join(' ', args));
+
+            var commandWrapper = new CommandWrapper(args);
+            if (!commandWrapper.IsValid)
+            {
+                Console.WriteLine(commandWrapper.ErrorMessage);
+                commandWrapper.Run();
+                return;
+            }
+            //ShowBot(string.Join(' ', args));
+            ShowBot();
+            commandWrapper.Display();
+            commandWrapper.Run();
         }
         
-        static void ShowBot(string message)
+        static void ShowBot(string message = null)
         {
             string bot = $"\n        {message}";
             bot += @"
@@ -33,11 +43,7 @@ namespace Solhigson.Framework.Tools
   \__ \/ __ \/ / __ \/ / __ `/ ___/ __ \/ __ \
  ___/ / /_/ / / / / / / /_/ (__  ) /_/ / / / /
 /____/\____/_/_/ /_/_/\__, /____/\____/_/ /_/ 
-  ______            _/____/                   
- /_  __/___  ____  / /____                    
-  / / / __ \/ __ \/ / ___/                    
- / / / /_/ / /_/ / (__  )                     
-/_/  \____/\____/_/____/                      
+                    /____/                   
                                               ";
             Console.WriteLine(bot);
         }
