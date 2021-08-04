@@ -1,4 +1,6 @@
 ﻿using Solhigson.Framework.Data.Repository;
+using [DbContextNamespace];
+[EntityNameSpace]
 
 namespace [Namespace].[Folder]
 {

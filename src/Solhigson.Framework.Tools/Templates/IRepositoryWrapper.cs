@@ -1,9 +1,10 @@
-﻿using Solhigson.Framework.Data.Repository;
+﻿using System;
+[EntityNameSpace]
 
 namespace [Namespace].[Folder]
 {
     //This file is never overwritten, place custom code here
-    public partial interface I[Placeholder]Repository
+    public partial interface IRepositoryWrapper
     {
         
     }

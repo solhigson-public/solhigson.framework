@@ -2,8 +2,7 @@
 {
     internal class ResourceDto
     {
-        internal string EntityName { get; set; }
-        internal bool IsInterface { get; set; }
-        internal bool IsGenerated { get; set; }
+        internal string Folder { get; set; }
+        internal string ClassType { get; set; }
     }
 }

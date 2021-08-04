@@ -1,9 +1,9 @@
-﻿using Solhigson.Framework.Data.Repository;
+﻿using System;
 
 namespace [Namespace].[Folder]
 {
     //This file is never overwritten, place custom code here
-    public partial interface I[Placeholder]Repository
+    public partial class [Placeholder]Dto
     {
         
     }

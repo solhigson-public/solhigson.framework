@@ -16,14 +16,34 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
+        <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="Templates\IPlaceholderRepository.generated.cs" />
-      <EmbeddedResource Include="Templates\IPlaceholderRepository.generated.cs" />
-      <Compile Remove="Templates\IPlaceholderRepository.cs" />
-      <EmbeddedResource Include="Templates\IPlaceholderRepository.cs" />
+        <Compile Remove="Templates\IPlaceholderRepository.generated.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderRepository.generated.cs" />
+        <Compile Remove="Templates\IPlaceholderRepository.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderRepository.cs" />
+        <Compile Remove="Templates\PlaceholderRepository.generated.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderRepository.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderRepository.generated.cs" />
+        <Compile Remove="Templates\PlaceholderRepository.cs" />
+        <Compile Remove="Templates\PlaceHolderDto.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderDto.cs" />
+        <Compile Remove="Templates\PlaceholderDto.generated.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderDto.generated.cs" />
+        <EmbeddedResource Include="Templates\IRepositoryWrapper.generated.cs" />
+        <Compile Remove="Templates\IRepositoryWrapper.generated.cs" />
+        <Compile Remove="Templates\IRepositoryWrapper.cs" />
+        <EmbeddedResource Include="Templates\IRepositoryWrapper.cs" />
+        <Compile Remove="Templates\RepositoryWrapper.generated.cs" />
+        <EmbeddedResource Include="Templates\RepositoryWrapper.generated.cs" />
+        <Compile Remove="Templates\RepositoryWrapper.cs" />
+        <EmbeddedResource Include="Templates\RepositoryWrapper.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.CodeDom" Version="5.0.0" />
     </ItemGroup>
 
 </Project>

@@ -11,11 +11,13 @@ namespace Solhigson.Framework.Tools
     internal abstract class CommandBase
     {
         internal const string AbstractionsFolderName = "Abstractions";
-        internal const string ResourceNamePrefix = "Solhigson.Framework.Tools.";
+        internal const string ResourceNamePrefix = "Solhigson.Framework.Tools.Templates.";
         protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
         protected const string AssemblyPathOption = "-a";
         protected const string DatabaseContextName = "-d";
         protected string Namespace { get; private set; }
+        protected string DbContextNamespace { get; private set; }
+        protected string DbContextName { get; private set; }
 
         protected CommandBase()
         {
@@ -100,6 +102,9 @@ namespace Solhigson.Framework.Tools
                     return (false, $"No database Contexts found");
                 }
 
+                DbContextName = databaseContext.Name;
+                DbContextNamespace = databaseContext.Namespace;
+
                 Models = databaseContext.GetProperties().Where(t => t.PropertyType.IsGenericType && t.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
                     .Select(t => t.PropertyType.GetGenericArguments()[0]).ToList();
 
@@ -134,33 +139,66 @@ namespace Solhigson.Framework.Tools
         
         internal abstract (bool IsValid, string ErrorMessage) Validate();
         
-        protected void GenerateFile(string rootPath, string folder, string type, string entityName, bool isInterface, bool isGenerated)
+        protected void GenerateFile(string rootPath, string folder, string type, 
+            string entityName, string entityNamespace, 
+            bool isInterface, bool isGenerated, string properties = "")
         {
             var interfaceIndicator = isInterface ? "I" : "";
             var abstractionsFolder = isInterface ? $"/{AbstractionsFolderName}" : "";
             var generatedIndicator = isGenerated ? ".generated" : "";
             
-            var path = $"{rootPath}/{folder}{abstractionsFolder}/I{entityName}{type}{generatedIndicator}.cs";
+            var path = $"{rootPath}/{folder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
+            var placeHolderName = "Placeholder";
+            if (type == "Wrapper")
+            {
+                placeHolderName = entityName;
+            }
+            var resourcePath = $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
             var assembly = Assembly.GetExecutingAssembly();
-            using var stream = assembly.GetManifestResourceStream($"{ResourceNamePrefix}{interfaceIndicator}Placeholder{type}{generatedIndicator}.cs");
+            using var stream = assembly.GetManifestResourceStream(resourcePath);
             if (stream is null)
             {
+                Console.WriteLine($"Resource not found: {resourcePath}");
                 return;
             }
             using var reader = new StreamReader(stream);
-            var resource = reader.ReadToEnd().Replace("[Placeholder]", entityName);
+            if (entityNamespace == DbContextNamespace)
+            {
+                entityNamespace = "";
+            }
+            else if(!string.IsNullOrWhiteSpace(entityNamespace))
+            {
+                entityNamespace = $"using {entityNamespace};";
+            }
+            var resource = reader.ReadToEnd().Replace("[Placeholder]", entityName)
+                .Replace("[Namespace]", Namespace).Replace("[Folder]", folder)
+                .Replace("[DbContextName]", DbContextName).Replace("[DbContextNamespace]", DbContextNamespace)
+                .Replace("[EntityNameSpace]", entityNamespace)
+                .Replace("[Properties]", properties);
             SaveFile(resource, path);
         }
         
         private static void SaveFile(string file, string path)
         {
+            var directory = Path.GetDirectoryName(path);
+            if (directory != null)
+            {
+                Directory.CreateDirectory(directory);
+            }
+
             if (!path.Contains(".generated.cs") && File.Exists(path))
             {
                 return;
             }
-            using var fileStream = File.Open(path, FileMode.OpenOrCreate);
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            using var fileStream = File.OpenWrite(path);
             using var streamWriter = new StreamWriter(fileStream);
             streamWriter.Write(file);
+            Console.WriteLine($"Generated: {path}");
         }
 
 
