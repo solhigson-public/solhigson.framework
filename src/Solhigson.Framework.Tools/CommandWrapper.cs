@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Solhigson.Framework.Tools.Generator;
 
 namespace Solhigson.Framework.Tools
 {

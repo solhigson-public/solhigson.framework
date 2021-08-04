@@ -10,13 +10,20 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <Version>1.0.0-beta3</Version>
+        <Version>1.0.0-beta4</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Templates\IPlaceholderRepository.generated.cs" />
+      <EmbeddedResource Include="Templates\IPlaceholderRepository.generated.cs" />
+      <Compile Remove="Templates\IPlaceholderRepository.cs" />
+      <EmbeddedResource Include="Templates\IPlaceholderRepository.cs" />
     </ItemGroup>
 
 </Project>

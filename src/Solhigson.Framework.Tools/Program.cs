@@ -7,6 +7,7 @@ namespace Solhigson.Framework.Tools
     {
         static void Main(string[] args)
         {
+            Console.WriteLine(Environment.CurrentDirectory);
             if (args.Length == 0)
             {
                 var versionString = Assembly.GetEntryAssembly()
@@ -25,7 +26,6 @@ namespace Solhigson.Framework.Tools
             if (!commandWrapper.IsValid)
             {
                 Console.WriteLine(commandWrapper.ErrorMessage);
-                commandWrapper.Run();
                 return;
             }
             //ShowBot(string.Join(' ', args));

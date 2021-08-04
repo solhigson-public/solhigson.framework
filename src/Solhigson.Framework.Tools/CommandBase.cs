@@ -3,14 +3,19 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 
 namespace Solhigson.Framework.Tools
 {
     internal abstract class CommandBase
     {
-        protected static List<string> ValidOptions = new() { AssemblyPathOption };
+        internal const string AbstractionsFolderName = "Abstractions";
+        internal const string ResourceNamePrefix = "Solhigson.Framework.Tools.";
+        protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
         protected const string AssemblyPathOption = "-a";
+        protected const string DatabaseContextName = "-d";
+        protected string Namespace { get; private set; }
 
         protected CommandBase()
         {
@@ -56,10 +61,52 @@ namespace Solhigson.Framework.Tools
                     return (false, $"Invalid assembly file path: {assemblyPath}");
                 }
                 var assembly = Assembly.LoadFile(assemblyPath);
-                var cachedEntityType = typeof(ICachedEntity);
-                Models = assembly.GetTypes()
-                    .Where(t => cachedEntityType.IsAssignableFrom(t) && !t.IsInterface).ToList();
+                Namespace = assembly.GetName().Name;
+                var databaseContexts = assembly
+                    .GetTypes().Where(t => t.IsSubclassOf(typeof(DbContext))).ToList();
 
+                if (databaseContexts.Any() == false)
+                {
+                    return (false, $"No database Contexts found");
+                }
+
+                Type databaseContext;
+                var dbContextNameSpecified = Args.TryGetValue(DatabaseContextName, out var dbContextName);
+
+                if (databaseContexts.Count > 1)
+                {
+                    if (!dbContextNameSpecified)
+                    {
+                        return (false, $"Multiple database contexts found, specify with [-d <contextName>]");
+                    }
+
+                    if (databaseContexts.All(t => t.Name != dbContextName))
+                    {
+                        return (false, $"Specified database context: [{dbContextName}] not found in assembly");
+                    }
+                    databaseContext = databaseContexts.FirstOrDefault(t => t.Name == dbContextName);
+                }
+                else
+                {
+                    if (dbContextNameSpecified && databaseContexts.All(t => t.Name != dbContextName))
+                    {
+                        return (false, $"Specified database context: [{dbContextName}] not found in assembly");
+                    }
+                    databaseContext = databaseContexts.FirstOrDefault();
+                }
+
+                if (databaseContext == null)
+                {
+                    return (false, $"No database Contexts found");
+                }
+
+                Models = databaseContext.GetProperties().Where(t => t.PropertyType.IsGenericType && t.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                    .Select(t => t.PropertyType.GetGenericArguments()[0]).ToList();
+
+                if (!Models.Any())
+                {
+                    return (false, $"Database Context: [{databaseContext.FullName}] has not properties of type DbSet<>");
+                }
             }
             catch (Exception e)
             {
@@ -85,7 +132,37 @@ namespace Solhigson.Framework.Tools
             }
         }
         
-
         internal abstract (bool IsValid, string ErrorMessage) Validate();
+        
+        protected void GenerateFile(string rootPath, string folder, string type, string entityName, bool isInterface, bool isGenerated)
+        {
+            var interfaceIndicator = isInterface ? "I" : "";
+            var abstractionsFolder = isInterface ? $"/{AbstractionsFolderName}" : "";
+            var generatedIndicator = isGenerated ? ".generated" : "";
+            
+            var path = $"{rootPath}/{folder}{abstractionsFolder}/I{entityName}{type}{generatedIndicator}.cs";
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream($"{ResourceNamePrefix}{interfaceIndicator}Placeholder{type}{generatedIndicator}.cs");
+            if (stream is null)
+            {
+                return;
+            }
+            using var reader = new StreamReader(stream);
+            var resource = reader.ReadToEnd().Replace("[Placeholder]", entityName);
+            SaveFile(resource, path);
+        }
+        
+        private static void SaveFile(string file, string path)
+        {
+            if (!path.Contains(".generated.cs") && File.Exists(path))
+            {
+                return;
+            }
+            using var fileStream = File.Open(path, FileMode.OpenOrCreate);
+            using var streamWriter = new StreamWriter(fileStream);
+            streamWriter.Write(file);
+        }
+
+
     }
 }

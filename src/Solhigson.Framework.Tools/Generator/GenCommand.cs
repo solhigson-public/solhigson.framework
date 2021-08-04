@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
-namespace Solhigson.Framework.Tools
+namespace Solhigson.Framework.Tools.Generator
 {
     internal class GenCommand : CommandBase
     {
@@ -32,8 +29,15 @@ namespace Solhigson.Framework.Tools
         
         internal override void Run()
         {
+            //var rootPath = 
+            foreach (var entity in Models)
+            {
+                
+            }
             Console.WriteLine("Running...");
         }
+        
+
 
     }
 }
