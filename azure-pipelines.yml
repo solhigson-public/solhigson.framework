@@ -48,7 +48,7 @@ stages:
               configuration: '$(buildConfiguration)'
 
   - stage: nuget_package_framework
-    condition: and(eq(variables.isMaster, true), eq(varialbes.packageFramework, true))
+    condition: and(eq(variables.isMaster, true), eq(variables.packageFramework, true))
     displayName: Deploy Framework to Nuget.Org
     jobs:
       - job:
