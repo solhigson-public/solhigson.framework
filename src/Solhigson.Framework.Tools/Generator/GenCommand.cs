@@ -89,33 +89,42 @@ namespace Solhigson.Framework.Tools.Generator
             Console.WriteLine("Completed");
         }
 
-        private static string GetDtoProperties(Type entity)
+        private string GetDtoProperties(Type entity)
         {
             var provider = new CSharpCodeProvider();
             var sBuilder = new StringBuilder();
 
             foreach (var prop in entity.GetProperties())
             {
-                var nullableInidicator = "";
+                var nullableIndicator = "";
                 var propertyType = Nullable.GetUnderlyingType(prop.PropertyType);
                 if (propertyType != null)
                 {
-                    nullableInidicator = "?";
+                    nullableIndicator = "?";
                 }
                 else
                 {
+                    /*
+                    if (prop.PropertyType.IsGenericType)
+                    {
+                        continue;
+                    }
+                    */
                     propertyType = prop.PropertyType;
                 }
-                string propertyTypeName;
+                string propertyTypeName = GetFriendlyName(propertyType, provider/**/);
+                /*
                 if (propertyType.IsPrimitive || propertyType == typeof(string))
                 {
                     propertyTypeName = provider.GetTypeOutput(new CodeTypeReference(propertyType));
                 }
                 else
                 {
-                    propertyTypeName = propertyType.Name;
+                    propertyTypeName = GetFriendlyName(propertyType);
+                    //propertyTypeName = propertyType.Name;
                 }
-                sBuilder.AppendLine("        public " + propertyTypeName + $"{nullableInidicator} " + prop.Name + " { get; set; }");
+                */
+                sBuilder.AppendLine("        public " + propertyTypeName + $"{nullableIndicator} " + prop.Name + " { get; set; }");
             }
 
             return sBuilder.ToString();
@@ -151,7 +160,33 @@ namespace Solhigson.Framework.Tools.Generator
             return sBuilder.ToString();
         }
         
+        private static string GetFriendlyName(Type type, CSharpCodeProvider provider)
+        {
+            var friendlyName = type.Name;
+            if (type.IsPrimitive || type == typeof(string))
+            {
+                return provider.GetTypeOutput(new CodeTypeReference(type));
+            }
+            if (type.IsGenericType)
+            {
+                var iBacktick = friendlyName.IndexOf('`');
+                if (iBacktick > 0)
+                {
+                    friendlyName = friendlyName.Remove(iBacktick);
+                }
+                friendlyName += "<";
+                var typeParameters = type.GetGenericArguments();
+                for (var i = 0; i < typeParameters.Length; ++i)
+                {
+                    var typeParamName = GetFriendlyName(typeParameters[i], provider);
+                    friendlyName += (i == 0 ? typeParamName : ", " + typeParamName);
+                }
+                friendlyName += ">";
+            }
+            friendlyName = $"{type.Namespace}.{friendlyName}";
 
+            return friendlyName;
+        }
 
 
 
