@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace [Namespace].[Folder]
+namespace [DtoProjectNamespace].[Folder]
 {
     //[GeneratedFileComment]
     public partial class [Placeholder]Dto

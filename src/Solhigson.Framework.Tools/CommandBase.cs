@@ -19,6 +19,8 @@ namespace Solhigson.Framework.Tools
         protected string ApplicationName { get; private set; }
         protected string DbContextNamespace { get; private set; }
         protected string DbContextName { get; private set; }
+        
+        protected string DtoProjectNamespace { get; set; }
 
         protected CommandBase()
         {
@@ -193,6 +195,7 @@ namespace Solhigson.Framework.Tools
                 .Replace("[Properties]", properties)
                 .Replace("[ApplicationName]", ApplicationName)
                 .Replace("[AbstractionsFolder]", AbstractionsFolderName)
+                .Replace("[DtoProjectNamespace]", DtoProjectNamespace)
                 .Replace("[CustomFileComment]", "This file is never overwritten, place custom code here")
                 .Replace("[GeneratedFileComment]", "This file is ALWAYS overwritten, DO NOT place custom code here");
             SaveFile(resource, path);

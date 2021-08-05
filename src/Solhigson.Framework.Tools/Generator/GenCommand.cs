@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,8 +15,9 @@ namespace Solhigson.Framework.Tools.Generator
     {
         private const string RepositoryDirectoryOption = "-rd";
         private const string ServicesDirectoryOption = "-sd";
-        private const string RepositoryDirectory = "Data\\Repositories";
-        private const string ServicesDirectory = "Services";
+        protected const string DtoProjectPathOption = "-dp";
+        //private const string RepositoryDirectory = "Data\\Repositories";
+        //private const string ServicesDirectory = "Services";
         public const string RepositoryClassType = "Repository";
         public const string RepositoriesFolder = "Repositories";
 
@@ -27,6 +29,7 @@ namespace Solhigson.Framework.Tools.Generator
         {
             ValidOptions.Add(RepositoryDirectoryOption);
             ValidOptions.Add(ServicesDirectoryOption);
+            ValidOptions.Add(DtoProjectPathOption);
             
             foreach (var key in Args)
             {
@@ -47,32 +50,41 @@ namespace Solhigson.Framework.Tools.Generator
             const string dtoClassType = "Dto";
 
             Console.WriteLine("Running...");
-            //var path = $"{Environment.CurrentDirectory}";
-            var path = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
+            var persistenceProjectPath = $"{Environment.CurrentDirectory}";
+            #if DEBUG
+                persistenceProjectPath = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
+            #endif
+
+            Console.WriteLine($"Using path: {persistenceProjectPath}");
+            if (!Args.TryGetValue(DtoProjectPathOption, out var serviceProjectPath))
+            {
+                serviceProjectPath = persistenceProjectPath;
+            }
+            DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
 
             foreach (var entity in Models)
             {
-                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
-                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, false); //custom interface
-                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //generated class
-                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, false); //custom interface
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //generated class
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
                 
 
-                GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, true, GetDtoProperties(entity)); //generated dto
-                GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, false); //custom dto
+                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, true, GetDtoProperties(entity)); //generated dto
+                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, false); //custom dto
                 
             }
             
-            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
-            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
 
-            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
-            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, false); //custom class
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, false); //custom class
 
-            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, true); // generated interface
-            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, false); //custom interface
-            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
-            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, true); // generated interface
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, false); //custom interface
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
 
             Console.WriteLine("Completed");
         }
