@@ -1,9 +1,11 @@
 ﻿using System.Threading.Tasks;
 using [DbContextNamespace];
+using [Namespace].[Folder].[AbstractionsFolder];
 [EntityNameSpace]
 
 namespace [Namespace].[Folder]
 {
+    //[GeneratedFileComment]
     public partial class RepositoryWrapper : IRepositoryWrapper
     {
         public [DbContextName] DbContext { get; }

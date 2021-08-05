@@ -16,6 +16,7 @@ namespace Solhigson.Framework.Tools
         protected const string AssemblyPathOption = "-a";
         protected const string DatabaseContextName = "-d";
         protected string Namespace { get; private set; }
+        protected string ApplicationName { get; private set; }
         protected string DbContextNamespace { get; private set; }
         protected string DbContextName { get; private set; }
 
@@ -63,7 +64,6 @@ namespace Solhigson.Framework.Tools
                     return (false, $"Invalid assembly file path: {assemblyPath}");
                 }
                 var assembly = Assembly.LoadFile(assemblyPath);
-                Namespace = assembly.GetName().Name;
                 var databaseContexts = assembly
                     .GetTypes().Where(t => t.IsSubclassOf(typeof(DbContext))).ToList();
 
@@ -102,8 +102,6 @@ namespace Solhigson.Framework.Tools
                     return (false, $"No database Contexts found");
                 }
 
-                DbContextName = databaseContext.Name;
-                DbContextNamespace = databaseContext.Namespace;
 
                 Models = databaseContext.GetProperties().Where(t => t.PropertyType.IsGenericType && t.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
                     .Select(t => t.PropertyType.GetGenericArguments()[0]).ToList();
@@ -112,6 +110,19 @@ namespace Solhigson.Framework.Tools
                 {
                     return (false, $"Database Context: [{databaseContext.FullName}] has not properties of type DbSet<>");
                 }
+                Namespace = assembly.GetName().Name;
+                DbContextName = databaseContext.Name;
+                DbContextNamespace = databaseContext.Namespace;
+                if (Namespace.Contains("."))
+                {
+                    var split = Namespace.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+                    ApplicationName = split[0];
+                }
+                else
+                {
+                    ApplicationName = Namespace;
+                }
+
             }
             catch (Exception e)
             {
@@ -149,10 +160,12 @@ namespace Solhigson.Framework.Tools
             
             var path = $"{rootPath}/{folder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
             var placeHolderName = "Placeholder";
+            /*
             if (type == "Wrapper")
             {
                 placeHolderName = entityName;
             }
+            */
             var resourcePath = $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
             var assembly = Assembly.GetExecutingAssembly();
             using var stream = assembly.GetManifestResourceStream(resourcePath);
@@ -174,12 +187,17 @@ namespace Solhigson.Framework.Tools
                 .Replace("[Namespace]", Namespace).Replace("[Folder]", folder)
                 .Replace("[DbContextName]", DbContextName).Replace("[DbContextNamespace]", DbContextNamespace)
                 .Replace("[EntityNameSpace]", entityNamespace)
-                .Replace("[Properties]", properties);
+                .Replace("[Properties]", properties)
+                .Replace("[ApplicationName]", ApplicationName)
+                .Replace("[AbstractionsFolder]", AbstractionsFolderName)
+                .Replace("[CustomFileComment]", "This file is never overwritten, place custom code here")
+                .Replace("[GeneratedFileComment]", "This file is ALWAYS overwritten, DO NOT place custom code here");
             SaveFile(resource, path);
         }
         
         private static void SaveFile(string file, string path)
         {
+            Console.WriteLine($"Attempting to generate path: {path}");
             var directory = Path.GetDirectoryName(path);
             if (directory != null)
             {
@@ -188,6 +206,7 @@ namespace Solhigson.Framework.Tools
 
             if (!path.Contains(".generated.cs") && File.Exists(path))
             {
+                Console.WriteLine($"Skipping");
                 return;
             }
 

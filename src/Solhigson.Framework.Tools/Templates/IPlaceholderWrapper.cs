@@ -2,7 +2,7 @@
 namespace [Namespace].[Folder].[AbstractionsFolder]
 {
     //[CustomFileComment]
-    public partial interface I[Placeholder]Repository
+    public partial interface IRepositoryWrapper
     {
         
     }

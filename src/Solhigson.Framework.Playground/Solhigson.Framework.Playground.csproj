@@ -21,4 +21,11 @@
       <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
     </ItemGroup>
 
+<!--
+    <Target Name="solhigson" AfterTargets="AfterBuild">
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -a &quot;$(TargetDir)$(ProjectName).dll&quot;" />
+    </Target>
+-->
+
 </Project>

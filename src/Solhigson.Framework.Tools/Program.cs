@@ -18,7 +18,7 @@ namespace Solhigson.Framework.Tools
                 Console.WriteLine($"Solhigson.Tools v{versionString}");
                 Console.WriteLine("-------------");
                 Console.WriteLine("\nUsage:");
-                Console.WriteLine("  solhigson <message>");
+                Console.WriteLine("  solhigson <command> <args>");
                 return;
             }
 

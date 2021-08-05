@@ -10,7 +10,7 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <Version>1.0.0-preview2</Version>
+        <Version>1.0.0-preview3</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
@@ -32,14 +32,22 @@
         <EmbeddedResource Include="Templates\PlaceholderDto.cs" />
         <Compile Remove="Templates\PlaceholderDto.generated.cs" />
         <EmbeddedResource Include="Templates\PlaceholderDto.generated.cs" />
-        <EmbeddedResource Include="Templates\IRepositoryWrapper.generated.cs" />
-        <Compile Remove="Templates\IRepositoryWrapper.generated.cs" />
-        <Compile Remove="Templates\IRepositoryWrapper.cs" />
-        <EmbeddedResource Include="Templates\IRepositoryWrapper.cs" />
-        <Compile Remove="Templates\RepositoryWrapper.generated.cs" />
-        <EmbeddedResource Include="Templates\RepositoryWrapper.generated.cs" />
-        <Compile Remove="Templates\RepositoryWrapper.cs" />
-        <EmbeddedResource Include="Templates\RepositoryWrapper.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderWrapper.generated.cs" />
+        <Compile Remove="Templates\IPlaceholderWrapper.generated.cs" />
+        <Compile Remove="Templates\IPlaceholderWrapper.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderWrapper.cs" />
+        <Compile Remove="Templates\PlaceholderWrapper.generated.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderWrapper.generated.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderWrapper.cs" />
+        <Compile Remove="Templates\PlaceholderWrapper.cs" />
+        <Compile Remove="Templates\IPlaceholderRepositoryBase.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderRepositoryBase.cs" />
+        <Compile Remove="Templates\IPlaceholderRepositoryBase.generated.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderRepositoryBase.generated.cs" />
+        <Compile Remove="Templates\PlaceholderRepositoryBase.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderRepositoryBase.cs" />
+        <Compile Remove="Templates\PlaceholderRepositoryBase.generated.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderRepositoryBase.generated.cs" />
     </ItemGroup>
 
     <ItemGroup>

@@ -333,5 +333,7 @@ deployments/creds/
 # Playground Project
 src/Solhigson.Framework.Playground/Whiteboard
 src/Solhigson.Framework.Playground/Migrations
+src/Solhigson.Framework.Playground/Dto
+src/Solhigson.Framework.Playground/Repositories
 *.development.json
 .config/

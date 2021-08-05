@@ -52,23 +52,27 @@ namespace Solhigson.Framework.Tools.Generator
             {
                 GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
                 GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, false); //custom interface
-                GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //custom generated class
+                GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //generated class
                 GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
                 
 
-                GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, true, GetDtoProperties(entity)); //generated dto class
-                GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, false); //custom dto class
+                GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, true, GetDtoProperties(entity)); //generated dto
+                GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, false); //custom dto
                 
             }
             
             GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
             GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
 
-            GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //custom generated class
+            GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
             GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", false, false); //custom class
 
+            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", true, true); // generated interface
+            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", true, false); //custom interface
+            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
+            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
+
             Console.WriteLine("Completed");
-            //var rootPath = 
         }
 
         private static string GetDtoProperties(Type entity)

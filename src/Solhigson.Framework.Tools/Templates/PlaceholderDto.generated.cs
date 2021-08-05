@@ -2,7 +2,7 @@
 
 namespace [Namespace].[Folder]
 {
-    //This file is ALWAYS overwritten, DO NOT place custom code here
+    //[GeneratedFileComment]
     public partial class [Placeholder]Dto
     { 
 [Properties]

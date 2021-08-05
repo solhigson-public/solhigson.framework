@@ -1,11 +1,10 @@
-﻿using Solhigson.Framework.Data.Repository;
-using [DbContextNamespace];
+﻿using [DbContextNamespace];
 [EntityNameSpace]
 
-namespace [Namespace].[Folder]
+namespace [Namespace].[Folder].[AbstractionsFolder]
 {
-    //This file is ALWAYS overwritten, DO NOT place custom code here
-    public partial interface I[Placeholder]Repository : IRepositoryBase<[Placeholder]>
+    //[GeneratedFileComment]
+    public partial interface I[Placeholder]Repository : I[ApplicationName]RepositoryBase<[Placeholder]>
     {
         
     }

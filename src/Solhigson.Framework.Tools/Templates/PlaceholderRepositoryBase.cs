@@ -2,7 +2,7 @@
 namespace [Namespace].[Folder]
 {
     //[CustomFileComment]
-    public partial class [Placeholder]Repository
+    public partial class [ApplicationName]RepositoryBase<T>
     {
         
     }

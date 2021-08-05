@@ -2,9 +2,9 @@
 using [DbContextNamespace];
 [EntityNameSpace]
 
-namespace [Namespace].[Folder]
+namespace [Namespace].[Folder].[AbstractionsFolder]
 {
-    //This file is ALWAYS overwritten, DO NOT place custom code here
+    //[GeneratedFileComment]
     public partial interface IRepositoryWrapper
     {
         [DbContextName] DbContext { get; }

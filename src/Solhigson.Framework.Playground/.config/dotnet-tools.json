@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "solhigson.framework.tools": {
-      "version": "1.0.0-beta4",
+      "version": "1.0.0-preview2",
       "commands": [
         "solhigson"
       ]

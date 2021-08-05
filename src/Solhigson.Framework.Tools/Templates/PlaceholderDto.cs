@@ -1,8 +1,7 @@
-﻿using System;
-
+﻿
 namespace [Namespace].[Folder]
 {
-    //This file is never overwritten, place custom code here
+    //[CustomFileComment]
     public partial class [Placeholder]Dto
     {
         
