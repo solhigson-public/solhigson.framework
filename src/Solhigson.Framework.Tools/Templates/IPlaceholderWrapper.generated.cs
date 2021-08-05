@@ -1,14 +1,11 @@
-﻿using System.Threading.Tasks;
-using [DbContextNamespace];
-[EntityNameSpace]
-
+﻿
 namespace [Namespace].[Folder].[AbstractionsFolder]
 {
     //[GeneratedFileComment]
     public partial interface IRepositoryWrapper
     {
-        [DbContextName] DbContext { get; }
-        Task SaveChangesAsync();
+        [DbContextNamespace].[DbContextName] DbContext { get; }
+        System.Threading.Tasks.Task SaveChangesAsync();
         int SaveChanges();
 [Properties]
     }

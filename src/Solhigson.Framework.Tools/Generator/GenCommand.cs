@@ -17,6 +17,8 @@ namespace Solhigson.Framework.Tools.Generator
         private const string RepositoryDirectory = "Data\\Repositories";
         private const string ServicesDirectory = "Services";
         public const string RepositoryClassType = "Repository";
+        public const string RepositoriesFolder = "Repositories";
+
 
 
         internal override string CommandName => "Gen";
@@ -39,21 +41,21 @@ namespace Solhigson.Framework.Tools.Generator
 
         internal override void Run()
         {
-            const string repositoriesFolder = "Repositories";
             const string servicesFolder = "Services";
             const string serviceClassType = "Service";
             const string dtoFolder = "Dto";
             const string dtoClassType = "Dto";
 
             Console.WriteLine("Running...");
-            var path = $"{Environment.CurrentDirectory}";
+            //var path = $"{Environment.CurrentDirectory}";
+            var path = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
 
             foreach (var entity in Models)
             {
-                GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
-                GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, false); //custom interface
-                GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //generated class
-                GenerateFile(path, repositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
+                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
+                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, false); //custom interface
+                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //generated class
+                GenerateFile(path, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
                 
 
                 GenerateFile(path, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, true, GetDtoProperties(entity)); //generated dto
@@ -61,16 +63,16 @@ namespace Solhigson.Framework.Tools.Generator
                 
             }
             
-            GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
-            GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
+            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
+            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
 
-            GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
-            GenerateFile(path, repositoriesFolder, "Wrapper", RepositoryClassType, "", false, false); //custom class
+            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
+            GenerateFile(path, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, false); //custom class
 
-            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", true, true); // generated interface
-            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", true, false); //custom interface
-            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
-            GenerateFile(path, repositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
+            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, true); // generated interface
+            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, false); //custom interface
+            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
+            GenerateFile(path, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
 
             Console.WriteLine("Completed");
         }
@@ -97,20 +99,20 @@ namespace Solhigson.Framework.Tools.Generator
             return sBuilder.ToString();
         }
         
-        private static string GetIRepositoryWrapperProperties(IList<Type> entities)
+        private string GetIRepositoryWrapperProperties(IList<Type> entities)
         {
             var sBuilder = new StringBuilder();
 
             foreach (var entity in entities)
             {
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"        I{className} {className}" + " { get; }");
+                sBuilder.AppendLine($"        {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
             }
 
             return sBuilder.ToString();
         }
         
-        private static string GetRepositoryWrapperProperties(IList<Type> entities)
+        private string GetRepositoryWrapperProperties(IList<Type> entities)
         {
             var sBuilder = new StringBuilder();
 
@@ -118,8 +120,10 @@ namespace Solhigson.Framework.Tools.Generator
             {
                 var fieldName = "_" + entity.Name.ToCamelCase() + RepositoryClassType;
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"        private I{className} {fieldName};");
-                sBuilder.AppendLine($"        public I{className} {className}" + " { get { " + $"return {fieldName} ??= new {className}(DbContext);" + " } }");
+                sBuilder.AppendLine($"        private {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {fieldName};");
+                sBuilder.AppendLine($"        public {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}");
+                sBuilder.AppendLine("        { get { " + $"return {fieldName} ??= new {className}(DbContext);" + " } }");
+                sBuilder.AppendLine("");
             }
 
             return sBuilder.ToString();

@@ -174,18 +174,21 @@ namespace Solhigson.Framework.Tools
                 Console.WriteLine($"Resource not found: {resourcePath}");
                 return;
             }
+
+            var entityNamespaceDeclaration = "";
             using var reader = new StreamReader(stream);
             if (entityNamespace == DbContextNamespace)
             {
-                entityNamespace = "";
+                entityNamespaceDeclaration = "";
             }
             else if(!string.IsNullOrWhiteSpace(entityNamespace))
             {
-                entityNamespace = $"using {entityNamespace};";
+                entityNamespaceDeclaration = $"using {entityNamespace};";
             }
             var resource = reader.ReadToEnd().Replace("[Placeholder]", entityName)
                 .Replace("[Namespace]", Namespace).Replace("[Folder]", folder)
                 .Replace("[DbContextName]", DbContextName).Replace("[DbContextNamespace]", DbContextNamespace)
+                .Replace("[EntityNameSpaceDeclaration]", entityNamespaceDeclaration)
                 .Replace("[EntityNameSpace]", entityNamespace)
                 .Replace("[Properties]", properties)
                 .Replace("[ApplicationName]", ApplicationName)

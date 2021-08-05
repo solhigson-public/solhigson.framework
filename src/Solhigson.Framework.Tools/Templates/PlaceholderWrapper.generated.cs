@@ -1,22 +1,18 @@
-﻿using System.Threading.Tasks;
-using [DbContextNamespace];
-using [Namespace].[Folder].[AbstractionsFolder];
-[EntityNameSpace]
-
+﻿
 namespace [Namespace].[Folder]
 {
     //[GeneratedFileComment]
-    public partial class RepositoryWrapper : IRepositoryWrapper
+    public partial class RepositoryWrapper : [Namespace].[Folder].[AbstractionsFolder].IRepositoryWrapper
     {
-        public [DbContextName] DbContext { get; }
+        public [DbContextNamespace].[DbContextName] DbContext { get; }
 
 [Properties]
-        public RepositoryWrapper([DbContextName] dbContext)
+        public RepositoryWrapper([DbContextNamespace].[DbContextName] dbContext)
         {
             DbContext = dbContext;
         }
         
-        public Task SaveChangesAsync()
+        public System.Threading.Tasks.Task SaveChangesAsync()
         {
             return DbContext.SaveChangesAsync();
         }

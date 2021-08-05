@@ -1,10 +1,9 @@
-﻿using [DbContextNamespace];
-[EntityNameSpace]
-
+﻿
 namespace [Namespace].[Folder].[AbstractionsFolder]
 {
     //[GeneratedFileComment]
-    public partial interface I[Placeholder]Repository : I[ApplicationName]RepositoryBase<[Placeholder]>
+    public partial interface I[Placeholder]Repository 
+        : [Namespace].[Folder].[AbstractionsFolder].I[ApplicationName]RepositoryBase<[EntityNameSpace].[Placeholder]>
     {
         
     }
