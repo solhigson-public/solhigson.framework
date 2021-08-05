@@ -96,16 +96,26 @@ namespace Solhigson.Framework.Tools.Generator
 
             foreach (var prop in entity.GetProperties())
             {
-                string propertyName;
-                if (prop.PropertyType.IsPrimitive || prop.PropertyType == typeof(string))
+                var nullableInidicator = "";
+                var propertyType = Nullable.GetUnderlyingType(prop.PropertyType);
+                if (propertyType != null)
                 {
-                    propertyName = provider.GetTypeOutput(new CodeTypeReference(prop.PropertyType));
+                    nullableInidicator = "?";
                 }
                 else
                 {
-                    propertyName = prop.PropertyType.Name;
+                    propertyType = prop.PropertyType;
                 }
-                sBuilder.AppendLine("        public " + propertyName + " " + prop.Name + " { get; set; }");
+                string propertyTypeName;
+                if (propertyType.IsPrimitive || propertyType == typeof(string))
+                {
+                    propertyTypeName = provider.GetTypeOutput(new CodeTypeReference(propertyType));
+                }
+                else
+                {
+                    propertyTypeName = propertyType.Name;
+                }
+                sBuilder.AppendLine("        public " + propertyTypeName + $"{nullableInidicator} " + prop.Name + " { get; set; }");
             }
 
             return sBuilder.ToString();
