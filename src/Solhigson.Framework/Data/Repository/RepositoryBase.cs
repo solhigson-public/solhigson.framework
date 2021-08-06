@@ -34,7 +34,7 @@ namespace Solhigson.Framework.Data.Repository
             DbContext.Set<T>().Update(entity);
         }
 
-        public void Delete(T entity)
+        public void Remove(T entity)
         {
             DbContext.Set<T>().Remove(entity);
         }
