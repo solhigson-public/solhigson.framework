@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Solhigson.Framework.Data.Repository
 {
@@ -24,19 +26,45 @@ namespace Solhigson.Framework.Data.Repository
             return DbContext.Set<T>().Where(expression);
         }
 
-        public void Add(T entity)
+        public EntityEntry<T> Add(T entity)
         {
-            DbContext.Set<T>().Add(entity);
+            return DbContext.Set<T>().Add(entity);
         }
 
-        public void Update(T entity)
+        public void AddRange(IEnumerable<T> entities)
         {
-            DbContext.Set<T>().Update(entity);
+            DbContext.Set<T>().AddRange(entities);
         }
 
-        public void Remove(T entity)
+        public EntityEntry<T> Attach(T entity)
         {
-            DbContext.Set<T>().Remove(entity);
+            return DbContext.Set<T>().Attach(entity);
         }
+        
+        public void AttachRange(IEnumerable<T> entities)
+        {
+            DbContext.Set<T>().AttachRange(entities);
+        }
+
+        public EntityEntry<T> Update(T entity)
+        {
+            return DbContext.Set<T>().Update(entity);
+        }
+        
+        public void UpdateRange(IEnumerable<T> entities)
+        {
+            DbContext.Set<T>().UpdateRange(entities);
+        }
+
+        public EntityEntry<T> Remove(T entity)
+        {
+            return DbContext.Set<T>().Remove(entity);
+        }
+        
+        public void RemoveRange(IEnumerable<T> entities)
+        {
+            DbContext.Set<T>().RemoveRange(entities);
+        }
+
     }
 }
