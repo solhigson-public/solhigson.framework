@@ -110,7 +110,7 @@ namespace Solhigson.Framework.Tools
 
                 if (!Models.Any())
                 {
-                    return (false, $"Database Context: [{databaseContext.FullName}] has not properties of type DbSet<>");
+                    return (false, $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
                 }
                 Namespace = assembly.GetName().Name;
                 DbContextName = databaseContext.Name;
