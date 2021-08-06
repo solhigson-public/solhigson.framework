@@ -100,7 +100,7 @@ namespace Solhigson.Framework.Utilities.Security
             return bytes;
         }
         
-        public static string GetRandomNumber(int digits)
+        public static string GenerateRandomNumber(int digits)
         {
             var data = GenerateRandomBytes(digits);
 
