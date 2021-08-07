@@ -4,14 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Solhigson.Framework.Data;
 
-namespace Solhigson.Framework.Tools
+namespace Solhigson.Framework.EfCoreTool.Generator
 {
     internal abstract class CommandBase
     {
         internal const string AbstractionsFolderName = "Abstractions";
-        internal const string ResourceNamePrefix = "Solhigson.Framework.Tools.Templates.";
+        internal const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
         protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
         protected const string AssemblyPathOption = "-a";
         protected const string DatabaseContextName = "-d";

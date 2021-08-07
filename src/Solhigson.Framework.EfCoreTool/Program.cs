@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace Solhigson.Framework.Tools
+namespace Solhigson.Framework.EfCoreTool
 {
     class Program
     {

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Solhigson.Framework.Tools.Generator;
+using Solhigson.Framework.EfCoreTool.Generator;
 
-namespace Solhigson.Framework.Tools
+namespace Solhigson.Framework.EfCoreTool
 {
     public class CommandWrapper
     {

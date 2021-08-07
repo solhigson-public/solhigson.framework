@@ -11,7 +11,7 @@ ProjectSection(SolutionItems) = preProject
 	..\README.md = ..\README.md
 EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Tools", "Solhigson.Framework.Tools\Solhigson.Framework.Tools.csproj", "{41CEF22B-947F-4DBD-BB8E-7CC4B816B516}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.EfCoreTool", "Solhigson.Framework.EfCoreTool\Solhigson.Framework.EfCoreTool.csproj", "{41CEF22B-947F-4DBD-BB8E-7CC4B816B516}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -9,7 +9,7 @@ using Microsoft.CSharp;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.Tools.Generator
+namespace Solhigson.Framework.EfCoreTool.Generator
 {
     internal class GenCommand : CommandBase
     {
