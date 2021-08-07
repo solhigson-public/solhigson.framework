@@ -2,4 +2,4 @@
 
 [solhigson.framework](https://www.nuget.org/packages/solhigson.framework) ![NuGet version](https://img.shields.io/nuget/v/solhigson.framework) ![Downloads](https://img.shields.io/nuget/dt/solhigson.framework)
 
-[solhigson.framework.tools](https://www.nuget.org/packages/solhigson.framework.tools) ![NuGet version](https://img.shields.io/nuget/v/solhigson.framework.tools?logo=solhigson.framework.tools) ![Downloads](https://img.shields.io/nuget/dt/solhigson.framework.tools)
+[solhigson.framework.efcoretool](https://www.nuget.org/packages/solhigson.framework.efcoretool) ![NuGet version](https://img.shields.io/nuget/v/solhigson.framework.efcoretool) ![Downloads](https://img.shields.io/nuget/dt/solhigson.framework.efcoretool)

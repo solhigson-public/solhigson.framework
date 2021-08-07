@@ -13,7 +13,7 @@ pool:
 variables:
   solution: '**/*.sln'
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
-  toolsProj: '**/Solhigson.Framework.Tools/Solhigson.Framework.EfCoreTool.csproj'
+  toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   isDev: $[eq(variables['Build.SourceBranchName'], 'dev')]
@@ -55,7 +55,7 @@ stages:
         displayName: Package & Push Framework
         steps:
           - task: DotNetCoreCLI@2
-            displayName: 'Package'
+            displayName: 'Package Framework'
             inputs:
               command: 'pack'
               packagesToPack: '$(frameworkProj)'
@@ -77,7 +77,7 @@ stages:
         displayName: Package & Push Tools
         steps:
           - task: DotNetCoreCLI@2
-            displayName: 'Package'
+            displayName: 'Package EfCoreTool'
             inputs:
               command: 'pack'
               packagesToPack: '$(toolsProj)'
