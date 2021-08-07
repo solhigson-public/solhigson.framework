@@ -18,7 +18,7 @@ variables:
   buildConfiguration: 'Release'
   isDev: $[eq(variables['Build.SourceBranchName'], 'dev')]
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageTool: false
+  packageTool: true
   packageFramework: false
 
 stages:
@@ -54,6 +54,24 @@ stages:
       - job:
         displayName: Package & Push Framework
         steps:
+          - task: NuGetToolInstaller@1
+            displayName: Install Nuget Tool
+
+          - task: NuGetCommand@2
+            displayName: Restore Nuget Packages
+            inputs:
+              command: 'restore'
+              restoreSolution: '$(solution)'
+              feedsToUse: 'config'
+
+          - task: VSBuild@1
+            displayName: Build Project
+            inputs:
+              solution: '$(solution)'
+              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+              platform: '$(buildPlatform)'
+              configuration: '$(buildConfiguration)'
+
           - task: DotNetCoreCLI@2
             displayName: 'Package Framework'
             inputs:
@@ -76,6 +94,24 @@ stages:
       - job:
         displayName: Package & Push Tools
         steps:
+          - task: NuGetToolInstaller@1
+            displayName: Install Nuget Tool
+
+          - task: NuGetCommand@2
+            displayName: Restore Nuget Packages
+            inputs:
+              command: 'restore'
+              restoreSolution: '$(solution)'
+              feedsToUse: 'config'
+
+          - task: VSBuild@1
+            displayName: Build Project
+            inputs:
+              solution: '$(solution)'
+              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+              platform: '$(buildPlatform)'
+              configuration: '$(buildConfiguration)'
+
           - task: DotNetCoreCLI@2
             displayName: 'Package EfCoreTool'
             inputs:
