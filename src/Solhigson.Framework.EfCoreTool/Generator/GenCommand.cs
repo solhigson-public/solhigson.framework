@@ -87,10 +87,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     continue;
                 }
                 
-                GenerateFile(serviceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
                     entity.Namespace, false, true, GetDtoProperties(entity, CSharpCodeProvider, true)); //generated dto
                     
-                GenerateFile(serviceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom dto
             }
             
