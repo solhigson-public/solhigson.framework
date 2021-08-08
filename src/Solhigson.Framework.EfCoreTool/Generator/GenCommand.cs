@@ -51,8 +51,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             const string serviceClassType = "Service";
             const string dtoFolder = "Dto";
             const string dtoClassType = "Dto";
-            const string cachedEntityFolder = "CachedDto";
-            const string cacheEntityClassType = "CachedDto";
+            const string cachedEntityFolder = "CacheModels";
+            const string cacheEntityClassType = "CacheModel";
 
             Console.WriteLine("Running...");
             var persistenceProjectPath = $"{Environment.CurrentDirectory}";

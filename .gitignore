@@ -335,6 +335,6 @@ src/Solhigson.Framework.Playground/Whiteboard
 src/Solhigson.Framework.Playground/Migrations
 src/Solhigson.Framework.Playground/Dto
 src/Solhigson.Framework.Playground/Repositories
-src/Solhigson.Framework.Playground/CachedDto
+src/Solhigson.Framework.Playground/CacheModels
 *.development.json
 .config/
