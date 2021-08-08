@@ -10,19 +10,27 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <Version>1.0.0-preview.1.0.17</Version>
+        <Version>1.0.0-preview.1.1.0</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
         <Compile Remove="Templates\IPlaceholderRepository.generated.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderCachedRepositoryBase.cs" />
+        <EmbeddedResource Include="Templates\IPlaceholderCachedRepositoryBase.generated.cs" />
+        <Compile Remove="Templates\IPlaceholderCachedRepositoryBase.cs" />
+        <Compile Remove="Templates\IPlaceholderCachedRepositoryBase.generated.cs" />
         <EmbeddedResource Include="Templates\IPlaceholderRepository.generated.cs" />
         <Compile Remove="Templates\IPlaceholderRepository.cs" />
         <EmbeddedResource Include="Templates\IPlaceholderRepository.cs" />
         <Compile Remove="Templates\PlaceholderRepository.generated.cs" />
         <Compile Remove="Templates\PlaceholderCacheModel.cs" />
         <Compile Remove="Templates\PlaceholderCacheModel.generated.cs" />
+        <Compile Remove="Templates\PlaceholderCachedRepositoryBase.cs" />
+        <Compile Remove="Templates\PlaceholderCachedRepositoryBase.generated.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderCachedRepositoryBase.cs" />
+        <EmbeddedResource Include="Templates\PlaceholderCachedRepositoryBase.generated.cs" />
         <EmbeddedResource Include="Templates\PlaceholderCacheModel.cs" />
         <EmbeddedResource Include="Templates\PlaceholderCacheModel.generated.cs" />
         <EmbeddedResource Include="Templates\PlaceholderRepository.cs" />

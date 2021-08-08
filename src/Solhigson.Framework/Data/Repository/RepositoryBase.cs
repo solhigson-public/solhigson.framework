@@ -7,11 +7,11 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Solhigson.Framework.Data.Repository
 {
-    public class RepositoryBase<T, TK> : IRepositoryBase<T> where T : class where TK : DbContext
+    public class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T : class where TDbContext : DbContext
     {
-        protected TK DbContext { get; }
+        protected TDbContext DbContext { get; set; }
 
-        public RepositoryBase(TK dbContext)
+        public RepositoryBase(TDbContext dbContext)
         {
             DbContext = dbContext;
         }

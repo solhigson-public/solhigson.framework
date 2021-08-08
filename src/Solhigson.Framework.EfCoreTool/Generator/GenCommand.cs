@@ -47,12 +47,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         internal override void Run()
         {
-            const string servicesFolder = "Services";
-            const string serviceClassType = "Service";
             const string dtoFolder = "Dto";
             const string dtoClassType = "Dto";
-            const string cachedEntityFolder = "CacheModels";
-            const string cacheEntityClassType = "CacheModel";
 
             Console.WriteLine("Running...");
             var persistenceProjectPath = $"{Environment.CurrentDirectory}";
@@ -70,30 +66,37 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             var cachedEntityType = typeof(ICachedEntity);
             foreach (var entity in Models)
             {
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, false); //custom interface
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,true); //generated class
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
-                
+                var isCached = cachedEntityType.IsAssignableFrom(entity);
+
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                    entity.Namespace, true, true, isCachedEntity: isCached); //generated interface
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                    entity.Namespace, true, false, isCachedEntity: isCached); //custom interface
+
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                    entity.Namespace, false, true, isCachedEntity: isCached); //generated class
+                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                    entity.Namespace, false, false, isCachedEntity: isCached); //custom class
+
 
                 GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     true, GetDtoProperties(entity, CSharpCodeProvider, false)); //generated dto
-                
+
                 GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     false); //custom dto
 
-                if (!cachedEntityType.IsAssignableFrom(entity))
+                if (!isCached)
                 {
                     continue;
                 }
-                
-                GenerateFile(persistenceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
+
+                GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, true, GetDtoProperties(entity, CSharpCodeProvider, true)); //generated dto
-                    
-                GenerateFile(persistenceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
+
+                GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom dto
             }
-            
+
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
 
@@ -105,6 +108,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
 
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", true, true); // generated interface
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", true, false); //custom interface
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", false, true); //generated class
+            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", false, false); //custom class
             Console.WriteLine("Completed");
         }
 

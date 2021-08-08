@@ -9,6 +9,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 {
     internal abstract class CommandBase
     {
+        public const string CachedEntityFolder = "CacheModels";
+        public const string CacheEntityClassType = "CacheModel";
         internal const string AbstractionsFolderName = "Abstractions";
         internal const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
         protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
@@ -153,7 +155,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         
         protected void GenerateFile(string rootPath, string folder, string type, 
             string entityName, string entityNamespace, 
-            bool isInterface, bool isGenerated, string properties = "")
+            bool isInterface, bool isGenerated, string properties = "", bool isCachedEntity = false)
         {
             var interfaceIndicator = isInterface ? "I" : "";
             var abstractionsFolder = isInterface ? $"/{AbstractionsFolderName}" : "";
@@ -161,12 +163,14 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             
             var path = $"{rootPath}/{folder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
             var placeHolderName = "Placeholder";
-            /*
-            if (type == "Wrapper")
+            var cachedRepositoryIndicator = "";
+            var cachedRepositoryClassPrefix = "";
+            if (isCachedEntity)
             {
-                placeHolderName = entityName;
+                cachedRepositoryIndicator = "Cached";
+                cachedRepositoryClassPrefix = $",{Namespace}.{CachedEntityFolder}.{entityName}{CacheEntityClassType}";
             }
-            */
+
             var resourcePath = $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
             var assembly = Assembly.GetExecutingAssembly();
             using var stream = assembly.GetManifestResourceStream(resourcePath);
@@ -195,6 +199,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[ApplicationName]", ApplicationName)
                 .Replace("[AbstractionsFolder]", AbstractionsFolderName)
                 .Replace("[DtoProjectNamespace]", DtoProjectNamespace)
+                .Replace("[Cached]", cachedRepositoryIndicator)
+                .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
                 .Replace("[CustomFileComment]", "This file is never overwritten, place custom code here")
                 .Replace("[GeneratedFileComment]", "This file is ALWAYS overwritten, DO NOT place custom code here");
             SaveFile(resource, path);
