@@ -243,7 +243,7 @@ namespace Solhigson.Framework.Infrastructure
 
         #endregion
 
-        #region EntityFramework Data Extensions
+        #region EntityFramework Data Extensions (Caching & Paging)
 
         public static string GetCacheKey(this IQueryable query, bool hash = true)
         {
@@ -265,7 +265,6 @@ namespace Solhigson.Framework.Infrastructure
 
             return key;
         }
-
 
         public static IList<T> FromCacheCollection<T>(this IQueryable<T> query) where T : class
         {
@@ -327,7 +326,8 @@ namespace Solhigson.Framework.Infrastructure
 
         private static object ResolveToList<T>(IQueryable<T> query) where T : class
         {
-            return query.AsNoTrackingWithIdentityResolution().ToList();
+            var result = query.AsNoTrackingWithIdentityResolution().ToList();
+            return result.Any() ? result : null;
         }
 
         private static object ResolveToSingle<T>(IQueryable<T> query) where T : class
@@ -384,46 +384,45 @@ namespace Solhigson.Framework.Infrastructure
         
         #region Attributes 
         
-        public static T GetAttribute<T>(this object obj, bool includeInheritance = true) where T : Attribute
+        public static T GetAttribute<T>(this Type type, bool includeBaseTypes = true) where T : Attribute
         {
-            if (obj is null)
-            {
-                return null;
-            }
-            var attributes = obj.GetType().GetCustomAttributes(typeof(T), includeInheritance);
-
-            if (attributes.Length > 0)
-            {
-                return attributes[0] as T;
-            }
-
-            return null;
+            return type?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
+        }
+        
+        public static T GetAttribute<T>(this ParameterInfo parameterInfo, bool includeBaseTypes = true) where T : Attribute
+        {
+            return parameterInfo?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
         }
 
-        public static T GetAttribute<T>(this Type type, bool includeInheritance = true) where T : Attribute
+        public static T GetAttribute<T>(this MethodInfo methodInfo, bool includeBaseTypes = true) where T : Attribute
         {
-            if (type == null)
-            {
-                return null;
-            }
-            var attributes = type.GetCustomAttributes(typeof(T), includeInheritance);
-
-            if (attributes.Length > 0)
-            {
-                return attributes[0] as T;
-            }
-
-            return null;
+            return methodInfo?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
         }
+
+        public static T GetAttribute<T>(this PropertyInfo propertyInfo, bool includeBaseTypes = true) where T : Attribute
+        {
+            return propertyInfo?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
+        }
+
 
         public static bool HasAttribute<T>(this Type type, bool includeInheritance = true) where T : Attribute
         {
             return type.GetAttribute<T>(includeInheritance) != null;
         }
         
-        public static bool HasAttribute<T>(this object obj, bool includeInheritance = true) where T : Attribute
+        public static bool HasAttribute<T>(this ParameterInfo type, bool includeInheritance = true) where T : Attribute
         {
-            return obj.GetAttribute<T>(includeInheritance) != null;
+            return type.GetAttribute<T>(includeInheritance) != null;
+        }
+        
+        public static bool HasAttribute<T>(this MethodInfo type, bool includeInheritance = true) where T : Attribute
+        {
+            return type.GetAttribute<T>(includeInheritance) != null;
+        }
+
+        public static bool HasAttribute<T>(this PropertyInfo type, bool includeInheritance = true) where T : Attribute
+        {
+            return type.GetAttribute<T>(includeInheritance) != null;
         }
         
         #endregion

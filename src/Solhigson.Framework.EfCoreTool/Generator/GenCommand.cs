@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
+using Solhigson.Framework.Data;
+using Solhigson.Framework.Data.Repository;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Utilities;
 
@@ -20,6 +22,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         //private const string ServicesDirectory = "Services";
         public const string RepositoryClassType = "Repository";
         public const string RepositoriesFolder = "Repositories";
+        private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
 
 
 
@@ -48,6 +51,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             const string serviceClassType = "Service";
             const string dtoFolder = "Dto";
             const string dtoClassType = "Dto";
+            const string cachedEntityFolder = "CachedDto";
+            const string cacheEntityClassType = "CachedDto";
 
             Console.WriteLine("Running...");
             var persistenceProjectPath = $"{Environment.CurrentDirectory}";
@@ -62,6 +67,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             }
             DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
 
+            var cachedEntityType = typeof(ICachedEntity);
             foreach (var entity in Models)
             {
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, true, true); //generated interface
@@ -70,9 +76,22 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name, entity.Namespace, false,false); //custom class
                 
 
-                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, true, GetDtoProperties(entity)); //generated dto
-                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false, false); //custom dto
+                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
+                    true, GetDtoProperties(entity, CSharpCodeProvider, false)); //generated dto
                 
+                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
+                    false); //custom dto
+
+                if (!cachedEntityType.IsAssignableFrom(entity))
+                {
+                    continue;
+                }
+                
+                GenerateFile(serviceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
+                    entity.Namespace, false, true, GetDtoProperties(entity, CSharpCodeProvider, true)); //generated dto
+                    
+                GenerateFile(serviceProjectPath, cachedEntityFolder, cacheEntityClassType, entity.Name,
+                    entity.Namespace, false, false); //custom dto
             }
             
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
@@ -89,45 +108,42 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             Console.WriteLine("Completed");
         }
 
-        private string GetDtoProperties(Type entity)
+        private static string GetDtoProperties(Type entity, CSharpCodeProvider provider, bool getPropertiesWithCachedPropertyAttributeOnly)
         {
-            var provider = new CSharpCodeProvider();
             var sBuilder = new StringBuilder();
-
-            foreach (var prop in entity.GetProperties())
+            var properties = entity.GetProperties();
+            if (getPropertiesWithCachedPropertyAttributeOnly)
             {
-                var nullableIndicator = "";
-                var propertyType = Nullable.GetUnderlyingType(prop.PropertyType);
-                if (propertyType != null)
+                var propertiesWithCachedPropertyAttribute = properties
+                    .Where(t => t.GetAttribute<CachedPropertyAttribute>() != null)
+                    .ToList();
+                if (propertiesWithCachedPropertyAttribute.Any())
                 {
-                    nullableIndicator = "?";
+                    properties = propertiesWithCachedPropertyAttribute.ToArray();
                 }
-                else
-                {
-                    /*
-                    if (prop.PropertyType.IsGenericType)
-                    {
-                        continue;
-                    }
-                    */
-                    propertyType = prop.PropertyType;
-                }
-                string propertyTypeName = GetFriendlyName(propertyType, provider/**/);
-                /*
-                if (propertyType.IsPrimitive || propertyType == typeof(string))
-                {
-                    propertyTypeName = provider.GetTypeOutput(new CodeTypeReference(propertyType));
-                }
-                else
-                {
-                    propertyTypeName = GetFriendlyName(propertyType);
-                    //propertyTypeName = propertyType.Name;
-                }
-                */
-                sBuilder.AppendLine("        public " + propertyTypeName + $"{nullableIndicator} " + prop.Name + " { get; set; }");
             }
 
+            foreach (var prop in properties)
+            {
+                sBuilder.AppendLine(GetPropertyDeclaration(prop, provider));
+            }
             return sBuilder.ToString();
+        }
+
+        private static string GetPropertyDeclaration(PropertyInfo propertyInfo, CSharpCodeProvider provider)
+        {
+            var nullableIndicator = "";
+            var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType);
+            if (propertyType != null)
+            {
+                nullableIndicator = "?";
+            }
+            else
+            {
+                propertyType = propertyInfo.PropertyType;
+            }
+            var propertyTypeName = GetFriendlyName(propertyType, provider/**/);
+            return "        public " + propertyTypeName + $"{nullableIndicator} " + propertyInfo.Name + " { get; set; }";
         }
         
         private string GetIRepositoryWrapperProperties(IList<Type> entities)
