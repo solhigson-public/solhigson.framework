@@ -117,10 +117,11 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 var propertiesWithCachedPropertyAttribute = properties
                     .Where(t => t.GetAttribute<CachedPropertyAttribute>() != null)
                     .ToList();
-                if (propertiesWithCachedPropertyAttribute.Any())
+                if (!propertiesWithCachedPropertyAttribute.Any())
                 {
-                    properties = propertiesWithCachedPropertyAttribute.ToArray();
+                    return null;
                 }
+                properties = propertiesWithCachedPropertyAttribute.ToArray();
             }
 
             foreach (var prop in properties)
