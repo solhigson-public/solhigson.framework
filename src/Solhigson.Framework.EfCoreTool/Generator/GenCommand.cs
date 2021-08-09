@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Net.Http.Headers;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
 using Solhigson.Framework.Infrastructure;
@@ -192,12 +193,41 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             return sBuilder.ToString();
         }
 
+        private static bool Same(IReadOnlyList<string> first, IReadOnlyList<string> second)
+        {
+            if (first.Count != second.Count)
+            {
+                return false;
+            }
+
+            for (var i = 0; i < first.Count; i++)
+            {
+                if (first[i] != second[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         private string GetRepositoryMethods(Type type, bool isCacheEntity, bool isInterface)
         {
             var attributes = type.GetCustomAttributes<IndexAttribute>().ToList();
             var keyProp = type.GetProperties()
                 .FirstOrDefault(t => t.HasAttribute<KeyAttribute>());
-            
+            var distinctAttributes = new List<IndexAttribute>();
+            foreach (var attr in attributes)
+            {
+                if (distinctAttributes.Any(t => Same(t.PropertyNames, attr.PropertyNames)))
+                {
+                    continue;
+                }
+                distinctAttributes.Add(attr);
+            }
+
+            attributes = distinctAttributes;
+
             if (keyProp != null)// && !attributes.Any(t => t.PropertyNames.Contains(keyProp.Name)))
             {
                 var existing = attributes.FirstOrDefault(t => t.PropertyNames.Contains(keyProp.Name));
