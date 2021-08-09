@@ -22,9 +22,9 @@ namespace Solhigson.Framework.Infrastructure
         [JsonPropertyName("message")]
         public string Message { get; set; }
 
-        public ResponseInfo SetResponseCode(string responseCode)
+        public ResponseInfo SetStatusCode(string statusCode)
         {
-            StatusCode = responseCode;
+            StatusCode = statusCode;
             return this;
         }
 
@@ -148,7 +148,20 @@ namespace Solhigson.Framework.Infrastructure
 
         [Newtonsoft.Json.JsonIgnore] 
         [System.Text.Json.Serialization.JsonIgnore]
-        public ResponseInfo ResponseInfoResult => _responseInfo;
+        public ResponseInfo InfoResult => _responseInfo;
+        
+        public TK GetError<TK>()
+        {
+            return _responseInfo.GetError<TK>();
+        }
+        
+        public ResponseInfo<T> SetStatusCode(string statusCode)
+        {
+            _responseInfo.StatusCode = statusCode;
+            return this;
+        }
+
+
 
     }
 }
