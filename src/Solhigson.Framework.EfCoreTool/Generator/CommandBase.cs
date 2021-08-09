@@ -9,17 +9,17 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 {
     internal abstract class CommandBase
     {
-        public const string CachedEntityFolder = "CacheModels";
-        public const string CacheEntityClassType = "CacheModel";
+        protected const string CachedEntityFolder = "CacheModels";
+        protected const string CacheEntityClassType = "CacheModel";
         internal const string AbstractionsFolderName = "Abstractions";
-        internal const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
+        private const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
         protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
-        protected const string AssemblyPathOption = "-a";
-        protected const string DatabaseContextName = "-d";
+        private const string AssemblyPathOption = "-a";
+        private const string DatabaseContextName = "-d";
         protected string Namespace { get; private set; }
         protected string ApplicationName { get; private set; }
-        protected string DbContextNamespace { get; private set; }
-        protected string DbContextName { get; private set; }
+        private string DbContextNamespace { get; set; }
+        private string DbContextName { get; set; }
         
         protected string DtoProjectNamespace { get; set; }
 
@@ -114,6 +114,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     return (false, $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
                 }
                 Namespace = assembly.GetName().Name;
+                if (string.IsNullOrWhiteSpace(Namespace))
+                {
+                    return (false, "Couldn't retrieve assembly name");
+                }
                 DbContextName = databaseContext.Name;
                 DbContextNamespace = databaseContext.Namespace;
                 if (Namespace.Contains("."))
@@ -150,8 +154,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 Console.WriteLine($"{type.FullName}");
             }
         }
-        
-        internal abstract (bool IsValid, string ErrorMessage) Validate();
+
+        protected abstract (bool IsValid, string ErrorMessage) Validate();
         
         protected void GenerateFile(string rootPath, string folder, string type, 
             string entityName, string entityNamespace, 

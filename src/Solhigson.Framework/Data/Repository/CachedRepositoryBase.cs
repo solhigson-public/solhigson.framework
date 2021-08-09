@@ -19,7 +19,8 @@ namespace Solhigson.Framework.Data.Repository
 
         public IList<TCacheModel> GetListCached(Expression<Func<T, bool>> expression)
         {
-            return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheList();
+            return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheList()
+                ?? new List<TCacheModel>();
         }
 
         public TCacheModel GetSingleCached(Expression<Func<T, bool>> expression)

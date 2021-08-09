@@ -1,7 +1,6 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
@@ -11,9 +10,7 @@ using Microsoft.CSharp;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
-using Solhigson.Framework.Data.Repository;
 using Solhigson.Framework.Infrastructure;
-using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.EfCoreTool.Generator
 {
@@ -21,20 +18,17 @@ namespace Solhigson.Framework.EfCoreTool.Generator
     {
         private const string RepositoryDirectoryOption = "-rd";
         private const string ServicesDirectoryOption = "-sd";
-        protected const string DtoProjectPathOption = "-dp";
-        //private const string RepositoryDirectory = "Data\\Repositories";
-        //private const string ServicesDirectory = "Services";
-        public const string RepositoryClassType = "Repository";
-        public const string RepositoriesFolder = "Repositories";
+        private const string DtoProjectPathOption = "-dp";
+        private const string RepositoryClassType = "Repository";
+        private const string RepositoriesFolder = "Repositories";
         private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
-        private Type CachedEntityType = typeof(ICachedEntity);
 
 
 
 
         internal override string CommandName => "Gen";
-        
-        internal override (bool IsValid, string ErrorMessage) Validate()
+
+        protected override (bool IsValid, string ErrorMessage) Validate()
         {
             ValidOptions.Add(RepositoryDirectoryOption);
             ValidOptions.Add(ServicesDirectoryOption);
@@ -71,7 +65,11 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             foreach (var entity in Models)
             {
-                var isCached = CachedEntityType.IsAssignableFrom(entity);
+                if (entity == null)
+                {
+                    continue;
+                }
+                var isCached = typeof(ICachedEntity).IsAssignableFrom(entity);
 
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
                     entity.Namespace, true, true, GetRepositoryMethods(entity, isCached, true), isCached); //generated interface
@@ -85,7 +83,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
 
                 GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
-                    true, GetDtoProperties(entity, CSharpCodeProvider, false)); //generated dto
+                    true, GetDtoProperties(entity, false)); //generated dto
 
                 GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     false); //custom dto
@@ -96,7 +94,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 }
 
                 GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
-                    entity.Namespace, false, true, GetDtoProperties(entity, CSharpCodeProvider, true)); //generated dto
+                    entity.Namespace, false, true, GetDtoProperties(entity, true)); //generated dto
 
                 GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom dto
@@ -120,7 +118,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             Console.WriteLine("Completed");
         }
 
-        private static string GetDtoProperties(Type entity, CSharpCodeProvider provider, bool getPropertiesWithCachedPropertyAttributeOnly)
+        private static string GetDtoProperties(Type entity, bool getPropertiesWithCachedPropertyAttributeOnly)
         {
             var sBuilder = new StringBuilder();
             var properties = entity.GetProperties();
@@ -138,25 +136,30 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             foreach (var prop in properties)
             {
-                sBuilder.AppendLine(GetPropertyDeclaration(prop, provider));
+                sBuilder.AppendLine(GetPropertyDeclaration(prop));
             }
             return sBuilder.ToString();
         }
 
-        private static string GetPropertyDeclaration(PropertyInfo propertyInfo, CSharpCodeProvider provider)
+        private static string GetPropertyDeclaration(PropertyInfo propertyInfo)
+        {
+            var propertyTypeName = GetTypeName(propertyInfo.PropertyType);
+            return $"{GetTabSpace(2)}public " + propertyTypeName + " " + propertyInfo.Name + " { get; set; }";
+        }
+
+        private static string GetTypeName(Type type)
         {
             var nullableIndicator = "";
-            var propertyType = Nullable.GetUnderlyingType(propertyInfo.PropertyType);
+            var propertyType = Nullable.GetUnderlyingType(type);
             if (propertyType != null)
             {
                 nullableIndicator = "?";
             }
             else
             {
-                propertyType = propertyInfo.PropertyType;
+                propertyType = type;
             }
-            var propertyTypeName = GetFriendlyName(propertyType, provider/**/);
-            return $"{GetTabSpace(2)}public " + propertyTypeName + $"{nullableIndicator} " + propertyInfo.Name + " { get; set; }";
+            return GetFriendlyName(propertyType) + nullableIndicator;
         }
         
         private string GetIRepositoryWrapperProperties(IList<Type> entities)
@@ -232,7 +235,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             sBuilder.AppendLine();
             sBuilder.AppendLine($"{GetTabSpace(2)}//Cached Methods");
-            className = $"{Namespace}.{CachedEntityFolder}.{type.Name}{CacheEntityClassType}";
+            className = GetCachedDtoClassType(type);
             cachedSuffix = "Cached";
             foreach (var indexAttr in attributes)
             {
@@ -246,7 +249,12 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         }
 
-        public static string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)
+        private string GetCachedDtoClassType(Type type)
+        {
+            return $"{Namespace}.{CachedEntityFolder}.{type.Name}{CacheEntityClassType}";
+        }
+
+        private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)
         {
             var sBuilder = new StringBuilder();
             var propertyNames = new List<string> { indexAttr.PropertyNames[0] };
@@ -277,14 +285,46 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 awaitWord = "await ";
             }
+
+            var totalPropCount = propertyNames.Count;
+            var totalNullableTypesCount = type.GetProperties()
+                .Where(t => propertyNames.Contains(t.Name))
+                .Where(t => Nullable.GetUnderlyingType(t.PropertyType) != null || !t.PropertyType.IsPrimitive
+                                                                               || t.PropertyType == typeof(string))
+                .ToList();
+            var nullCheck = "";
+            if (totalNullableTypesCount.Any())
+            {
+                nullCheck = $"{GetTabSpace(3)}if ({totalNullableTypesCount[0].Name.ToCamelCase()} is null";
+                if (totalNullableTypesCount.Count > 0)
+                {
+                    for (var i = 1; i < totalNullableTypesCount.Count; i++)
+                    {
+                        nullCheck += $" || {totalNullableTypesCount[i].Name.ToCamelCase()} is null";
+                    }
+                }
+
+                var returnType = "null";
+                if (!indexAttr.IsUnique)
+                {
+                    returnType = isCacheEntity
+                        ? GetCachedDtoClassType(type)
+                        : type.FullName;
+                    returnType = $"new System.Collections.Generic.List<{returnType}>()";
+                }
+                
+                nullCheck += ") { return " + returnType + "; }\n";
+                
+            }
             
             
             sBuilder.AppendLine(GetTabSpace(2) + "{");
+            sBuilder.AppendLine(nullCheck);
             sBuilder.AppendLine($"{GetTabSpace(3)}Expression<Func<{type.FullName}, bool>> query = ");
             sBuilder.Append($"{GetTabSpace(4)}t => t.{propertyNames[0]} == {propertyNames[0].ToCamelCase()}");
-            if (propertyNames.Count > 0)
+            if (totalPropCount > 0)
             {
-                for (var i = 1; i < propertyNames.Count; i++)
+                for (var i = 1; i < totalPropCount; i++)
                 {
                     sBuilder.Append($"\n{GetTabSpace(4)}&& t.{propertyNames[i]} == {propertyNames[i].ToCamelCase()}");
                 }
@@ -296,26 +336,35 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             return sBuilder.ToString();
         }
-
+        
         private static string GetMethodDefinition(IndexAttribute indexAttr, Type type, string className,
             string cachedSuffix,
             bool isInterface)
         {
             var propertyName = indexAttr.PropertyNames[0];
             var qualifier = isInterface ? "" : "public ";
+            var props = type.GetProperties();
 
-            var propNameType = type.GetProperties().FirstOrDefault(t => t.Name == indexAttr.PropertyNames[0]);
+            var propertyInfo = props.FirstOrDefault(t => t.Name == indexAttr.PropertyNames[0]);
+            if (propertyInfo == null)
+            {
+                throw new Exception($"Index property: {indexAttr.PropertyNames[0]} not found in {type.Name}'s properties");
+            }
             var parameters =
-                $"{GetFriendlyName(propNameType.PropertyType, CSharpCodeProvider)} {propNameType.Name.ToCamelCase()}";
+                $"{GetTypeName(propertyInfo.PropertyType)} {propertyInfo.Name.ToCamelCase()}";
 
             if (indexAttr.PropertyNames.Count > 1)
             {
                 for (var i = 1; i < indexAttr.PropertyNames.Count; i++)
                 {
                     propertyName += $"And{indexAttr.PropertyNames[1]}";
-                    propNameType = type.GetProperties().FirstOrDefault(t => t.Name == indexAttr.PropertyNames[i]);
+                    propertyInfo = props.FirstOrDefault(t => t.Name == indexAttr.PropertyNames[i]);
+                    if (propertyInfo == null)
+                    {
+                        throw new Exception($"Index property: {indexAttr.PropertyNames[i]} not found in {type.Name}'s properties");
+                    }
                     parameters +=
-                        $", {GetFriendlyName(propNameType.PropertyType, CSharpCodeProvider)} {propNameType.Name.ToCamelCase()}";
+                        $", {GetTypeName(propertyInfo.PropertyType)} {propertyInfo.Name.ToCamelCase()}";
                 }
 
             }
@@ -341,13 +390,14 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         }
 
         
-        private static string GetFriendlyName(Type type, CSharpCodeProvider provider)
+        private static string GetFriendlyName(Type type)
         {
             var friendlyName = type.Name;
             if (type.IsPrimitive || type == typeof(string))
             {
-                return provider.GetTypeOutput(new CodeTypeReference(type));
+                return CSharpCodeProvider.GetTypeOutput(new CodeTypeReference(type));
             }
+
             if (type.IsGenericType)
             {
                 var iBacktick = friendlyName.IndexOf('`');
@@ -359,7 +409,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 var typeParameters = type.GetGenericArguments();
                 for (var i = 0; i < typeParameters.Length; ++i)
                 {
-                    var typeParamName = GetFriendlyName(typeParameters[i], provider);
+                    var typeParamName = GetFriendlyName(typeParameters[i]);
                     friendlyName += (i == 0 ? typeParamName : ", " + typeParamName);
                 }
                 friendlyName += ">";
