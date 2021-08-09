@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace Solhigson.Framework.Infrastructure
 {
-    public class ResponseInfo
+    public struct ResponseInfo
     {
         [Newtonsoft.Json.JsonIgnore] 
         [System.Text.Json.Serialization.JsonIgnore]
@@ -40,12 +40,12 @@ namespace Solhigson.Framework.Infrastructure
             return this;
         }
 
-        public static ResponseInfo SuccessResult(string message = "")
+        public static ResponseInfo SuccessResult(string message = null)
         {
             return new ResponseInfo().Success(message);
         }
 
-        public static ResponseInfo<T> SuccessResult<T>(T result, string message = "")
+        public static ResponseInfo<T> SuccessResult<T>(T result, string message = null)
         {
             return new ResponseInfo<T>().Success(result, message);
         }
@@ -71,15 +71,53 @@ namespace Solhigson.Framework.Infrastructure
             ErrorData = errorData;
             return this;
         }
+        
+        public ResponseInfo(string message = "An unexpected error has occurred.", 
+            string statusCode = Infrastructure.StatusCode.UnExpectedError)
+        {
+            Message = message;
+            StatusCode = statusCode;
+            ErrorData = null;
+        }
     }
 
-    public class ResponseInfo<T> : ResponseInfo
+    public struct ResponseInfo<T>
     {
+        private ResponseInfo _responseInfo;
+
+        public ResponseInfo(string message = "An unexpected error has occurred.",
+            string statusCode = Infrastructure.StatusCode.UnExpectedError,
+            T result = default)
+        {
+            Data = result;
+            _responseInfo = new ResponseInfo(message, statusCode);
+        }
+        
+        [JsonProperty("statusCode")] 
+        [JsonPropertyName("statusCode")]
+        public string StatusCode
+        {
+            get => _responseInfo.StatusCode;
+            set => _responseInfo.StatusCode = value;
+        }
+
+        [JsonProperty("message")] 
+        [JsonPropertyName("message")]
+        public string Message
+        {
+            get => _responseInfo.Message;
+            set => _responseInfo.Message = value;
+        }
+
         [JsonProperty("data")] 
         [JsonPropertyName("data")]
         public T Data { get; private set; }
 
-        public ResponseInfo<T> Success(T result, string message = "")
+        [Newtonsoft.Json.JsonIgnore] 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public bool IsSuccessful => _responseInfo.IsSuccessful;
+
+        public ResponseInfo<T> Success(T result, string message = null)
         {
             if (result == null)
             {
@@ -87,7 +125,7 @@ namespace Solhigson.Framework.Infrastructure
                     $"result cannot be null when calling ResponseInfo<>.Success({typeof(T).FullName}, string)");
             }
 
-            base.Success(message);
+            _responseInfo.Success(message);
             Data = result;
             return this;
         }
@@ -97,8 +135,20 @@ namespace Solhigson.Framework.Infrastructure
             T result = default)
         {
             Data = result;
-            base.Fail(message, responseCode, errorData);
+            _responseInfo.Fail(message, responseCode, errorData);
             return this;
         }
+        
+        public ResponseInfo<T> Fail(ResponseInfo response, T result = default)
+        {
+            Data = result;
+            _responseInfo = response;
+            return this;
+        }
+
+        [Newtonsoft.Json.JsonIgnore] 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public ResponseInfo ResponseInfoResult => _responseInfo;
+
     }
 }

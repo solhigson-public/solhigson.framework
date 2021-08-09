@@ -1,4 +1,9 @@
-﻿
+﻿using System;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.Infrastructure;
+
 namespace [Namespace].[Folder]
 {
     //[GeneratedFileComment]
@@ -9,5 +14,7 @@ namespace [Namespace].[Folder]
         public [Placeholder]Repository([DbContextNamespace].[DbContextName] dbContext) : base(dbContext)
         {
         }
+
+[Properties]
     }
 }

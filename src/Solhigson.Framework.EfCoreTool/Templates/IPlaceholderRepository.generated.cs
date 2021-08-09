@@ -1,4 +1,5 @@
-﻿
+﻿using System.Threading.Tasks;
+
 namespace [Namespace].[Folder].[AbstractionsFolder]
 {
     //[GeneratedFileComment]
@@ -6,6 +7,6 @@ namespace [Namespace].[Folder].[AbstractionsFolder]
         : [Namespace].[Folder].[AbstractionsFolder].I[ApplicationName][Cached]RepositoryBase<[EntityNameSpace].[Placeholder]
             [CachedEntityModel]>
     {
-        
+[Properties]    
     }
 }

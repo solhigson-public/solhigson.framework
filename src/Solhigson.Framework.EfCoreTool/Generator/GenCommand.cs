@@ -1,12 +1,16 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
+using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
+using Solhigson.Framework.Data.Attributes;
 using Solhigson.Framework.Data.Repository;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Utilities;
@@ -23,6 +27,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         public const string RepositoryClassType = "Repository";
         public const string RepositoriesFolder = "Repositories";
         private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
+        private Type CachedEntityType = typeof(ICachedEntity);
+
 
 
 
@@ -63,18 +69,17 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             }
             DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
 
-            var cachedEntityType = typeof(ICachedEntity);
             foreach (var entity in Models)
             {
-                var isCached = cachedEntityType.IsAssignableFrom(entity);
+                var isCached = CachedEntityType.IsAssignableFrom(entity);
 
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
-                    entity.Namespace, true, true, isCachedEntity: isCached); //generated interface
+                    entity.Namespace, true, true, GetRepositoryMethods(entity, isCached, true), isCached); //generated interface
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
                     entity.Namespace, true, false, isCachedEntity: isCached); //custom interface
 
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
-                    entity.Namespace, false, true, isCachedEntity: isCached); //generated class
+                    entity.Namespace, false, true,  GetRepositoryMethods(entity, isCached, false), isCached); //generated class
                 GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
                     entity.Namespace, false, false, isCachedEntity: isCached); //custom class
 
@@ -151,7 +156,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 propertyType = propertyInfo.PropertyType;
             }
             var propertyTypeName = GetFriendlyName(propertyType, provider/**/);
-            return "        public " + propertyTypeName + $"{nullableIndicator} " + propertyInfo.Name + " { get; set; }";
+            return $"{GetTabSpace(2)}public " + propertyTypeName + $"{nullableIndicator} " + propertyInfo.Name + " { get; set; }";
         }
         
         private string GetIRepositoryWrapperProperties(IList<Type> entities)
@@ -161,7 +166,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             foreach (var entity in entities)
             {
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"        {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
+                sBuilder.AppendLine($"{GetTabSpace(2)}{Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
             }
 
             return sBuilder.ToString();
@@ -175,14 +180,166 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 var fieldName = "_" + entity.Name.ToCamelCase() + RepositoryClassType;
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"        private {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {fieldName};");
-                sBuilder.AppendLine($"        public {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}");
-                sBuilder.AppendLine("        { get { " + $"return {fieldName} ??= new {className}(DbContext);" + " } }");
-                sBuilder.AppendLine("");
+                sBuilder.AppendLine($"{GetTabSpace(2)}private {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {fieldName};");
+                sBuilder.AppendLine($"{GetTabSpace(2)}public {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}");
+                sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= new {className}(DbContext);" + " } }");
+                sBuilder.AppendLine();
             }
 
             return sBuilder.ToString();
         }
+
+        private string GetRepositoryMethods(Type type, bool isCacheEntity, bool isInterface)
+        {
+            var attributes = type.GetCustomAttributes<IndexAttribute>().ToList();
+            var keyProp = type.GetProperties()
+                .FirstOrDefault(t => t.HasAttribute<KeyAttribute>());
+            
+            if (keyProp != null)// && !attributes.Any(t => t.PropertyNames.Contains(keyProp.Name)))
+            {
+                var existing = attributes.FirstOrDefault(t => t.PropertyNames.Contains(keyProp.Name));
+                if (existing != null)
+                {
+                    attributes.Remove(existing);
+                }
+                attributes.Insert(0, new IndexAttribute(keyProp.Name)
+                {
+                    IsUnique = true,
+                });
+            }
+            if (!attributes.Any())
+            {
+                return string.Empty;
+            }
+            
+            var className = $"{type.Namespace}.{type.Name}";
+            var cachedSuffix = string.Empty;
+
+            var sBuilder = new StringBuilder();
+            foreach (var indexAttr in attributes)
+            {
+                sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface));
+                if (!isInterface)
+                {
+                    sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, false));
+                }
+            }
+
+            if (!isCacheEntity)
+            {
+                return sBuilder.ToString();
+            }
+
+            sBuilder.AppendLine();
+            sBuilder.AppendLine($"{GetTabSpace(2)}//Cached Methods");
+            className = $"{Namespace}.{CachedEntityFolder}.{type.Name}{CacheEntityClassType}";
+            cachedSuffix = "Cached";
+            foreach (var indexAttr in attributes)
+            {
+                sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface));
+                if (!isInterface)
+                {
+                    sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, true));
+                }
+            }
+            return sBuilder.ToString();
+
+        }
+
+        public static string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)
+        {
+            var sBuilder = new StringBuilder();
+            var propertyNames = new List<string> { indexAttr.PropertyNames[0] };
+
+               
+            if (indexAttr.PropertyNames.Count > 1)
+            {
+                for (var i = 1; i < indexAttr.PropertyNames.Count; i++)
+                {
+                    propertyNames.Add(indexAttr.PropertyNames[1]);
+                }
+            }
+
+            var getMethod = "GetByCondition";
+            var resultProjection = indexAttr.IsUnique
+                ? ".FirstOrDefaultAsync()"
+                : ".ToListAsync()";
+
+            var awaitWord = "";
+            if (isCacheEntity)
+            {
+                resultProjection = "";
+                getMethod = indexAttr.IsUnique
+                    ? "GetSingleCached"
+                    : "GetListCached";
+            }
+            else
+            {
+                awaitWord = "await ";
+            }
+            
+            
+            sBuilder.AppendLine(GetTabSpace(2) + "{");
+            sBuilder.AppendLine($"{GetTabSpace(3)}Expression<Func<{type.FullName}, bool>> query = ");
+            sBuilder.Append($"{GetTabSpace(4)}t => t.{propertyNames[0]} == {propertyNames[0].ToCamelCase()}");
+            if (propertyNames.Count > 0)
+            {
+                for (var i = 1; i < propertyNames.Count; i++)
+                {
+                    sBuilder.Append($"\n{GetTabSpace(4)}&& t.{propertyNames[i]} == {propertyNames[i].ToCamelCase()}");
+                }
+            }
+            sBuilder.Append(';');
+            sBuilder.AppendLine();
+            sBuilder.AppendLine($"{GetTabSpace(3)}return {awaitWord}{getMethod}(query){resultProjection};");
+            sBuilder.AppendLine(GetTabSpace(2) + "}");
+
+            return sBuilder.ToString();
+        }
+
+        private static string GetMethodDefinition(IndexAttribute indexAttr, Type type, string className,
+            string cachedSuffix,
+            bool isInterface)
+        {
+            var propertyName = indexAttr.PropertyNames[0];
+            var qualifier = isInterface ? "" : "public ";
+
+            var propNameType = type.GetProperties().FirstOrDefault(t => t.Name == indexAttr.PropertyNames[0]);
+            var parameters =
+                $"{GetFriendlyName(propNameType.PropertyType, CSharpCodeProvider)} {propNameType.Name.ToCamelCase()}";
+
+            if (indexAttr.PropertyNames.Count > 1)
+            {
+                for (var i = 1; i < indexAttr.PropertyNames.Count; i++)
+                {
+                    propertyName += $"And{indexAttr.PropertyNames[1]}";
+                    propNameType = type.GetProperties().FirstOrDefault(t => t.Name == indexAttr.PropertyNames[i]);
+                    parameters +=
+                        $", {GetFriendlyName(propNameType.PropertyType, CSharpCodeProvider)} {propNameType.Name.ToCamelCase()}";
+                }
+
+            }
+
+            if (!indexAttr.IsUnique)
+            {
+                className = $"System.Collections.Generic.IList<{className}>";
+            }
+
+            var asyncPostfix = "";
+
+            if (string.IsNullOrWhiteSpace(cachedSuffix))
+            {
+                asyncPostfix = "Async";
+                className = $"Task<{className}>";
+                if (!isInterface)
+                {
+                    className = $"async {className}";
+                }
+            }
+
+            return $"{GetTabSpace(2)}{qualifier}{className} GetBy{propertyName}{cachedSuffix}{asyncPostfix}({parameters})" + (isInterface ? ";" : "");
+        }
+
         
         private static string GetFriendlyName(Type type, CSharpCodeProvider provider)
         {
@@ -210,6 +367,16 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             friendlyName = $"{type.Namespace}.{friendlyName}";
 
             return friendlyName;
+        }
+
+        private static string GetTabSpace(short noOfTabs)
+        {
+            var result = "";
+            for (var i = 0; i < noOfTabs; i++)
+            {
+                result += "\t";
+            }
+            return result;
         }
 
 
