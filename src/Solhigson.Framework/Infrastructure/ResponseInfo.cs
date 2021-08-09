@@ -160,6 +160,15 @@ namespace Solhigson.Framework.Infrastructure
             _responseInfo.StatusCode = statusCode;
             return this;
         }
+        
+        [Newtonsoft.Json.JsonIgnore] 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public object ErrorData
+        {
+            get => _responseInfo.ErrorData;
+            set => _responseInfo.ErrorData = value;
+        }
+
 
 
 
