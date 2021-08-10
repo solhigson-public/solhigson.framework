@@ -2,7 +2,6 @@
 using NLog;
 using NLog.Common;
 using NLog.Targets;
-using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Services;
 
 namespace Solhigson.Framework.Logging.Nlog.Targets
@@ -25,7 +24,7 @@ namespace Solhigson.Framework.Logging.Nlog.Targets
         {
             try
             {
-                var log = DefaultLayout.Layout.Render(logEvent);
+                var log = Layout.Render(logEvent);
                 if (_analyticsService.PostLog(log))
                 {
                     return;

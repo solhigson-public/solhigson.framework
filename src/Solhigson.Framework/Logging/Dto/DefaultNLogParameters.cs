@@ -9,9 +9,11 @@ namespace Solhigson.Framework.Logging.Dto
             LogLevel = "info";
             LogApiTrace = true;
             ProtectedFields = string.Empty;
+            EncodeChildJsonContent = false;
         }
         public string LogLevel { get; set; }
         public bool LogApiTrace { get; set; }
         public string ProtectedFields { get; set; }
+        public bool EncodeChildJsonContent { get; set; }
     }
 }

@@ -72,13 +72,13 @@ namespace Solhigson.Framework.Infrastructure
                     ? new CustomDataRenderer(defaultNLogParameters.ProtectedFields)
                     : Activator.CreateInstance(type);
             var config = new LoggingConfiguration();
-            var fileTarget = new FileTarget
+            var fileTarget = new FormattedJsonFileTarget
             {
                 FileName = $"{Environment.CurrentDirectory}/log.log",
                 Name = "FileDefault",
                 ArchiveAboveSize = 2560000,
                 ArchiveNumbering = ArchiveNumberingMode.Sequence,
-                Layout = DefaultLayout.Layout
+                Layout = DefaultLayout.GetDefaultJsonLayout(defaultNLogParameters.EncodeChildJsonContent)
             };
             config.AddRule(LogLevel.Info, LogLevel.Error, fileTarget);
             NLog.LogManager.Configuration = config;
@@ -114,14 +114,14 @@ namespace Solhigson.Framework.Infrastructure
                 Name = "FileFallback",
                 ArchiveAboveSize = 2560000,
                 ArchiveNumbering = ArchiveNumberingMode.Sequence,
-                Layout = DefaultLayout.Layout
+                Layout = DefaultLayout.GetDefaultJsonLayout(false)
             };
 
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsWorkspaceId, 
                 defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsLogName)
             {
                 Name = "custom document",
-                Layout = DefaultLayout.Layout,
+                Layout = DefaultLayout.GetDefaultJsonLayout(),
             };
 
             fallbackGroupTarget.Targets.Add(customTarget);
