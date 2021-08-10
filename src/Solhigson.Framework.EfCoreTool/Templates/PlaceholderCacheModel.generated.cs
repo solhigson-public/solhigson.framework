@@ -3,7 +3,7 @@
 namespace [Namespace].[Folder]
 {
     //[GeneratedFileComment]
-    public partial class [Placeholder]CacheModel
+    public partial record [Placeholder]CacheModel
     { 
 [Properties]
     }

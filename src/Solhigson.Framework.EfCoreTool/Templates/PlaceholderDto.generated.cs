@@ -3,7 +3,7 @@
 namespace [DtoProjectNamespace].[Folder]
 {
     //[GeneratedFileComment]
-    public partial class [Placeholder]Dto
+    public partial record [Placeholder]Dto
     { 
 [Properties]
     }

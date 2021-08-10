@@ -2,7 +2,7 @@
 namespace [Namespace].[Folder]
 {
     //[CustomFileComment]
-    public partial class [Placeholder]CacheModel
+    public partial record [Placeholder]CacheModel
     {
         
     }
