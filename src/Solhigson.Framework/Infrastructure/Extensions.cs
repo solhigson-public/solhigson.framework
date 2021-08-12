@@ -23,6 +23,7 @@ using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
+using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
 using Solhigson.Framework.Web.Middleware;
 using LogLevel = NLog.LogLevel;
@@ -378,6 +379,11 @@ namespace Solhigson.Framework.Infrastructure
         public static LinkedList<T> ToLinkedList<T>(this IEnumerable<T> source)
         {
             return new LinkedList<T>(source);
+        }
+
+        public static string CallerIp(this HttpContext httpContext)
+        {
+            return HelperFunctions.GetCallerIp(httpContext);
         }
 
         #endregion

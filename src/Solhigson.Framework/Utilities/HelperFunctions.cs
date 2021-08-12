@@ -18,6 +18,10 @@ namespace Solhigson.Framework.Utilities
 
         public static string GetCallerIp(HttpContext httpContext)
         {
+            if (httpContext is null)
+            {
+                return string.Empty;
+            }
             var caller = "";
             if (httpContext == null) return caller;
             // if you are allowing these forward headers, please ensure you are restricting context.Connection.RemoteIpAddress
