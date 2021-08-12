@@ -21,7 +21,6 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         private const string ServicesDirectoryOption = "-sd";
         private const string DtoProjectPathOption = "-dp";
         private const string RepositoryClassType = "Repository";
-        private const string RepositoriesFolder = "Repositories";
         private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
 
 
@@ -49,6 +48,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         internal override void Run()
         {
             const string dtoFolder = "Dto";
+            const string servicesFolder = "Services";
             const string dtoClassType = "Dto";
 
             Console.WriteLine("Running...");
@@ -100,6 +100,13 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom dto
             }
+            
+            GenerateFile(serviceProjectPath, servicesFolder, "ServiceBase", "", "Service", false,
+                true); //generated dto
+
+            GenerateFile(serviceProjectPath, servicesFolder, "ServiceBase", "", "Service", false,
+                false); //generated dto
+
 
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface

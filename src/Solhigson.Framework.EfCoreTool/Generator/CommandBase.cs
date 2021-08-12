@@ -12,6 +12,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         protected const string CachedEntityFolder = "CacheModels";
         protected const string CacheEntityClassType = "CacheModel";
         internal const string AbstractionsFolderName = "Abstractions";
+        internal const string RepositoriesFolder = "Repositories";
         private const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
         protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
         private const string AssemblyPathOption = "-a";
@@ -195,13 +196,16 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 entityNamespaceDeclaration = $"using {entityNamespace};";
             }
             var resource = reader.ReadToEnd().Replace("[Placeholder]", entityName)
-                .Replace("[Namespace]", Namespace).Replace("[Folder]", folder)
-                .Replace("[DbContextName]", DbContextName).Replace("[DbContextNamespace]", DbContextNamespace)
+                .Replace("[Namespace]", Namespace)
+                .Replace("[Folder]", folder)
+                .Replace("[DbContextName]", DbContextName)
+                .Replace("[DbContextNamespace]", DbContextNamespace)
                 .Replace("[EntityNameSpaceDeclaration]", entityNamespaceDeclaration)
                 .Replace("[EntityNameSpace]", entityNamespace)
                 .Replace("[Properties]", properties)
                 .Replace("[ApplicationName]", ApplicationName)
                 .Replace("[AbstractionsFolder]", AbstractionsFolderName)
+                .Replace("[RepositoriesFolder]", RepositoriesFolder)
                 .Replace("[DtoProjectNamespace]", DtoProjectNamespace)
                 .Replace("[Cached]", cachedRepositoryIndicator)
                 .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
