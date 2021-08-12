@@ -9,7 +9,7 @@ using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Data.Repository
 {
-    public class CachedRepositoryBase<T, TDbContext, TCacheModel> : RepositoryBase<T, TDbContext>, ICachedRepositoryBase<T, TCacheModel> 
+    public abstract class CachedRepositoryBase<T, TDbContext, TCacheModel> : RepositoryBase<T, TDbContext>, ICachedRepositoryBase<T, TCacheModel> 
         where T : class, new() where TDbContext : DbContext where TCacheModel : class
     {
         public CachedRepositoryBase(TDbContext dbContext) : base(dbContext)
