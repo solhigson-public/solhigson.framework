@@ -7,13 +7,19 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Solhigson.Framework.Data.Repository
 {
-    public class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T : class where TDbContext : DbContext
+    public class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T : class, new() where TDbContext : DbContext
     {
         protected TDbContext DbContext { get; set; }
 
         public RepositoryBase(TDbContext dbContext)
         {
             DbContext = dbContext;
+        }
+        
+        public T New()
+        {
+            var entity = new T();
+            return Add(entity).Entity;
         }
 
         public IQueryable<T> GetAll()
