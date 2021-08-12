@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Solhigson.Framework.Data.Repository
 {
-    public interface IRepositoryBase<T> where T : class
+    public interface IRepositoryBase<T> where T : class, new()
     {
+        T New();
         IQueryable<T> GetAll();
         IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression);
         EntityEntry<T> Add(T entity);
