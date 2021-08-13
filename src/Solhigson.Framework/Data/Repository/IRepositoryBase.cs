@@ -11,6 +11,7 @@ namespace Solhigson.Framework.Data.Repository
         T New();
         IQueryable<T> GetAll();
         IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression);
+        bool ExistsWithCondition(Expression<Func<T, bool>> expression);
         EntityEntry<T> Add(T entity);
         void AddRange(IEnumerable<T> entities);
         EntityEntry<T> Attach(T entity);
