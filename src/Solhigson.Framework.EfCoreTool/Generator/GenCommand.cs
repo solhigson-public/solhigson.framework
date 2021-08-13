@@ -144,9 +144,34 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             foreach (var prop in properties)
             {
+                var type = prop.PropertyType;
+                if (!IsSystemType(type))
+                {
+                    continue;
+                }
                 sBuilder.AppendLine(GetPropertyDeclaration(prop));
             }
             return sBuilder.ToString();
+        }
+
+        private static bool IsSystemType(Type type)
+        {
+            while (true)
+            {
+                if (type == null)
+                {
+                    return false;
+                }
+
+                if (type.IsPrimitive || type == typeof(string) || type == typeof(decimal)
+                || type == typeof(DateTime))
+                {
+                    return true;
+                }
+
+                var nullable = Nullable.GetUnderlyingType(type);
+                type = nullable;
+            }
         }
 
         private static string GetPropertyDeclaration(PropertyInfo propertyInfo)
