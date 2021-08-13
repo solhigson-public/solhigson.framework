@@ -453,6 +453,11 @@ namespace Solhigson.Framework.Infrastructure
 
             return result;
         }
+
+        public static bool IsValidEmailAddress(this string email)
+        {
+            return HelperFunctions.IsValidEmailAddress(email);
+        }
         
         #endregion
     }

@@ -15,7 +15,16 @@ namespace Solhigson.Framework.Utilities
     public static class HelperFunctions
     {
         private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        public const string MatchEmailPattern =
+            @"\A(?:[a-z0-9A-Z!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9A-Z](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\Z";
 
+        private static readonly Regex EmailMatchRegex = new Regex(MatchEmailPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static bool IsValidEmailAddress(string email)
+        {
+            return !string.IsNullOrWhiteSpace(email) && EmailMatchRegex.IsMatch(email);
+        }
+        
         public static string GetCallerIp(HttpContext httpContext)
         {
             if (httpContext is null)
@@ -23,7 +32,6 @@ namespace Solhigson.Framework.Utilities
                 return string.Empty;
             }
             var caller = "";
-            if (httpContext == null) return caller;
             // if you are allowing these forward headers, please ensure you are restricting context.Connection.RemoteIpAddress
             // to cloud flare ips: https://www.cloudflare.com/ips/
             var header = httpContext.Request.Headers["CF-Connecting-IP"].FirstOrDefault() ??
@@ -319,5 +327,17 @@ namespace Solhigson.Framework.Utilities
                 RegexOptions.Compiled).Trim();
             return result[..1].ToUpper() + result[1..];
         }
+        
+        public static string ReplacePlaceHolders(string text, IDictionary<string, string> placeHolders)
+        {
+            if (!string.IsNullOrWhiteSpace(text) && placeHolders?.Count > 0)
+            {
+                text = placeHolders.Keys.Aggregate(text,
+                    (current, placeHolder) =>
+                        current.Replace(placeHolder, placeHolders[placeHolder]));
+            }
+            return text;
+        }
+
     }
 }
