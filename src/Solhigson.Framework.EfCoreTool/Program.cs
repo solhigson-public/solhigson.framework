@@ -8,6 +8,7 @@ namespace Solhigson.Framework.EfCoreTool
         static void Main(string[] args)
         {
             Console.WriteLine(Environment.CurrentDirectory);
+            ShowBot();
             if (args.Length == 0)
             {
                 var versionString = Assembly.GetEntryAssembly()
@@ -28,8 +29,6 @@ namespace Solhigson.Framework.EfCoreTool
                 Console.WriteLine(commandWrapper.ErrorMessage);
                 return;
             }
-            //ShowBot(string.Join(' ', args));
-            ShowBot();
             commandWrapper.Display();
             commandWrapper.Run();
         }
