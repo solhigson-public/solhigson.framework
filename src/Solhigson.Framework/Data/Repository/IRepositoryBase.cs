@@ -12,13 +12,13 @@ namespace Solhigson.Framework.Data.Repository
         IQueryable<T> GetAll();
         IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression);
         bool ExistsWithCondition(Expression<Func<T, bool>> expression);
-        EntityEntry<T> Add(T entity);
+        T Add(T entity);
         void AddRange(IEnumerable<T> entities);
-        EntityEntry<T> Attach(T entity);
+        T Attach(T entity);
         void AttachRange(IEnumerable<T> entities);
-        EntityEntry<T> Update(T entity);
+        T Update(T entity);
         void UpdateRange(IEnumerable<T> entities);
-        EntityEntry<T> Remove(T entity);
+        T Remove(T entity);
         void RemoveRange(IEnumerable<T> entities);
     }
 }

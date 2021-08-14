@@ -13,6 +13,8 @@ EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.EfCoreTool", "Solhigson.Framework.EfCoreTool\Solhigson.Framework.EfCoreTool.csproj", "{41CEF22B-947F-4DBD-BB8E-7CC4B816B516}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Tests", "Solhigson.Framework.Tests\Solhigson.Framework.Tests.csproj", "{8821BA48-56EF-43D3-BF00-EE60A235D5B1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,5 +33,9 @@ Global
 		{41CEF22B-947F-4DBD-BB8E-7CC4B816B516}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{41CEF22B-947F-4DBD-BB8E-7CC4B816B516}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{41CEF22B-947F-4DBD-BB8E-7CC4B816B516}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -337,5 +337,6 @@ src/Solhigson.Framework.Playground/Dto
 src/Solhigson.Framework.Playground/Repositories
 src/Solhigson.Framework.Playground/CacheModels
 src/Solhigson.Framework.Playground/Services
+src/Solhigson.Framework.Tests/Tests
 *.development.json
 .config/

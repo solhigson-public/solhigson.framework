@@ -19,7 +19,7 @@ namespace Solhigson.Framework.Data.Repository
         public T New()
         {
             var entity = new T();
-            return Add(entity).Entity;
+            return Add(entity);
         }
 
         public IQueryable<T> GetAll()
@@ -37,10 +37,9 @@ namespace Solhigson.Framework.Data.Repository
             return DbContext.Set<T>().Any(expression);
         }
 
-
-        public EntityEntry<T> Add(T entity)
+        public T Add(T entity)
         {
-            return DbContext.Set<T>().Add(entity);
+            return DbContext.Set<T>().Add(entity).Entity;
         }
 
         public void AddRange(IEnumerable<T> entities)
@@ -48,9 +47,9 @@ namespace Solhigson.Framework.Data.Repository
             DbContext.Set<T>().AddRange(entities);
         }
 
-        public EntityEntry<T> Attach(T entity)
+        public T Attach(T entity)
         {
-            return DbContext.Set<T>().Attach(entity);
+            return DbContext.Set<T>().Attach(entity).Entity;
         }
         
         public void AttachRange(IEnumerable<T> entities)
@@ -58,9 +57,9 @@ namespace Solhigson.Framework.Data.Repository
             DbContext.Set<T>().AttachRange(entities);
         }
 
-        public EntityEntry<T> Update(T entity)
+        public T Update(T entity)
         {
-            return DbContext.Set<T>().Update(entity);
+            return DbContext.Set<T>().Update(entity).Entity;
         }
         
         public void UpdateRange(IEnumerable<T> entities)
@@ -68,9 +67,9 @@ namespace Solhigson.Framework.Data.Repository
             DbContext.Set<T>().UpdateRange(entities);
         }
 
-        public EntityEntry<T> Remove(T entity)
+        public T Remove(T entity)
         {
-            return DbContext.Set<T>().Remove(entity);
+            return DbContext.Set<T>().Remove(entity).Entity;
         }
         
         public void RemoveRange(IEnumerable<T> entities)
