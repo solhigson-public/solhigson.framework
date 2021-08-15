@@ -116,7 +116,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             if (!string.IsNullOrWhiteSpace(testsProjectPath))
             {
-                GenerateFile(testsProjectPath, "", "TestBase", "", "", false,
+                GenerateFile(testsProjectPath, "", "BaseTest", "", "", false,
                     true); //generated dto
             }
 
