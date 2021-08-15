@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
@@ -460,5 +461,10 @@ namespace Solhigson.Framework.Infrastructure
         }
         
         #endregion
+        
+        public static bool IsAsyncMethod(this MethodInfo method)
+        {
+            return method?.GetCustomAttribute<AsyncStateMachineAttribute>() != null;
+        }
     }
 }

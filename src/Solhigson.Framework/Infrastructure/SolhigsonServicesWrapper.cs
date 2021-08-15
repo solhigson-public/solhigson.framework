@@ -7,7 +7,7 @@ namespace Solhigson.Framework.Infrastructure
     public class SolhigsonServicesWrapper
     {
         public SolhigsonServicesWrapper(SolhigsonConfigurationCache configurationCache,
-            IHttpContextAccessor httpContextAccessor, IConfiguration configuration, ApiRequestService apiRequestService)
+            IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IApiRequestService apiRequestService)
         {
             ConfigurationCache = configurationCache;
             HttpContextAccessor = httpContextAccessor;
@@ -19,6 +19,6 @@ namespace Solhigson.Framework.Infrastructure
         public SolhigsonConfigurationCache ConfigurationCache { get; }
         public IHttpContextAccessor HttpContextAccessor { get; }
         public IConfiguration Configuration { get; set; }
-        public ApiRequestService ApiRequestService { get; set; }
+        public IApiRequestService ApiRequestService { get; set; }
     }
 }
