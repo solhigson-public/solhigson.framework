@@ -9,6 +9,8 @@ namespace Solhigson.Framework.Infrastructure
     {
         protected override void Load(ContainerBuilder builder)
         {
+            #region Registed AsSelf(), no interface implementation
+
             builder.RegisterType<ConfigurationWrapper>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
@@ -18,14 +20,20 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<SolhigsonServicesWrapper>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<ApiRequestService>().AsSelf().SingleInstance()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-
             builder.RegisterType<AzureLogAnalyticsService>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             builder.RegisterType<SolhigsonApiTraceMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
+            builder.RegisterType<SolhigsonExceptionHandlingMiddleware>().AsSelf().SingleInstance()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
+            #endregion
+
+            builder.RegisterType<ApiRequestService>().As<IApiRequestService>().SingleInstance()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+
 
         }
     }
