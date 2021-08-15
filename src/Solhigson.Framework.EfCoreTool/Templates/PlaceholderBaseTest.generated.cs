@@ -37,15 +37,15 @@ namespace [ProjectRootNamespace].Tests
              * Override certain dependencies for mocking
              */
             //IConfiguration
-            builder.RegisterInstance(new ConfigurationBuilder().Build()).As<IConfiguration>();
+            builder.RegisterInstance(new ConfigurationBuilder().Build()).As<IConfiguration>().SingleInstance();
             
             //IHttpContextAccessor
             var httpContext = Substitute.For<IHttpContextAccessor>();
             httpContext.HttpContext.ReturnsNull();
-            builder.RegisterInstance(httpContext);
+            builder.RegisterInstance(httpContext).SingleInstance();
             
             //Solhigson.Framework IApiRequestService
-            builder.RegisterInstance(Substitute.For<IApiRequestService>());
+            builder.RegisterInstance(Substitute.For<IApiRequestService>()).SingleInstance();
             
             //Hangfire IBackgroundJobClient
             builder.RegisterType<MockHangfireBackgroundJobClient>().As<IBackgroundJobClient>()
@@ -68,19 +68,21 @@ namespace [ProjectRootNamespace].Tests
             
             ServicesWrapper = autofacContainer.Resolve<[DtoProjectNamespace].[ServicesFolder].ServicesWrapper>();
             
-            //***For Arrange and Assert only!!!
+            // *** For Arrange and Assert only!!! ***
             RepositoryWrapper = autofacContainer.Resolve<[PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper>();
             
-            //Ensure sqlite db refreshed
-            autofacContainer.Resolve<[DbContextNamespace].[DbContextName]>().Database.EnsureDeleted();
-            autofacContainer.Resolve<[DbContextNamespace].[DbContextName]>().Database.EnsureCreated();
+            //Ensure sqlite db is refreshed
+            var dbContext = autofacContainer.Resolve<[DbContextNamespace].[DbContextName]>();
+            dbContext.Database.EnsureDeleted();
+            dbContext.Database.EnsureCreated();
         }
         
         //Use method implemention in BaseTest.cs to include other DI registrations
         private partial void LoadCustomDependencyOverrides(ContainerBuilder builder);
 
         public [DtoProjectNamespace].[ServicesFolder].ServicesWrapper ServicesWrapper { get; }
-        //***For Arrange and Assert only!!!
+    
+        // *** For Arrange and Assert only!!! ***
         public [PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper RepositoryWrapper { get; }
 
         public void Dispose() => _connection.Dispose();
