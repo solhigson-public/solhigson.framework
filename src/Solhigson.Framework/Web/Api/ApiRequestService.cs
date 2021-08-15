@@ -12,7 +12,7 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Web.Api
 {
-    public sealed class ApiRequestService
+    public sealed class ApiRequestService : IApiRequestService
     {
         public const string ContentTypePlain = "";
         public const string ContentTypeJson = "application/json";
