@@ -1,7 +1,7 @@
 ﻿
 namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
-    //[CustomFileComment]
+    [CustomFileComment]
     public partial interface IRepositoryWrapper
     {
         

@@ -1,7 +1,7 @@
 ﻿
 namespace [DtoProjectNamespace].[Folder]
 {
-    //[GeneratedFileComment]
+    [GeneratedFileComment]
     public abstract partial class ServiceBase
     {
         protected [PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper RepositoryWrapper { get; }

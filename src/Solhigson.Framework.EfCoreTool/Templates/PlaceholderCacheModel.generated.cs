@@ -2,7 +2,7 @@
 
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
-    //[GeneratedFileComment]
+    [GeneratedFileComment]
     public partial record [Placeholder]CacheModel
     { 
 [Properties]

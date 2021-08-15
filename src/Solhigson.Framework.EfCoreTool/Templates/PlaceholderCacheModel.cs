@@ -1,7 +1,7 @@
 ﻿
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
-    //[CustomFileComment]
+    [CustomFileComment]
     public partial record [Placeholder]CacheModel
     {
         

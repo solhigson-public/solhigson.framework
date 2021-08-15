@@ -1,7 +1,7 @@
 ﻿
 namespace [DtoProjectNamespace].[Folder]
 {
-    //[CustomFileComment]
+    [CustomFileComment]
     public abstract partial class ServiceBase
     {
         

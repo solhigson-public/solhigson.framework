@@ -2,7 +2,7 @@
 
 namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
-    //[GeneratedFileComment]
+    [GeneratedFileComment]
     public partial interface I[Placeholder]Repository 
         : [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder].I[ApplicationName][Cached]RepositoryBase<[EntityNameSpace].[Placeholder]
             [CachedEntityModel]>

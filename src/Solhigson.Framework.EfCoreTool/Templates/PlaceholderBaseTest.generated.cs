@@ -22,26 +22,20 @@ using [ProjectRootNamespace].Web;
 
 namespace [ProjectRootNamespace].Tests
 {
-    //[GeneratedFileComment]
+    [GeneratedFileComment]
     public partial class TestBase
     {
         private readonly DbConnection _connection;
         public TestBase(ITestOutputHelper testOutputHelper)
         {
-            _connection = new SqliteConnection("Filename=:memory:");
-
-            _connection.Open();
-
             testOutputHelper.ConfigureNLogConsoleOutputTarget();
             var builder = new ContainerBuilder();
 
             Startup.RegisterDependencies(builder);
 
-            //return builder.Build();
             /*
              * Override certain dependencies for mocking
              */
-            
             //IConfiguration
             builder.RegisterInstance(new ConfigurationBuilder().Build()).As<IConfiguration>();
             
@@ -50,14 +44,16 @@ namespace [ProjectRootNamespace].Tests
             httpContext.HttpContext.ReturnsNull();
             builder.RegisterInstance(httpContext);
             
-            //solhigson framework IApiRequestService
+            //Solhigson.Framework IApiRequestService
             builder.RegisterInstance(Substitute.For<IApiRequestService>());
             
             //Hangfire IBackgroundJobClient
             builder.RegisterType<MockHangfireBackgroundJobClient>().As<IBackgroundJobClient>()
                 .SingleInstance();
 
-            //AppDbContext to use EfCore in memory database
+            //[DbContextName] to use EfCore in sqlite in memory database
+            _connection = new SqliteConnection("Filename=:memory:");
+            _connection.Open();
             builder.Register(c =>
             {
                 var opt = new DbContextOptionsBuilder<[DbContextNamespace].[DbContextName]>();
@@ -65,14 +61,14 @@ namespace [ProjectRootNamespace].Tests
                 return new [DbContextNamespace].[DbContextName](opt.Options);
             }).AsSelf().InstancePerLifetimeScope();
             
-            //Any other custom dependency overrides
+            //Any other custom dependency overrides - implementation in BaseTest.cs
             LoadCustomDependencyOverrides(builder);
 
             var autofacContainer = builder.Build();
             
             ServicesWrapper = autofacContainer.Resolve<[DtoProjectNamespace].[ServicesFolder].ServicesWrapper>();
             
-            //For Arrange and Assert only
+            //***For Arrange and Assert only!!!
             RepositoryWrapper = autofacContainer.Resolve<[PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper>();
             
             //Ensure sqlite db refreshed
@@ -80,13 +76,14 @@ namespace [ProjectRootNamespace].Tests
             autofacContainer.Resolve<[DbContextNamespace].[DbContextName]>().Database.EnsureCreated();
         }
         
-        public void Dispose() => _connection.Dispose();
-
-        
+        //Use method implemention in BaseTest.cs to include other DI registrations
         private partial void LoadCustomDependencyOverrides(ContainerBuilder builder);
 
         public [DtoProjectNamespace].[ServicesFolder].ServicesWrapper ServicesWrapper { get; }
+        //***For Arrange and Assert only!!!
         public [PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper RepositoryWrapper { get; }
+
+        public void Dispose() => _connection.Dispose();
 
     }
 }

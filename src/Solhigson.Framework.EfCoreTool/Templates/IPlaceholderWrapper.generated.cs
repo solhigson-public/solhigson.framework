@@ -1,7 +1,7 @@
 ﻿
 namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
-    //[GeneratedFileComment]
+    [GeneratedFileComment]
     public partial interface IRepositoryWrapper
     {
         [DbContextNamespace].[DbContextName] DbContext { get; }
