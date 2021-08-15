@@ -226,7 +226,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[Cached]", cachedRepositoryIndicator)
                 .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
                 .Replace("[CustomFileComment]", GetComment("This file is never overwritten, place custom code here"))
-                .Replace("[GeneratedFileComment]", GetComment("This file is never overwritten, place custom code here"));
+                .Replace("[GeneratedFileComment]", GetComment("This file is ALWAYS overwritten, DO NOT place custom code here"));
             SaveFile(resource, path);
         }
         
