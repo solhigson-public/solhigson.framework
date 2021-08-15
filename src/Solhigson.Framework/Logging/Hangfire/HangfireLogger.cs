@@ -1,5 +1,6 @@
 ﻿using System;
 using Hangfire.Logging;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Logging.Hangfire

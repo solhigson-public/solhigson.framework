@@ -17,10 +17,16 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
         private const string AssemblyPathOption = "-a";
         private const string DatabaseContextName = "-d";
-        protected string Namespace { get; private set; }
+        protected const string RootNamespaceOption = "-rn";
+
+        protected string PersistenceProjectRootNamespace { get; private set; }
         protected string ApplicationName { get; private set; }
+        protected string ProjectRootNamespace { get; private set; }
         private string DbContextNamespace { get; set; }
         private string DbContextName { get; set; }
+        
+        protected string ServicesFolder { get; set; }
+
         
         protected string DtoProjectNamespace { get; set; }
 
@@ -71,6 +77,13 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 var databaseContexts = assembly
                     .GetTypes().Where(t => t.IsSubclassOf(typeof(DbContext))).ToList();
 
+                if (!Args.TryGetValue(RootNamespaceOption, out var rootNamespace))
+                {
+                    return (false, $"Root namespace is required via arg: {RootNamespaceOption}");
+                }
+
+                ProjectRootNamespace = rootNamespace;
+
                 if (databaseContexts.Any() == false)
                 {
                     return (false, $"No database Contexts found");
@@ -114,21 +127,21 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 {
                     return (false, $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
                 }
-                Namespace = assembly.GetName().Name;
-                if (string.IsNullOrWhiteSpace(Namespace))
+                PersistenceProjectRootNamespace = assembly.GetName().Name;
+                if (string.IsNullOrWhiteSpace(PersistenceProjectRootNamespace))
                 {
                     return (false, "Couldn't retrieve assembly name");
                 }
                 DbContextName = databaseContext.Name;
                 DbContextNamespace = databaseContext.Namespace;
-                if (Namespace.Contains("."))
+                if (ProjectRootNamespace.Contains("."))
                 {
-                    var split = Namespace.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+                    var split = ProjectRootNamespace.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
                     ApplicationName = split[0];
                 }
                 else
                 {
-                    ApplicationName = Namespace;
+                    ApplicationName = ProjectRootNamespace;
                 }
 
             }
@@ -173,7 +186,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             if (isCachedEntity)
             {
                 cachedRepositoryIndicator = "Cached";
-                cachedRepositoryClassPrefix = $",{Namespace}.{CachedEntityFolder}.{entityName}{CacheEntityClassType}";
+                cachedRepositoryClassPrefix = $",{PersistenceProjectRootNamespace}.{CachedEntityFolder}.{entityName}{CacheEntityClassType}";
             }
 
             var resourcePath = $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
@@ -196,8 +209,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 entityNamespaceDeclaration = $"using {entityNamespace};";
             }
             var resource = reader.ReadToEnd().Replace("[Placeholder]", entityName)
-                .Replace("[Namespace]", Namespace)
+                .Replace("[ProjectRootNamespace]", ProjectRootNamespace)
+                .Replace("[PersistenceProjectRootNamespace]", PersistenceProjectRootNamespace)
                 .Replace("[Folder]", folder)
+                .Replace("[ServicesFolder]", ServicesFolder)
                 .Replace("[DbContextName]", DbContextName)
                 .Replace("[DbContextNamespace]", DbContextNamespace)
                 .Replace("[EntityNameSpaceDeclaration]", entityNamespaceDeclaration)

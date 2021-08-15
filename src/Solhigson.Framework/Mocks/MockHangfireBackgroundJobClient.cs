@@ -5,6 +5,7 @@ using Autofac;
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Mocks

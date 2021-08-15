@@ -19,6 +19,7 @@ using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Solhigson.Framework.Data;
+using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
@@ -27,9 +28,10 @@ using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
 using Solhigson.Framework.Web.Middleware;
+using Xunit.Abstractions;
 using LogLevel = NLog.LogLevel;
 
-namespace Solhigson.Framework.Infrastructure
+namespace Solhigson.Framework.Extensions
 {
     public static class Extensions
     {
@@ -87,6 +89,23 @@ namespace Solhigson.Framework.Infrastructure
             LogManager.SetLogLevel(defaultNLogParameters.LogLevel);
             LogManager.HttpContextAccessor = httpContextAccessor;
             return app;
+        }
+        
+        public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
+        {
+            ConfigurationItemFactory.Default.RegisterItemsFromAssembly(typeof(CustomDataRenderer).Assembly);
+            ConfigurationItemFactory.Default.CreateInstance = type =>
+                type == typeof(CustomDataRenderer)
+                    ? new CustomDataRenderer(null)
+                    : Activator.CreateInstance(type);
+            var config = new LoggingConfiguration();
+            var testOutputHelperTarget = new XUnitTestOutputHelperTarget(outputHelper)
+            {
+                Name = "TestsOutput",
+                Layout = DefaultLayout.TestsLayout
+            };
+            config.AddRule(LogLevel.Info, LogLevel.Error, testOutputHelperTarget);
+            NLog.LogManager.Configuration = config;
         }
 
         public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,

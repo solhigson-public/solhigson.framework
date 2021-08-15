@@ -1,5 +1,5 @@
 ﻿
-namespace [Namespace].[Folder].[AbstractionsFolder]
+namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
     //[GeneratedFileComment]
     public partial interface IRepositoryWrapper

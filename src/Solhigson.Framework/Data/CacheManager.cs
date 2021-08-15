@@ -12,6 +12,7 @@ using System.Timers;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Solhigson.Framework.Data.Dto;
 using Solhigson.Framework.Data.Repository;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 

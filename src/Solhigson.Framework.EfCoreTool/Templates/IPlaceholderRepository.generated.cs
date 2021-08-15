@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-namespace [Namespace].[Folder].[AbstractionsFolder]
+namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
     //[GeneratedFileComment]
     public partial interface I[Placeholder]Repository 
-        : [Namespace].[Folder].[AbstractionsFolder].I[ApplicationName][Cached]RepositoryBase<[EntityNameSpace].[Placeholder]
+        : [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder].I[ApplicationName][Cached]RepositoryBase<[EntityNameSpace].[Placeholder]
             [CachedEntityModel]>
     {
 [Properties]    

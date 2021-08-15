@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Utilities.Linq

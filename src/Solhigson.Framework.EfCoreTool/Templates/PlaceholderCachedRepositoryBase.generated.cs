@@ -1,5 +1,5 @@
 ﻿
-namespace [Namespace].[Folder]
+namespace [PersistenceProjectRootNamespace].[Folder]
 {
     //[GeneratedFileComment]
     public partial class [ApplicationName]CachedRepositoryBase<T, TCacheModel> 

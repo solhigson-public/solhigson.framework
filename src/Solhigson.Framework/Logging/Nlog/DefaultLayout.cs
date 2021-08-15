@@ -31,5 +31,22 @@ namespace Solhigson.Framework.Logging.Nlog
 
             };
         }
+
+        public static JsonLayout TestsLayout =>
+            new JsonLayout
+            {
+                Attributes =
+                {
+                    new JsonAttribute("LogLevel", "${level}", true),
+                    new JsonAttribute("Description", "${message}", true),
+                    new JsonAttribute("Source", "${logger}", true),
+
+                    new JsonAttribute("Exception", "${solhigson-exception}", false),
+                    new JsonAttribute("Data", "${solhigson-data}", false),
+                    new JsonAttribute("Data", "${solhigson-data}", false),
+                    new JsonAttribute("User", "${solhigson-user}", true),
+                },
+
+            };
     }
 }

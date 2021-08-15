@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.EfCoreTool.Generator
@@ -19,7 +20,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
     {
         private const string RepositoryDirectoryOption = "-rd";
         private const string ServicesDirectoryOption = "-sd";
-        private const string DtoProjectPathOption = "-dp";
+        private const string DtoProjectPathOption = "-cp";
+        private const string TestsProjectPathOption = "-tp";
         private const string RepositoryClassType = "Repository";
         private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
 
@@ -33,6 +35,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             ValidOptions.Add(RepositoryDirectoryOption);
             ValidOptions.Add(ServicesDirectoryOption);
             ValidOptions.Add(DtoProjectPathOption);
+            ValidOptions.Add(TestsProjectPathOption);
+            ValidOptions.Add(RootNamespaceOption);
             
             foreach (var key in Args)
             {
@@ -48,7 +52,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         internal override void Run()
         {
             const string dtoFolder = "Dto";
-            const string servicesFolder = "Services";
+            ServicesFolder = "Services";
             const string dtoClassType = "Dto";
 
             Console.WriteLine("Running...");
@@ -62,6 +66,9 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 serviceProjectPath = persistenceProjectPath;
             }
+
+            Args.TryGetValue(TestsProjectPathOption, out var testsProjectPath);
+
             DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
 
             foreach (var entity in Models)
@@ -101,11 +108,17 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     entity.Namespace, false, false); //custom dto
             }
             
-            GenerateFile(serviceProjectPath, servicesFolder, "ServiceBase", "", "Service", false,
+            GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", false,
                 true); //generated dto
 
-            GenerateFile(serviceProjectPath, servicesFolder, "ServiceBase", "", "Service", false,
+            GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", false,
                 false); //generated dto
+
+            if (!string.IsNullOrWhiteSpace(testsProjectPath))
+            {
+                GenerateFile(testsProjectPath, "", "TestBase", "", "", false,
+                    true); //generated dto
+            }
 
 
             GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
@@ -202,7 +215,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             foreach (var entity in entities)
             {
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"{GetTabSpace(2)}{Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
+                sBuilder.AppendLine($"{GetTabSpace(2)}{PersistenceProjectRootNamespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
             }
 
             return sBuilder.ToString();
@@ -216,8 +229,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 var fieldName = "_" + entity.Name.ToCamelCase() + RepositoryClassType;
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"{GetTabSpace(2)}private {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {fieldName};");
-                sBuilder.AppendLine($"{GetTabSpace(2)}public {Namespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}");
+                sBuilder.AppendLine($"{GetTabSpace(2)}private {PersistenceProjectRootNamespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {fieldName};");
+                sBuilder.AppendLine($"{GetTabSpace(2)}public {PersistenceProjectRootNamespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}");
                 sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= new {className}(DbContext);" + " } }");
                 sBuilder.AppendLine();
             }
@@ -313,7 +326,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         private string GetCachedDtoClassType(Type type)
         {
-            return $"{Namespace}.{CachedEntityFolder}.{type.Name}{CacheEntityClassType}";
+            return $"{PersistenceProjectRootNamespace}.{CachedEntityFolder}.{type.Name}{CacheEntityClassType}";
         }
 
         private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)

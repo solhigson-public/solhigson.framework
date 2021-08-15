@@ -4,8 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Data.Repository
 {

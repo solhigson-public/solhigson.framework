@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Claims;
 using NLog;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging.Nlog.Renderers;
 

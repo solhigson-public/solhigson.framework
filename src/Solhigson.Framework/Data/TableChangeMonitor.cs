@@ -2,6 +2,7 @@
 using System.Collections.ObjectModel;
 using System.Runtime.Caching;
 using System.Timers;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Data

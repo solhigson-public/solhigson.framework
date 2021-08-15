@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Infrastructure
 {

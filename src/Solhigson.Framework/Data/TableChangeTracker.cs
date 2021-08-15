@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Timers;
 using Solhigson.Framework.Data.Dto;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Data

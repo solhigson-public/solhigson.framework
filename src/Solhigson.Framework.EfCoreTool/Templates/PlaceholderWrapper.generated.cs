@@ -1,8 +1,8 @@
 ﻿
-namespace [Namespace].[Folder]
+namespace [PersistenceProjectRootNamespace].[Folder]
 {
     //[GeneratedFileComment]
-    public partial class RepositoryWrapper : [Namespace].[Folder].[AbstractionsFolder].IRepositoryWrapper
+    public partial class RepositoryWrapper : [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder].IRepositoryWrapper
     {
         public [DbContextNamespace].[DbContextName] DbContext { get; }
 

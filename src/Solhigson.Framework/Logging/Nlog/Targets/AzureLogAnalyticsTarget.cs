@@ -35,7 +35,6 @@ namespace Solhigson.Framework.Logging.Nlog.Targets
             catch (Exception ex)
             {
                 InternalLogger.Error(ex, "Error while sending log messages to Azure Log Analytics");
-                throw;
             }
         }
     }

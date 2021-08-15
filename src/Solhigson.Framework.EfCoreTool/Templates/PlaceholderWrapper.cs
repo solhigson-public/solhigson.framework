@@ -1,5 +1,5 @@
 ﻿
-namespace [Namespace].[Folder]
+namespace [PersistenceProjectRootNamespace].[Folder]
 {
     //[CustomFileComment]
     public partial class RepositoryWrapper
