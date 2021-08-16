@@ -144,10 +144,27 @@ namespace Solhigson.Framework.Data
             }
         }
 
-        internal static string GetTableName(Type entityType)
+        internal static string GetTableName(Type entityType, bool withSchema = false)
         {
             var tableAttribute = entityType.GetAttribute<TableAttribute>();
-            return tableAttribute?.Name ?? entityType.Name;
+            if (!withSchema)
+            {
+                return tableAttribute?.Name ?? entityType.Name;
+            }
+            
+            var name = tableAttribute?.Name;
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                name = $"[{name}]";
+                var schema = tableAttribute?.Schema;
+                if (!string.IsNullOrWhiteSpace(schema))
+                {
+                    name = $"[{schema}].{name}";
+                }
+
+                return name;
+            }
+            return $"[{entityType.Name}]";
         }
 
         private static void AddCacheTrackerTrigger(Type entityType)
@@ -156,6 +173,7 @@ namespace Solhigson.Framework.Data
             try
             {
                 tableName = GetTableName(entityType);
+                var tableNameWithSchema = GetTableName(entityType, true);
                 var triggerName = $"Solhigson_UTrig_{tableName}_UpdateChangeTracker";
 
                 var deleteScriptBuilder = new StringBuilder();
@@ -165,7 +183,7 @@ namespace Solhigson.Framework.Data
                 deleteScriptBuilder.Append("END;");
 
                 var createTriggerScriptBuilder = new StringBuilder();
-                createTriggerScriptBuilder.Append($"CREATE TRIGGER [{triggerName}] ON [{tableName}] AFTER INSERT, DELETE, UPDATE AS ");
+                createTriggerScriptBuilder.Append($"CREATE TRIGGER [{triggerName}] ON {tableNameWithSchema} AFTER INSERT, DELETE, UPDATE AS ");
                 createTriggerScriptBuilder.Append($"BEGIN TRY SET NOCOUNT ON; EXEC [{UpdateChangeTrackerSpName}] {GetParameterName(TableNameColumnName)} = N'{tableName}' END TRY BEGIN CATCH END CATCH");
             
                 AdoNetUtils.ExecuteNonQueryAsync(_connectionString, deleteScriptBuilder.ToString()).Wait();
