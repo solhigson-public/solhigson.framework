@@ -118,7 +118,7 @@ namespace Solhigson.Framework.Data
             updateChangeTrackerBuilder.Append($"SELECT {GetParameterName(ChangeIdColumnName)} = [{ChangeIdColumnName}] FROM [{ChangeTrackerTableName}] (NOLOCK) WHERE [{TableNameColumnName}] = {GetParameterName(TableNameColumnName)} ");
             updateChangeTrackerBuilder.Append($"IF({GetParameterName(ChangeIdColumnName)} IS NULL) " +
                                               $"BEGIN " +
-                                              $"INSERT INTO [{ChangeTrackerTableName}] ([{TableNameColumnName}], [{ChangeIdColumnName}]) VALUES ({GetParameterName(TableNameColumnName)}, 0) RETURN 1 " +
+                                              $"INSERT INTO [{ChangeTrackerTableName}] ([{TableNameColumnName}], [{ChangeIdColumnName}]) VALUES ({GetParameterName(TableNameColumnName)}, 1) RETURN 1 " +
                                               $"END ");
             updateChangeTrackerBuilder.Append($"IF({GetParameterName(ChangeIdColumnName)} > 1000) ");
             updateChangeTrackerBuilder.Append($"BEGIN " +
@@ -144,47 +144,45 @@ namespace Solhigson.Framework.Data
             }
         }
 
-        internal static string GetTableName(Type entityType, bool withSchema = false)
+        private static string GetTableName(Type entityType, bool forQuery = false)
         {
             var tableAttribute = entityType.GetAttribute<TableAttribute>();
-            if (!withSchema)
+            
+            var tableName = tableAttribute?.Name ?? entityType.Name;
+            var schema = tableAttribute?.Schema;
+            if (string.IsNullOrWhiteSpace(schema))
             {
-                return tableAttribute?.Name ?? entityType.Name;
+                return forQuery ? $"[{tableName}]" : tableName;
             }
             
-            var name = tableAttribute?.Name;
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                name = $"[{name}]";
-                var schema = tableAttribute?.Schema;
-                if (!string.IsNullOrWhiteSpace(schema))
-                {
-                    name = $"[{schema}].{name}";
-                }
-
-                return name;
-            }
-            return $"[{entityType.Name}]";
+            return forQuery ? $"[{schema}].[{tableName}]" : $"{schema}_{tableName}";
         }
 
+        private static string GetTriggerName(Type entityType, bool forQuery = false)
+        {
+            var triggerName = $"Solhigson_UTrig_{GetTableName(entityType)}_UpdateChangeTracker";
+
+            var schema = entityType.GetAttribute<TableAttribute>()?.Schema;
+            return string.IsNullOrWhiteSpace(schema) 
+                ? $"[{triggerName}]" 
+                : $"[{schema}].[{triggerName}]";
+        }
         private static void AddCacheTrackerTrigger(Type entityType)
         {
             string tableName = null;
             try
             {
-                tableName = GetTableName(entityType);
-                var tableNameWithSchema = GetTableName(entityType, true);
-                var triggerName = $"Solhigson_UTrig_{tableName}_UpdateChangeTracker";
+                var triggerName = GetTriggerName(entityType);
 
                 var deleteScriptBuilder = new StringBuilder();
-                deleteScriptBuilder.Append($"IF OBJECT_ID(N'[{triggerName}]') IS NOT NULL ");
+                deleteScriptBuilder.Append($"IF OBJECT_ID(N'{triggerName}') IS NOT NULL ");
                 deleteScriptBuilder.Append("BEGIN ");
-                deleteScriptBuilder.Append($"DROP TRIGGER [{triggerName}] ");
+                deleteScriptBuilder.Append($"DROP TRIGGER {triggerName} ");
                 deleteScriptBuilder.Append("END;");
 
                 var createTriggerScriptBuilder = new StringBuilder();
-                createTriggerScriptBuilder.Append($"CREATE TRIGGER [{triggerName}] ON {tableNameWithSchema} AFTER INSERT, DELETE, UPDATE AS ");
-                createTriggerScriptBuilder.Append($"BEGIN TRY SET NOCOUNT ON; EXEC [{UpdateChangeTrackerSpName}] {GetParameterName(TableNameColumnName)} = N'{tableName}' END TRY BEGIN CATCH END CATCH");
+                createTriggerScriptBuilder.Append($"CREATE TRIGGER {triggerName} ON {GetTableName(entityType, true)} AFTER INSERT, DELETE, UPDATE AS ");
+                createTriggerScriptBuilder.Append($"BEGIN TRY SET NOCOUNT ON; EXEC [{UpdateChangeTrackerSpName}] {GetParameterName(TableNameColumnName)} = N'{GetTableName(entityType)}' END TRY BEGIN CATCH END CATCH");
             
                 AdoNetUtils.ExecuteNonQueryAsync(_connectionString, deleteScriptBuilder.ToString()).Wait();
                 AdoNetUtils.ExecuteNonQueryAsync(_connectionString, createTriggerScriptBuilder.ToString()).Wait();
