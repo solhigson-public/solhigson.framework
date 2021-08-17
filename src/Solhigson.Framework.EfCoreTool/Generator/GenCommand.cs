@@ -102,10 +102,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 }
 
                 GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
-                    entity.Namespace, false, true, GetDtoProperties(entity, true)); //generated dto
+                    entity.Namespace, false, true, GetDtoProperties(entity, true)); //generated cached dto
 
                 GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
-                    entity.Namespace, false, false); //custom dto
+                    entity.Namespace, false, false); //custom cached dto
             }
             
             GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", true,
