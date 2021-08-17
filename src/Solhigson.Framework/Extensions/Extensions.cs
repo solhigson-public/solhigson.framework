@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Common;
@@ -485,5 +486,16 @@ namespace Solhigson.Framework.Extensions
         {
             return method?.GetCustomAttribute<AsyncStateMachineAttribute>() != null;
         }
+        
+        public static IActionResult HttpOk(this ResponseInfo response)
+        {
+            return new OkObjectResult(response);
+        }
+        
+        public static IActionResult HttpOk<T>(this ResponseInfo<T> response)
+        {
+            return new OkObjectResult(response);
+        }
+
     }
 }
