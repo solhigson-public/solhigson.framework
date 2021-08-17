@@ -108,11 +108,14 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     entity.Namespace, false, false); //custom dto
             }
             
-            GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", false,
-                true); //generated dto
+            GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", true,
+                true); //generated IServiceBase
 
             GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", false,
-                false); //generated dto
+                true); //generated ServiceBase
+
+            GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", false,
+                false); //Custom ServiceBase
 
             if (!string.IsNullOrWhiteSpace(testsProjectPath))
             {
