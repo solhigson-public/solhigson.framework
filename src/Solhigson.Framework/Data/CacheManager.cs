@@ -82,6 +82,19 @@ namespace Solhigson.Framework.Data
             var getAllChangeTrackerBuilder = new StringBuilder();
             var getTableChangeTrackerBuilder = new StringBuilder();
             var updateChangeTrackerBuilder = new StringBuilder();
+
+            //Clean up cache monitor table and all triggers, for entities that might have been removed as ICacheEntity
+            var cleanUpScript = $@"DECLARE @sql NVARCHAR(MAX) = N'Delete from [{ChangeTrackerTableName}];';
+                SELECT @sql += 
+                    N'DROP TRIGGER ' + 
+                    QUOTENAME(OBJECT_SCHEMA_NAME(t.object_id)) + N'.' + 
+                    QUOTENAME(t.name) + N'; ' + NCHAR(13)
+                FROM sys.triggers AS t
+                WHERE t.is_ms_shipped = 0
+                  AND t.parent_class_desc = N'OBJECT_OR_COLUMN';
+
+                exec (N'' + @sql + N'');
+                ";
             
             sBuilder.Append($"IF OBJECT_ID(N'[{ChangeTrackerTableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
@@ -126,6 +139,7 @@ namespace Solhigson.Framework.Data
                                               $"END ");
             updateChangeTrackerBuilder.Append($"UPDATE dbo.[{ChangeTrackerTableName}] SET [{ChangeIdColumnName}] = {GetParameterName(ChangeIdColumnName)} + 1 WHERE [{TableNameColumnName}] = {GetParameterName(TableNameColumnName)}");
 
+            AdoNetUtils.ExecuteNonQueryAsync(_connectionString, cleanUpScript).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, sBuilder.ToString()).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, updateChangeTrackerBuilder.ToString()).Wait();
             AdoNetUtils.ExecuteNonQueryAsync(_connectionString, getAllChangeTrackerBuilder.ToString()).Wait();
@@ -158,7 +172,7 @@ namespace Solhigson.Framework.Data
             return forQuery ? $"[{schema}].[{tableName}]" : $"{schema}_{tableName}";
         }
 
-        private static string GetTriggerName(Type entityType, bool forQuery = false)
+        private static string GetTriggerName(Type entityType)
         {
             var triggerName = $"Solhigson_UTrig_{GetTableName(entityType)}_UpdateChangeTracker";
 
