@@ -475,11 +475,15 @@ namespace Solhigson.Framework.Extensions
             return result;
         }
 
-        public static bool IsValidEmailAddress(this string email)
+        public static bool IsValidEmailAddress(this string email, bool ignoreEmpty = false)
         {
-            return HelperFunctions.IsValidEmailAddress(email);
+            return HelperFunctions.IsValidEmailAddress(email, ignoreEmpty);
         }
         
+        public static bool IsValidPhoneNumber(this string phoneNumber, bool ignoreEmpty = false)
+        {
+            return HelperFunctions.IsValidPhoneNumber(phoneNumber, ignoreEmpty);
+        }
         #endregion
         
         public static bool IsAsyncMethod(this MethodInfo method)

@@ -18,12 +18,26 @@ namespace Solhigson.Framework.Utilities
         public const string MatchEmailPattern =
             @"\A(?:[a-z0-9A-Z!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9A-Z](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\Z";
 
-        private static readonly Regex EmailMatchRegex = new Regex(MatchEmailPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        public const string MatchPhoneNumberPattern =
+            @"^\\+?[0-9 ]{11,15}$";
 
-        public static bool IsValidEmailAddress(string email)
+        private static readonly Regex EmailMatchRegex = new Regex(MatchEmailPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex PhoneNumberMatchRegex = new Regex(MatchEmailPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static bool IsValidEmailAddress(string email, bool ignoreEmpty = false)
         {
-            return !string.IsNullOrWhiteSpace(email) && EmailMatchRegex.IsMatch(email);
+            return string.IsNullOrWhiteSpace(email) 
+                ? ignoreEmpty 
+                : EmailMatchRegex.IsMatch(email);
         }
+        
+        public static bool IsValidPhoneNumber(string phoneNumber, bool ignoreEmpty = false)
+        {
+            return string.IsNullOrWhiteSpace(phoneNumber) 
+                ? ignoreEmpty 
+                : PhoneNumberMatchRegex.IsMatch(phoneNumber);
+        }
+
         
         public static string GetCallerIp(HttpContext httpContext)
         {
