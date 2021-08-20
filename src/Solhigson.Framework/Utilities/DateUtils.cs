@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Globalization;
 
-namespace Solhigson.Framework
+namespace Solhigson.Framework.Utilities
 {
-    public static class DateService
+    public static class DateUtils
     {
         /// <summary>
         /// default culture info
@@ -191,6 +191,13 @@ namespace Solhigson.Framework
         {
             var daysInMonth = DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
             return dateTime.Day == daysInMonth;
+        }
+
+        public static (DateTime FromDate, DateTime ToDate) TodayDateRange(bool utc = true)
+        {
+            var fromDate = utc ? DateTime.UtcNow : DateTime.Now;
+            var toDate = fromDate.AddDays(1).AddMilliseconds(-1);
+            return (fromDate, toDate);
         }
     }
 }
