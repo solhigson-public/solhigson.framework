@@ -367,8 +367,9 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             var totalPropCount = propertyNames.Count;
             var totalNullableTypesCount = type.GetProperties()
                 .Where(t => propertyNames.Contains(t.Name))
-                .Where(t => Nullable.GetUnderlyingType(t.PropertyType) != null || !t.PropertyType.IsPrimitive
+                .Where(t => (Nullable.GetUnderlyingType(t.PropertyType) != null || !t.PropertyType.IsPrimitive
                                                                                || t.PropertyType == typeof(string))
+                                                                                && t.PropertyType != typeof(DateTime))
                 .ToList();
             var nullCheck = "";
             if (totalNullableTypesCount.Any())

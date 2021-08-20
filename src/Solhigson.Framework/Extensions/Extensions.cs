@@ -455,25 +455,11 @@ namespace Solhigson.Framework.Extensions
         #endregion
         
         #region String
-        public static string ToCamelCase(this string stringData)
-        {
-            if (stringData == null || stringData.Length < 2)
-                return stringData;
-
-            var words = stringData.Split(
-                new char[] { },
-                StringSplitOptions.RemoveEmptyEntries);
-
-            var result = words[0].ToLower();
-            for (var i = 1; i < words.Length; i++)
-            {
-                result +=
-                    words[i][..1].ToUpper() +
-                    words[i][1..];
-            }
-
-            return result;
-        }
+        
+        public static string ToCamelCase(this string str) =>
+            string.IsNullOrEmpty(str) || str.Length < 2
+                ? str
+                : char.ToLowerInvariant(str[0]) + str[1..];
 
         public static bool IsValidEmailAddress(this string email, bool ignoreEmpty = false)
         {
