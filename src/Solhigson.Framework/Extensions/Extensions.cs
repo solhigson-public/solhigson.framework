@@ -158,7 +158,7 @@ namespace Solhigson.Framework.Extensions
             return app;
         }
 
-        public static IServiceCollection ConfigureSolhigsonDefaultHttpClient(this IServiceCollection services)
+        public static IServiceCollection AddSolhigsonDefaultHttpClient(this IServiceCollection services)
         {
             services.AddHttpClient(ApiRequestService.DefaultNamedHttpClient)
                 .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
