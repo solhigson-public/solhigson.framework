@@ -14,11 +14,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Common;
 using NLog.Config;
 using NLog.Targets;
 using NLog.Targets.Wrappers;
+using Polly;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
@@ -28,6 +30,7 @@ using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
+using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
 using Xunit.Abstractions;
 using LogLevel = NLog.LogLevel;
@@ -153,6 +156,24 @@ namespace Solhigson.Framework.Extensions
             NLog.LogManager.Configuration = config;
 
             return app;
+        }
+
+        public static IServiceCollection ConfigureSolhigsonDefaultHttpClient(this IServiceCollection services)
+        {
+            services.AddHttpClient(ApiRequestService.DefaultNamedHttpClient)
+                .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
+                    {
+                        TimeSpan.FromSeconds(1),
+                        TimeSpan.FromSeconds(5),
+                        TimeSpan.FromSeconds(10)
+                    },
+                    onRetry: (outcome, timespan, retryAttempt, context) =>
+                    {
+                        LogManager.GetLogger("HttpPollyService")
+                            .Warn($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
+                    }));
+
+            return services;
         }
 
         #endregion

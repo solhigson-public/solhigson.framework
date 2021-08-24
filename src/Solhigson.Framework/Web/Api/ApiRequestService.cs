@@ -14,16 +14,17 @@ namespace Solhigson.Framework.Web.Api
 {
     public sealed class ApiRequestService : IApiRequestService
     {
-        public const string ContentTypePlain = "";
+        internal const string DefaultNamedHttpClient = "ApiRequestService";
+        public const string ContentTypePlain = "text/plain";
         public const string ContentTypeJson = "application/json";
         public const string ContentTypeXml = "application/xml";
         public const string ContentTypeXWwwFormUrlencoded = "application/x-www-form-urlencoded";
         private readonly LogWrapper _logger = new LogWrapper("ApiRequestHelper");
-        private readonly HttpClient _client;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public ApiRequestService(IHttpClientFactory httpClientFactory)
         {
-            _client = httpClientFactory.CreateClient();
+            _httpClientFactory = httpClientFactory;
         }
 
         #region GET Requests
@@ -247,7 +248,8 @@ namespace Solhigson.Framework.Web.Api
             }
 
             var apiRequestHelperResponse = new ApiRequestResponse<T>();
-            _client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
+            var client = _httpClientFactory.CreateClient(DefaultNamedHttpClient);
+            client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
             var request = new HttpRequestMessage();
             //HttpResponseMessage httpResponseMsg = null;
             var traceData = new ApiTraceData
@@ -273,7 +275,7 @@ namespace Solhigson.Framework.Web.Api
 
                 if (timeOut > 0)
                 {
-                    _client.Timeout = TimeSpan.FromMilliseconds(timeOut);
+                    client.Timeout = TimeSpan.FromMilliseconds(timeOut);
                 }
 
                 if (apiRequestDetails.Headers != null && apiRequestDetails.Headers.Count > 0)
@@ -300,7 +302,7 @@ namespace Solhigson.Framework.Web.Api
 
                 apiRequestHelperResponse.ResponseHeaders = new Dictionary<string, string>();
 
-                apiRequestHelperResponse.HttpResponseMessage = await _client.SendAsync(request);
+                apiRequestHelperResponse.HttpResponseMessage = await client.SendAsync(request);
                 apiRequestHelperResponse.Response =
                     await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
 
