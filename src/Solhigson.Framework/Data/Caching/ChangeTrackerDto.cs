@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Data.Dto
+﻿namespace Solhigson.Framework.Data.Caching
 {
     public class ChangeTrackerDto
     {

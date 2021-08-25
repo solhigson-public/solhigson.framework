@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Solhigson.Framework.Data.Dto
+namespace Solhigson.Framework.Data.Caching
 {
     public class ChangeTrackerEventArgs : EventArgs
     {

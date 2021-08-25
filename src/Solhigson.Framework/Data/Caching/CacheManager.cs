@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
@@ -10,14 +9,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Solhigson.Framework.Data.Dto;
-using Solhigson.Framework.Data.Repository;
+using Solhigson.Framework.Data.Entities;
 using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 
-namespace Solhigson.Framework.Data
+namespace Solhigson.Framework.Data.Caching
 {
     public static class CacheManager
     {
@@ -37,6 +33,10 @@ namespace Solhigson.Framework.Data
         private static MemoryCache DefaultMemoryCache { get; } = new MemoryCache("Solhigson::Data::Cache::Manager");
         private static ConcurrentBag<string> CacheKeys { get; } = new ConcurrentBag<string>();
 
+        internal const string AppSettingsTableName = "__SolhigsonAppSettings";
+        internal const string AppSettingsTableNameColumn = "Name";
+        internal const string AppSettingsTableValueColumn = "Value";
+        internal const string AppSettingsTableIdColumn = "Id";
         private const string ChangeTrackerTableName = "__SolhigsonCacheChangeTracker";
         private const string UpdateChangeTrackerSpName = "__SolhigsonUpdateChangeTracker";
         private const string GetAllChangeTrackerSpName = "__SolhigsonGetAllChangeTrackerIds";
@@ -112,6 +112,16 @@ namespace Solhigson.Framework.Data
             sBuilder.Append($"{TableNameColumnName} VARCHAR(255) NOT NULL, {ChangeIdColumnName} SMALLINT NOT NULL ");
             sBuilder.Append($"CONSTRAINT [PK__{ChangeTrackerTableName}] PRIMARY KEY ([{TableNameColumnName}])); END;");
 
+            sBuilder.Append($"IF OBJECT_ID(N'[{AppSettingsTableName}]') IS NULL ");
+            sBuilder.Append("BEGIN ");
+            sBuilder.Append($"CREATE TABLE [{AppSettingsTableName}] ( ");
+            sBuilder.Append($"{AppSettingsTableIdColumn} INT IDENTITY(1,1) NOT NULL, {AppSettingsTableNameColumn} VARCHAR(255) NOT NULL, {AppSettingsTableValueColumn} VARCHAR(MAX) NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{AppSettingsTableName}] PRIMARY KEY ([{AppSettingsTableIdColumn}])); ");//END;");
+
+            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [UIX_{AppSettingsTableName}_ON_Name] ");
+            sBuilder.Append($"ON [dbo].[{AppSettingsTableName}] ");
+            sBuilder.Append($"( [Name] ASC ); END; ");
+
             sBuilder.Append($"IF OBJECT_ID(N'[{UpdateChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
             sBuilder.Append($"DROP PROCEDURE [{UpdateChangeTrackerSpName}] ");
@@ -155,8 +165,8 @@ namespace Solhigson.Framework.Data
             updateChangeTrackerBuilder.Append(
                 $"UPDATE dbo.[{ChangeTrackerTableName}] SET [{ChangeIdColumnName}] = {GetParameterName(ChangeIdColumnName)} + 1 WHERE [{TableNameColumnName}] = {GetParameterName(TableNameColumnName)}");
 
-            
             var dbTriggerCommands = new List<StringBuilder>();
+            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(AppSetting)));
             if (databaseModelsAssembly != null)
             {
                 var cachedEntityType = typeof(ICachedEntity);
@@ -233,7 +243,7 @@ namespace Solhigson.Framework.Data
             list.Add(createTriggerScriptBuilder);
             return list;
         }
-
+        
         private static async Task<List<ChangeTrackerDto>> GetAllChangeTrackerIds()
         {
             try

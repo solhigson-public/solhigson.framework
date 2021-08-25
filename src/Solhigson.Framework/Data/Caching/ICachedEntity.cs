@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Data
+﻿namespace Solhigson.Framework.Data.Caching
 {
     public interface ICachedEntity
     {

@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.ObjectModel;
 using System.Runtime.Caching;
-using System.Timers;
 using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
 
-namespace Solhigson.Framework.Data
+namespace Solhigson.Framework.Data.Caching
 {
     public class TableChangeMonitor : ChangeMonitor
     {

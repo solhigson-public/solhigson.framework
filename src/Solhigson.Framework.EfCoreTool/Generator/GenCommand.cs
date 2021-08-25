@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Net.Http.Headers;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
+using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 

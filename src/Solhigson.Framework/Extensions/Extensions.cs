@@ -22,6 +22,7 @@ using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Polly;
 using Solhigson.Framework.Data;
+using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Dto;
@@ -54,9 +55,9 @@ namespace Solhigson.Framework.Extensions
 
         #region Application Startup
 
-        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder)
+        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, string connectionString = null)
         {
-            builder.RegisterModule(new SolhigsonAutofacModule());
+            builder.RegisterModule(new SolhigsonAutofacModule(connectionString));
             return builder;
         }
         

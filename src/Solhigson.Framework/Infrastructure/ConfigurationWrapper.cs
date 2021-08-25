@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Solhigson.Framework.Data;
+using Solhigson.Framework.Data.Caching;
+using Solhigson.Framework.Data.Entities;
 using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Infrastructure
@@ -8,10 +14,13 @@ namespace Solhigson.Framework.Infrastructure
     public class ConfigurationWrapper
     {
         public IConfiguration Configuration { get; }
+        private readonly SolhigsonDbContext _dbContext;
+        private static readonly object SyncHelper = new();
 
-        public ConfigurationWrapper(IConfiguration configuration)
+        public ConfigurationWrapper(IConfiguration configuration, SolhigsonDbContext dbContext)
         {
             Configuration = configuration;
+            _dbContext = dbContext;
         }
 
         public string GetFromAppSettingFileOnly(string group, string key = null, string defaultValue = null)
@@ -26,8 +35,15 @@ namespace Solhigson.Framework.Infrastructure
             var setting = GetConfig(groupName, key, val);
             return VerifySetting<T>(setting, key, groupName, defaultValue);
         }
+        
+        public string GetConfig(string groupName, string key = null, object defaultValue = null)
+        {
+            string val = null;
+            if (defaultValue != null) val = defaultValue.ToString();
+            return GetConfig(groupName, key, val);
+        }
 
-        public string GetConfig(string group, string key = null, string defaultValue = null,
+        private string GetConfig(string group, string key = null, string defaultValue = null,
             bool useAppSettingsFileOnly = false)
         {
             var configKey = group;
@@ -38,9 +54,50 @@ namespace Solhigson.Framework.Infrastructure
 
             if (!useAppSettingsFileOnly)
             {
+                var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
+                    .Select(t => t.Value);
+                
+                value = query.FromCacheSingle();
+                if (value != null) return value;
+                if (!string.IsNullOrWhiteSpace(defaultValue))
+                {
+                    AddSettingToDb(query, configKey, defaultValue);
+                }
             }
 
-            return defaultValue ?? throw new Exception($"Configuration [{key}] for group [{group}] not found.");
+            if (string.IsNullOrWhiteSpace(defaultValue))
+            {
+                throw new Exception($"Configuration [{key}] for group [{group}] not found.");
+            }
+            
+            return defaultValue;
+        }
+
+        private void AddSettingToDb(IQueryable query, string key, string value)
+        {
+            try
+            {
+                lock (SyncHelper)
+                {
+                    if (_dbContext.Set<AppSetting>().Any(t => t.Name == key))
+                    {
+                        return;
+                    }
+
+                    var setting = new AppSetting
+                    {
+                        Name = key,
+                        Value = value
+                    };
+                    _dbContext.AppSettings.Add(setting);
+                    _dbContext.SaveChanges();
+                    CacheManager.AddToCache(query.GetCacheKey(), value, typeof(AppSetting));
+                }
+            }
+            catch (Exception e)
+            {
+                this.ELogError(e, "ConfigWrapper, saving to AppSettings", new { Value = key });
+            }
         }
 
         private T VerifySetting<T>(string setting, string key, string groupName, object defaultValue = null)
