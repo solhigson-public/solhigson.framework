@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Data.Entities;
@@ -17,10 +18,10 @@ namespace Solhigson.Framework.Infrastructure
         private readonly SolhigsonDbContext _dbContext;
         private static readonly object SyncHelper = new();
 
-        public ConfigurationWrapper(IConfiguration configuration, SolhigsonDbContext dbContext)
+        public ConfigurationWrapper(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             Configuration = configuration;
-            _dbContext = dbContext;
+            _dbContext = serviceProvider.GetService<SolhigsonDbContext>();
         }
 
         public string GetFromAppSettingFileOnly(string group, string key = null, string defaultValue = null)
@@ -52,7 +53,7 @@ namespace Solhigson.Framework.Infrastructure
 
             if (value != null) return value;
 
-            if (!useAppSettingsFileOnly)
+            if (!useAppSettingsFileOnly && _dbContext != null)
             {
                 var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
                     .Select(t => t.Value);
