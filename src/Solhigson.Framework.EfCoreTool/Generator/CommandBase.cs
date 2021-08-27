@@ -26,17 +26,19 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         protected string ProjectRootNamespace { get; private set; }
         private string DbContextNamespace { get; set; }
         private string DbContextName { get; set; }
-        
+
         protected string ServicesFolder { get; set; }
 
-        
+
         protected string DtoProjectNamespace { get; set; }
 
         protected CommandBase()
         {
             Args = new Dictionary<string, string>();
         }
+
         protected Dictionary<string, string> Args { get; }
+
         internal (bool IsValid, string ErrorMessage) ParseArguments(string[] args)
         {
             for (var i = 1; i < args.Length; i++)
@@ -51,6 +53,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 {
                     value = "";
                 }
+
                 Args.Add(option, value);
             }
 
@@ -58,7 +61,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         }
 
         internal IList<Type> Models { get; private set; }
-        
+
         internal abstract void Run();
         internal abstract string CommandName { get; }
 
@@ -75,6 +78,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 {
                     return (false, $"Invalid assembly file path: {assemblyPath}");
                 }
+
                 var assembly = Assembly.LoadFile(assemblyPath);
                 var databaseContexts = assembly
                     .GetTypes().Where(t => t.IsSubclassOf(typeof(DbContext))).ToList();
@@ -105,6 +109,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     {
                         return (false, $"Specified database context: [{dbContextName}] not found in assembly");
                     }
+
                     databaseContext = databaseContexts.FirstOrDefault(t => t.Name == dbContextName);
                 }
                 else
@@ -113,6 +118,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     {
                         return (false, $"Specified database context: [{dbContextName}] not found in assembly");
                     }
+
                     databaseContext = databaseContexts.FirstOrDefault();
                 }
 
@@ -122,35 +128,41 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 }
 
 
-                Models = databaseContext.GetProperties().Where(t => t.PropertyType.IsGenericType && t.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                Models = databaseContext.GetProperties(BindingFlags.DeclaredOnly |
+                                                       BindingFlags.Public |
+                                                       BindingFlags.Instance).Where(t =>
+                        t.PropertyType.IsGenericType && t.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
                     .Select(t => t.PropertyType.GetGenericArguments()[0]).ToList();
 
                 if (!Models.Any())
                 {
-                    return (false, $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
+                    return (false,
+                        $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
                 }
+
                 PersistenceProjectRootNamespace = assembly.GetName().Name;
                 if (string.IsNullOrWhiteSpace(PersistenceProjectRootNamespace))
                 {
                     return (false, "Couldn't retrieve assembly name");
                 }
+
                 DbContextName = databaseContext.Name;
                 DbContextNamespace = databaseContext.Namespace;
                 if (ProjectRootNamespace.Contains("."))
                 {
-                    var split = ProjectRootNamespace.Split(new[] {'.'}, StringSplitOptions.RemoveEmptyEntries);
+                    var split = ProjectRootNamespace.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
                     ApplicationName = split[0];
                 }
                 else
                 {
                     ApplicationName = ProjectRootNamespace;
                 }
-
             }
             catch (Exception e)
             {
                 return (false, e.Message);
             }
+
             return Validate();
         }
 
@@ -163,6 +175,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 Console.WriteLine($"{key.Key} = {key.Value}");
             }
+
             Console.WriteLine("-----------------");
             Console.WriteLine("Models: ");
             foreach (var type in Models)
@@ -172,9 +185,9 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         }
 
         protected abstract (bool IsValid, string ErrorMessage) Validate();
-        
-        protected void GenerateFile(string rootPath, string folder, string type, 
-            string entityName, string entityNamespace, 
+
+        protected void GenerateFile(string rootPath, string folder, string type,
+            string entityName, string entityNamespace,
             bool isInterface, bool isGenerated, string properties = "", bool isCachedEntity = false)
         {
             var interfaceIndicator = isInterface ? "I" : "";
@@ -186,17 +199,21 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 pathSafeFolder = folder.Replace(".", "/");
             }
-            var path = $"{rootPath}/{pathSafeFolder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
+
+            var path =
+                $"{rootPath}/{pathSafeFolder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
             var placeHolderName = "Placeholder";
             var cachedRepositoryIndicator = "";
             var cachedRepositoryClassPrefix = "";
             if (isCachedEntity)
             {
                 cachedRepositoryIndicator = "Cached";
-                cachedRepositoryClassPrefix = $",{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{entityName}{CacheEntityClassType}";
+                cachedRepositoryClassPrefix =
+                    $",{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{entityName}{CacheEntityClassType}";
             }
 
-            var resourcePath = $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
+            var resourcePath =
+                $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
             var assembly = Assembly.GetExecutingAssembly();
             using var stream = assembly.GetManifestResourceStream(resourcePath);
             if (stream is null)
@@ -211,7 +228,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 entityNamespaceDeclaration = "";
             }
-            else if(!string.IsNullOrWhiteSpace(entityNamespace))
+            else if (!string.IsNullOrWhiteSpace(entityNamespace))
             {
                 entityNamespaceDeclaration = $"using {entityNamespace};";
             }
@@ -221,7 +238,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[PersistenceProjectRootNamespace]", PersistenceProjectRootNamespace)
                 .Replace("[Folder]", folder)
                 .Replace("[CacheEntityNamespace]", CachedEntityNamespace)
-               // .Replace("[Folder]", folder)
+                // .Replace("[Folder]", folder)
                 .Replace("[ServicesFolder]", ServicesFolder)
                 .Replace("[DbContextName]", DbContextName)
                 .Replace("[DbContextNamespace]", DbContextNamespace)
@@ -235,10 +252,11 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[Cached]", cachedRepositoryIndicator)
                 .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
                 .Replace("[CustomFileComment]", GetComment("This file is never overwritten, place custom code here"))
-                .Replace("[GeneratedFileComment]", GetComment("This file is ALWAYS overwritten, DO NOT place custom code here", false));
+                .Replace("[GeneratedFileComment]",
+                    GetComment("This file is ALWAYS overwritten, DO NOT place custom code here", false));
             SaveFile(resource, path);
         }
-        
+
         private static void SaveFile(string file, string path)
         {
             Console.WriteLine($"Attempting to generate path: {path}");
@@ -258,6 +276,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 File.Delete(path);
             }
+
             using var fileStream = File.OpenWrite(path);
             using var streamWriter = new StreamWriter(fileStream);
             streamWriter.Write(file);
@@ -271,7 +290,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 date = $"\n\t * Generated on: {DateTime.UtcNow:dd-MMM-yyyy HH:mm:ss UTC}";
             }
-            return  $@"/*{date}
+
+            return $@"/*{date}
      * Generated by: Solhigson.Framework.efcoretool
      *
      * https://github.com/solhigson-public/solhigson.framework
@@ -280,6 +300,5 @@ namespace Solhigson.Framework.EfCoreTool.Generator
      * {comment}
      */";
         }
-
     }
 }
