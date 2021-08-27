@@ -45,4 +45,11 @@
         <PackageReference Include="System.Text.Json" Version="5.0.2" />
     </ItemGroup>
 
+<!--
+    <Target Name="solhigson" AfterTargets="AfterBuild">
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -a &quot;$(TargetDir)$(ProjectName).dll&quot; -cp &quot;$(SolutionDir)Solhigson.Framework&quot; -rn &quot;Solhigson.Framework&quot;" />
+    </Target>
+-->
+
 </Project>

@@ -69,6 +69,20 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             }
 
             Args.TryGetValue(TestsProjectPathOption, out var testsProjectPath);
+            Args.TryGetValue(RepositoryDirectoryOption, out var repositoryDirectoryPath);
+            //RepositoriesFolder = "Repositories";
+            if (!string.IsNullOrWhiteSpace(repositoryDirectoryPath))
+            {
+                //persistenceProjectPath += $"/{repositoryDirectoryPath}";
+                RepositoryNamespace = $"{repositoryDirectoryPath}.{RepositoriesFolder}";
+                CachedEntityNamespace = $"{repositoryDirectoryPath}.{CachedEntityFolder}";
+            }
+            else
+            {
+                RepositoryNamespace = RepositoriesFolder;
+                CachedEntityNamespace = CachedEntityFolder;
+            }
+
 
             DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
 
@@ -80,14 +94,14 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 }
                 var isCached = typeof(ICachedEntity).IsAssignableFrom(entity);
 
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, RepositoryNamespace, RepositoryClassType, entity.Name,
                     entity.Namespace, true, true, GetRepositoryMethods(entity, isCached, true), isCached); //generated interface
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, RepositoryNamespace, RepositoryClassType, entity.Name,
                     entity.Namespace, true, false, isCachedEntity: isCached); //custom interface
 
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, RepositoryNamespace, RepositoryClassType, entity.Name,
                     entity.Namespace, false, true,  GetRepositoryMethods(entity, isCached, false), isCached); //generated class
-                GenerateFile(persistenceProjectPath, RepositoriesFolder, RepositoryClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, RepositoryNamespace, RepositoryClassType, entity.Name,
                     entity.Namespace, false, false, isCachedEntity: isCached); //custom class
 
 
@@ -102,10 +116,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     continue;
                 }
 
-                GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, true, GetDtoProperties(entity, true)); //generated cached dto
 
-                GenerateFile(persistenceProjectPath, CachedEntityFolder, CacheEntityClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom cached dto
             }
             
@@ -125,21 +139,21 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             }
 
 
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", true, false); //custom interface
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "Wrapper", RepositoryClassType, "", true, false); //custom interface
 
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "Wrapper", RepositoryClassType, "", false, false); //custom class
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "Wrapper", RepositoryClassType, "", false, true, GetRepositoryWrapperProperties(Models)); //generated class
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "Wrapper", RepositoryClassType, "", false, false); //custom class
 
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, true); // generated interface
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", true, false); //custom interface
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, true); //generated class
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "RepositoryBase", ApplicationName, "", false, false); //custom class
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "RepositoryBase", ApplicationName, "", true, true); // generated interface
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "RepositoryBase", ApplicationName, "", true, false); //custom interface
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "RepositoryBase", ApplicationName, "", false, true); //generated class
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "RepositoryBase", ApplicationName, "", false, false); //custom class
 
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", true, true); // generated interface
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", true, false); //custom interface
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", false, true); //generated class
-            GenerateFile(persistenceProjectPath, RepositoriesFolder, "CachedRepositoryBase", ApplicationName, "", false, false); //custom class
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", true, true); // generated interface
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", true, false); //custom interface
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", false, true); //generated class
+            GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", false, false); //custom class
             Console.WriteLine("Completed");
         }
 
@@ -219,7 +233,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             foreach (var entity in entities)
             {
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"{GetTabSpace(2)}{PersistenceProjectRootNamespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
+                sBuilder.AppendLine($"{GetTabSpace(2)}{PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className} {className}" + " { get; }");
             }
 
             return sBuilder.ToString();
@@ -233,9 +247,9 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 var fieldName = "_" + entity.Name.ToCamelCase() + RepositoryClassType;
                 var className = entity.Name + RepositoryClassType;
-                sBuilder.AppendLine($"{GetTabSpace(2)}private {PersistenceProjectRootNamespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {fieldName};");
-                sBuilder.AppendLine($"{GetTabSpace(2)}public {PersistenceProjectRootNamespace}.{RepositoriesFolder}.{AbstractionsFolderName}.I{className} {className}");
-                sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= new {className}(DbContext);" + " } }");
+                sBuilder.AppendLine($"{GetTabSpace(2)}private {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className} {fieldName};");
+                sBuilder.AppendLine($"{GetTabSpace(2)}public {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className} {className}");
+                sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= new {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{className}(DbContext);" + " } }");
                 sBuilder.AppendLine();
             }
 
@@ -330,7 +344,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         private string GetCachedDtoClassType(Type type)
         {
-            return $"{PersistenceProjectRootNamespace}.{CachedEntityFolder}.{type.Name}{CacheEntityClassType}";
+            return $"{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{type.Name}{CacheEntityClassType}";
         }
 
         private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)

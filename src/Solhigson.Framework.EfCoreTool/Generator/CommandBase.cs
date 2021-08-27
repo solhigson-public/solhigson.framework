@@ -18,6 +18,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         private const string AssemblyPathOption = "-a";
         private const string DatabaseContextName = "-d";
         protected const string RootNamespaceOption = "-rn";
+        internal string RepositoryNamespace { get; set; }
+        internal string CachedEntityNamespace { get; set; }
 
         protected string PersistenceProjectRootNamespace { get; private set; }
         protected string ApplicationName { get; private set; }
@@ -178,15 +180,20 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             var interfaceIndicator = isInterface ? "I" : "";
             var abstractionsFolder = isInterface ? $"/{AbstractionsFolderName}" : "";
             var generatedIndicator = isGenerated ? ".generated" : "";
-            
-            var path = $"{rootPath}/{folder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
+
+            var pathSafeFolder = folder;
+            if (folder?.Contains(".") == true)
+            {
+                pathSafeFolder = folder.Replace(".", "/");
+            }
+            var path = $"{rootPath}/{pathSafeFolder}{abstractionsFolder}/{interfaceIndicator}{entityName}{type}{generatedIndicator}.cs";
             var placeHolderName = "Placeholder";
             var cachedRepositoryIndicator = "";
             var cachedRepositoryClassPrefix = "";
             if (isCachedEntity)
             {
                 cachedRepositoryIndicator = "Cached";
-                cachedRepositoryClassPrefix = $",{PersistenceProjectRootNamespace}.{CachedEntityFolder}.{entityName}{CacheEntityClassType}";
+                cachedRepositoryClassPrefix = $",{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{entityName}{CacheEntityClassType}";
             }
 
             var resourcePath = $"{ResourceNamePrefix}{interfaceIndicator}{placeHolderName}{type}{generatedIndicator}.cs";
@@ -213,6 +220,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[ProjectRootNamespace]", ProjectRootNamespace)
                 .Replace("[PersistenceProjectRootNamespace]", PersistenceProjectRootNamespace)
                 .Replace("[Folder]", folder)
+                .Replace("[CacheEntityNamespace]", CachedEntityNamespace)
+               // .Replace("[Folder]", folder)
                 .Replace("[ServicesFolder]", ServicesFolder)
                 .Replace("[DbContextName]", DbContextName)
                 .Replace("[DbContextNamespace]", DbContextNamespace)
@@ -221,7 +230,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[Properties]", properties)
                 .Replace("[ApplicationName]", ApplicationName)
                 .Replace("[AbstractionsFolder]", AbstractionsFolderName)
-                .Replace("[RepositoriesFolder]", RepositoriesFolder)
+                .Replace("[RepositoriesFolder]", RepositoryNamespace)
                 .Replace("[DtoProjectNamespace]", DtoProjectNamespace)
                 .Replace("[Cached]", cachedRepositoryIndicator)
                 .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
