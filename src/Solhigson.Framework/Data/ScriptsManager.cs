@@ -13,7 +13,7 @@ namespace Solhigson.Framework.Data
 {
     public static class ScriptsManager
     {
-        internal static void InitializeCacheChangeTracker(Assembly databaseModelsAssembly)
+        internal static void SetUpDatabaseObjects(Assembly databaseModelsAssembly, string connectionString)
         {
             var sBuilder = new StringBuilder();
             var getAllChangeTrackerBuilder = new StringBuilder();
@@ -21,7 +21,7 @@ namespace Solhigson.Framework.Data
             var updateChangeTrackerBuilder = new StringBuilder();
 
             //Clean up cache monitor table and all triggers, for entities that might have been removed as ICacheEntity
-            var cleanUpScript = $@"DECLARE @sql NVARCHAR(MAX) = N'Delete from [{ScriptsManager.CacheChangeTrackerInfo.TableName}];';
+            var cleanUpScript = $@"DECLARE @sql NVARCHAR(MAX) = N'Delete from [{CacheChangeTrackerInfo.TableName}];';
                 SELECT @sql += 
                     N'DROP TRIGGER ' + 
                     QUOTENAME(OBJECT_SCHEMA_NAME(t.object_id)) + N'.' + 
@@ -33,90 +33,90 @@ namespace Solhigson.Framework.Data
                 exec (N'' + @sql + N'');
                 ";
 
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.CacheChangeTrackerInfo.TableName}]') IS NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.TableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{ScriptsManager.CacheChangeTrackerInfo.TableName}] ( ");
-            sBuilder.Append($"{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn} VARCHAR(255) NOT NULL, {ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn} SMALLINT NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{ScriptsManager.CacheChangeTrackerInfo.TableName}] PRIMARY KEY ([{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn}])); END;");
+            sBuilder.Append($"CREATE TABLE [{CacheChangeTrackerInfo.TableName}] ( ");
+            sBuilder.Append($"{CacheChangeTrackerInfo.TableNameColumn} VARCHAR(255) NOT NULL, {CacheChangeTrackerInfo.ChangeIdColumn} SMALLINT NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{CacheChangeTrackerInfo.TableName}] PRIMARY KEY ([{CacheChangeTrackerInfo.TableNameColumn}])); END;");
 
             #region AppSettings Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.AppSettingInfo.TableName}]') IS NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{AppSettingInfo.TableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{ScriptsManager.AppSettingInfo.TableName}] ( ");
-            sBuilder.Append($"{ScriptsManager.AppSettingInfo.IdColumn} INT IDENTITY(1,1) NOT NULL, {ScriptsManager.AppSettingInfo.NameColumn} VARCHAR(255) NOT NULL, {ScriptsManager.AppSettingInfo.ValueColumn} VARCHAR(MAX) NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{ScriptsManager.AppSettingInfo.TableName}] PRIMARY KEY ([{ScriptsManager.AppSettingInfo.IdColumn}])); ");//END;");
+            sBuilder.Append($"CREATE TABLE [{AppSettingInfo.TableName}] ( ");
+            sBuilder.Append($"{AppSettingInfo.IdColumn} INT IDENTITY(1,1) NOT NULL, {AppSettingInfo.NameColumn} VARCHAR(255) NOT NULL, {AppSettingInfo.ValueColumn} VARCHAR(MAX) NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{AppSettingInfo.TableName}] PRIMARY KEY ([{AppSettingInfo.IdColumn}])); ");//END;");
 
-            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [UIX_{ScriptsManager.AppSettingInfo.TableName}_ON_{ScriptsManager.AppSettingInfo.NameColumn}] ");
-            sBuilder.Append($"ON [dbo].[{ScriptsManager.AppSettingInfo.TableName}] ");
-            sBuilder.Append($"( [{ScriptsManager.AppSettingInfo.NameColumn}] ASC ); END; ");
+            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [UIX_{AppSettingInfo.TableName}_ON_{AppSettingInfo.NameColumn}] ");
+            sBuilder.Append($"ON [dbo].[{AppSettingInfo.TableName}] ");
+            sBuilder.Append($"( [{AppSettingInfo.NameColumn}] ASC ); END; ");
             #endregion
             
             #region Permission Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.PermissionInfo.TableName}]') IS NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{PermissionInfo.TableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{ScriptsManager.PermissionInfo.TableName}] ( ");
-            sBuilder.Append($"{ScriptsManager.PermissionInfo.IdColumn} VARCHAR(450) NOT NULL, {ScriptsManager.PermissionInfo.NameColumn} VARCHAR(256) NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{ScriptsManager.PermissionInfo.TableName}] PRIMARY KEY ([{ScriptsManager.PermissionInfo.IdColumn}])); ");//END;");
+            sBuilder.Append($"CREATE TABLE [{PermissionInfo.TableName}] ( ");
+            sBuilder.Append($"{PermissionInfo.IdColumn} VARCHAR(450) NOT NULL, {PermissionInfo.NameColumn} VARCHAR(256) NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{PermissionInfo.TableName}] PRIMARY KEY ([{PermissionInfo.IdColumn}])); ");//END;");
             #endregion
             
             #region RolePermission Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.RolePermissionInfo.TableName}]') IS NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{RolePermissionInfo.TableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{ScriptsManager.RolePermissionInfo.TableName}] ( ");
-            sBuilder.Append($"{ScriptsManager.RolePermissionInfo.IdColumn} INT IDENTITY(1,1) NOT NULL, {ScriptsManager.RolePermissionInfo.RoleIdColumn} VARCHAR(450) NOT NULL, {ScriptsManager.RolePermissionInfo.PermissionIdColumn} VARCHAR(450) NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{ScriptsManager.RolePermissionInfo.TableName}] PRIMARY KEY ([{ScriptsManager.RolePermissionInfo.IdColumn}])); ");//END;");
+            sBuilder.Append($"CREATE TABLE [{RolePermissionInfo.TableName}] ( ");
+            sBuilder.Append($"{RolePermissionInfo.IdColumn} INT IDENTITY(1,1) NOT NULL, {RolePermissionInfo.RoleIdColumn} VARCHAR(450) NOT NULL, {RolePermissionInfo.PermissionIdColumn} VARCHAR(450) NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{RolePermissionInfo.TableName}] PRIMARY KEY ([{RolePermissionInfo.IdColumn}])); ");//END;");
             
-            sBuilder.Append($"CREATE NONCLUSTERED INDEX [IX_{ScriptsManager.RolePermissionInfo.TableName}_ON_{ScriptsManager.RolePermissionInfo.RoleIdColumn}] ");
-            sBuilder.Append($"ON [dbo].[{ScriptsManager.RolePermissionInfo.TableName}] ");
-            sBuilder.Append($"( [{ScriptsManager.RolePermissionInfo.RoleIdColumn}] ASC ); END; ");
+            sBuilder.Append($"CREATE NONCLUSTERED INDEX [IX_{RolePermissionInfo.TableName}_ON_{RolePermissionInfo.RoleIdColumn}] ");
+            sBuilder.Append($"ON [dbo].[{RolePermissionInfo.TableName}] ");
+            sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC ); END; ");
 
-            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{ScriptsManager.RolePermissionInfo.TableName}_ON_{ScriptsManager.RolePermissionInfo.RoleIdColumn}_AND_{ScriptsManager.RolePermissionInfo.PermissionIdColumn}] ");
-            sBuilder.Append($"ON [dbo].[{ScriptsManager.RolePermissionInfo.TableName}] ");
-            sBuilder.Append($"( [{ScriptsManager.RolePermissionInfo.RoleIdColumn}] ASC, [{ScriptsManager.RolePermissionInfo.PermissionIdColumn}] ASC ); END; ");
+            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{RolePermissionInfo.TableName}_ON_{RolePermissionInfo.RoleIdColumn}_AND_{RolePermissionInfo.PermissionIdColumn}] ");
+            sBuilder.Append($"ON [dbo].[{RolePermissionInfo.TableName}] ");
+            sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC, [{RolePermissionInfo.PermissionIdColumn}] ASC ); END; ");
             #endregion
             
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.CacheChangeTrackerInfo.UpdateChangeTrackerSpName}]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"DROP PROCEDURE [{ScriptsManager.CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ");
+            sBuilder.Append($"DROP PROCEDURE [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ");
             sBuilder.Append("END;");
             sBuilder.Append(Environment.NewLine);
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.GetAllChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"DROP PROCEDURE [{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}] ");
+            sBuilder.Append($"DROP PROCEDURE [{CacheChangeTrackerInfo.GetAllChangeTrackerSpName}] ");
             sBuilder.Append("END;");
             sBuilder.Append(Environment.NewLine);
-            sBuilder.Append($"IF OBJECT_ID(N'[{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]') IS NOT NULL ");
+            sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
-            sBuilder.Append($"DROP PROCEDURE [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ");
+            sBuilder.Append($"DROP PROCEDURE [{CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ");
             sBuilder.Append("END;");
 
-            getAllChangeTrackerBuilder.Append($"CREATE PROCEDURE [{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}] ");
+            getAllChangeTrackerBuilder.Append($"CREATE PROCEDURE [{CacheChangeTrackerInfo.GetAllChangeTrackerSpName}] ");
             getAllChangeTrackerBuilder.Append("AS ");
             getAllChangeTrackerBuilder.Append(
-                $"SELECT [{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn}], [{ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn}] from [{ScriptsManager.CacheChangeTrackerInfo.TableName}] (NOLOCK)");
+                $"SELECT [{CacheChangeTrackerInfo.TableNameColumn}], [{CacheChangeTrackerInfo.ChangeIdColumn}] from [{CacheChangeTrackerInfo.TableName}] (NOLOCK)");
 
             getTableChangeTrackerBuilder.Append(
-                $"CREATE PROCEDURE [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ({GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
+                $"CREATE PROCEDURE [{CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
             getTableChangeTrackerBuilder.Append("AS ");
             getTableChangeTrackerBuilder.Append(
-                $"SELECT [{ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn}] from [{ScriptsManager.CacheChangeTrackerInfo.TableName}] (NOLOCK) WHERE [{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)}");
+                $"SELECT [{CacheChangeTrackerInfo.ChangeIdColumn}] from [{CacheChangeTrackerInfo.TableName}] (NOLOCK) WHERE [{CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)}");
 
             updateChangeTrackerBuilder.Append(
-                $"CREATE PROCEDURE [{ScriptsManager.CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ({GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
+                $"CREATE PROCEDURE [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
             updateChangeTrackerBuilder.Append("AS ");
-            updateChangeTrackerBuilder.Append($"DECLARE {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn)} INT ");
+            updateChangeTrackerBuilder.Append($"DECLARE {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} INT ");
             updateChangeTrackerBuilder.Append(
-                $"SELECT {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn)} = [{ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn}] FROM [{ScriptsManager.CacheChangeTrackerInfo.TableName}] (NOLOCK) WHERE [{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} ");
-            updateChangeTrackerBuilder.Append($"IF({GetParameterName(ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn)} IS NULL) " +
+                $"SELECT {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} = [{CacheChangeTrackerInfo.ChangeIdColumn}] FROM [{CacheChangeTrackerInfo.TableName}] (NOLOCK) WHERE [{CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} ");
+            updateChangeTrackerBuilder.Append($"IF({GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} IS NULL) " +
                                               $"BEGIN " +
-                                              $"INSERT INTO [{ScriptsManager.CacheChangeTrackerInfo.TableName}] ([{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn}], [{ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn}]) VALUES ({GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)}, 1) RETURN 1 " +
+                                              $"INSERT INTO [{CacheChangeTrackerInfo.TableName}] ([{CacheChangeTrackerInfo.TableNameColumn}], [{CacheChangeTrackerInfo.ChangeIdColumn}]) VALUES ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)}, 1) RETURN 1 " +
                                               $"END ");
-            updateChangeTrackerBuilder.Append($"IF({GetParameterName(ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn)} > 1000) ");
+            updateChangeTrackerBuilder.Append($"IF({GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} > 1000) ");
             updateChangeTrackerBuilder.Append($"BEGIN " +
-                                              $"SET {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn)} = 1 " +
+                                              $"SET {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} = 1 " +
                                               $"END ");
             updateChangeTrackerBuilder.Append(
-                $"UPDATE dbo.[{ScriptsManager.CacheChangeTrackerInfo.TableName}] SET [{ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn}] = {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.ChangeIdColumn)} + 1 WHERE [{ScriptsManager.CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)}");
+                $"UPDATE dbo.[{CacheChangeTrackerInfo.TableName}] SET [{CacheChangeTrackerInfo.ChangeIdColumn}] = {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} + 1 WHERE [{CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)}");
 
             var dbTriggerCommands = new List<StringBuilder>();
             dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(AppSetting)));
@@ -132,7 +132,7 @@ namespace Solhigson.Framework.Data
                 }
             }
 
-            using (var conn = new SqlConnection(_connectionString))
+            using (var conn = new SqlConnection(connectionString))
             {
                 using var cmd = new SqlCommand(sBuilder.ToString(), conn);
                 conn.OpenAsync();
@@ -192,11 +192,16 @@ namespace Solhigson.Framework.Data
             createTriggerScriptBuilder.Append(
                 $"CREATE TRIGGER {triggerName} ON {GetTableName(entityType, true)} AFTER INSERT, DELETE, UPDATE AS ");
             createTriggerScriptBuilder.Append(
-                $"BEGIN TRY SET NOCOUNT ON; EXEC [{ScriptsManager.CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{GetTableName(entityType)}' END TRY BEGIN CATCH END CATCH");
+                $"BEGIN TRY SET NOCOUNT ON; EXEC [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} = N'{GetTableName(entityType)}' END TRY BEGIN CATCH END CATCH");
 
             list.Add(deleteScriptBuilder);
             list.Add(createTriggerScriptBuilder);
             return list;
+        }
+        
+        internal static string GetParameterName(string tableName)
+        {
+            return $"@{tableName}";
         }
 
         public static class CacheChangeTrackerInfo

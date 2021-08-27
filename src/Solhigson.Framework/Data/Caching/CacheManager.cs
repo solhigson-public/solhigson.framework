@@ -29,11 +29,6 @@ namespace Solhigson.Framework.Data.Caching
         private static MemoryCache DefaultMemoryCache { get; } = new ("Solhigson::Data::Cache::Manager");
         private static ConcurrentBag<string> CacheKeys { get; } = new ();
 
-        private static string GetParameterName(string tableName)
-        {
-            return $"@{tableName}";
-        }
-
         internal static void Initialize(string connectionString,
             int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
             int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null)
@@ -44,7 +39,7 @@ namespace Solhigson.Framework.Data.Caching
                 _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
                 _cacheDependencyChangeTrackerTimerIntervalMilliseconds =
                     cacheDependencyChangeTrackerTimerIntervalMilliseconds;
-                InitializeCacheChangeTracker(databaseModelsAssembly);
+                ScriptsManager.SetUpDatabaseObjects(databaseModelsAssembly, connectionString);
                 StartCacheTimer();
             }
             catch (Exception e)
@@ -93,7 +88,7 @@ namespace Solhigson.Framework.Data.Caching
             {
                 return await AdoNetUtils.GetSingleOrDefaultAsync<short>
                 (_connectionString,
-                    $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'");
+                    $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {ScriptsManager.GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'");
             }
             catch (Exception e)
             {
