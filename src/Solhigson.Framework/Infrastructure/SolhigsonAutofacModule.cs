@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
+using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
@@ -36,9 +37,6 @@ namespace Solhigson.Framework.Infrastructure
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             builder.RegisterType<SolhigsonServicesWrapper>().AsSelf().SingleInstance()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-
-            builder.RegisterType<AzureLogAnalyticsService>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             builder.RegisterType<SolhigsonApiTraceMiddleware>().AsSelf().SingleInstance()

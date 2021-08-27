@@ -11,7 +11,7 @@ namespace Solhigson.Framework.Services
 {
     public class AzureLogAnalyticsService
     {
-        private static readonly HttpClient Client = new HttpClient();
+        private static readonly HttpClient Client = new ();
 
         private string _logName;
         private string _sharedKey;

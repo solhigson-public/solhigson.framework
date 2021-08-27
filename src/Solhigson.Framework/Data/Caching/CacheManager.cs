@@ -9,9 +9,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using Microsoft.Data.SqlClient;
-using Solhigson.Framework.Data.Entities;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
+using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Data.Caching
 {

@@ -16,10 +16,6 @@ namespace Solhigson.Framework.Logging.Nlog.Targets
             _analyticsService = new AzureLogAnalyticsService(workspaceId, sharedKey, logName);
         }
 
-        protected override void InitializeTarget()
-        {
-        }
-
         protected override void Write(LogEventInfo logEvent)
         {
             try

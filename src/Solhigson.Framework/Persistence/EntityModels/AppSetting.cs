@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Solhigson.Framework.Data.Caching;
 
-namespace Solhigson.Framework.Data.Entities
+namespace Solhigson.Framework.Persistence.EntityModels
 {
     [Table(CacheManager.AppSettingsTableName)]
     public record AppSetting : ICachedEntity

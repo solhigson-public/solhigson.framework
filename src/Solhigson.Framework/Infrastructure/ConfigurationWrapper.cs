@@ -7,8 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
-using Solhigson.Framework.Data.Entities;
 using Solhigson.Framework.Extensions;
+using Solhigson.Framework.Persistence;
+using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Infrastructure
 {

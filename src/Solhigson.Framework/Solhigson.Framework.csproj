@@ -48,7 +48,7 @@
 <!--
     <Target Name="solhigson" AfterTargets="AfterBuild">
         <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
-        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -a &quot;$(TargetDir)$(ProjectName).dll&quot; -cp &quot;$(SolutionDir)Solhigson.Framework&quot; -rn &quot;Solhigson.Framework&quot;" />
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -a &quot;$(TargetDir)$(ProjectName).dll&quot; -rn &quot;Solhigson.Framework&quot; -rd &quot;Persistence&quot;" />
     </Target>
 -->
 

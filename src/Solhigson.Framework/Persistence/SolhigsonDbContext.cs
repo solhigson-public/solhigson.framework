@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Solhigson.Framework.Data.Entities;
+using Solhigson.Framework.Persistence.EntityModels;
 
-namespace Solhigson.Framework.Data
+namespace Solhigson.Framework.Persistence
 {
     public class SolhigsonDbContext : DbContext
     {
@@ -16,5 +16,7 @@ namespace Solhigson.Framework.Data
         }
 
         public DbSet<AppSetting> AppSettings { get; set; }
+        public DbSet<Permission> Permissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
     }
 }
