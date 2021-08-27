@@ -30,13 +30,22 @@ namespace Solhigson.Framework.Persistence.Repositories
 			return await GetByCondition(query).FirstOrDefaultAsync();
 		}
 
-		public async Task<System.Collections.Generic.IList<Solhigson.Framework.Persistence.EntityModels.RolePermission>> GetByRoleIdAndPermissionIdAsync(string roleId, string permissionId)
+		public async Task<Solhigson.Framework.Persistence.EntityModels.RolePermission> GetByRoleIdAndPermissionIdAsync(string roleId, string permissionId)
 		{
-			if (roleId is null || permissionId is null) { return new System.Collections.Generic.List<Solhigson.Framework.Persistence.EntityModels.RolePermission>(); }
+			if (roleId is null || permissionId is null) { return null; }
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
 				t => t.RoleId == roleId
 				&& t.PermissionId == permissionId;
+			return await GetByCondition(query).FirstOrDefaultAsync();
+		}
+
+		public async Task<System.Collections.Generic.IList<Solhigson.Framework.Persistence.EntityModels.RolePermission>> GetByRoleIdAsync(string roleId)
+		{
+			if (roleId is null) { return new System.Collections.Generic.List<Solhigson.Framework.Persistence.EntityModels.RolePermission>(); }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
+				t => t.RoleId == roleId;
 			return await GetByCondition(query).ToListAsync();
 		}
 

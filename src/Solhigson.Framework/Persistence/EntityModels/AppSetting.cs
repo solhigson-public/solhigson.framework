@@ -1,21 +1,22 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 
 namespace Solhigson.Framework.Persistence.EntityModels
 {
-    [Table(CacheManager.AppSettingsTableName)]
+    [Table(ScriptsManager.AppSettingInfo.TableName)]
     public record AppSetting : ICachedEntity
     {
         [Key]
-        [Column(CacheManager.AppSettingsTableIdColumn)]
+        [Column(ScriptsManager.AppSettingInfo.IdColumn)]
         public int Id { get; set; }
         
         [StringLength(255)]
-        [Column(CacheManager.AppSettingsTableNameColumn, TypeName = "VARCHAR")]
+        [Column(ScriptsManager.AppSettingInfo.NameColumn, TypeName = "VARCHAR")]
         public string Name { get; set; }
         
-        [Column(CacheManager.AppSettingsTableValueColumn, TypeName = "VARCHAR")]
+        [Column(ScriptsManager.AppSettingInfo.ValueColumn, TypeName = "VARCHAR")]
         public string Value { get; set; }
     }
 }

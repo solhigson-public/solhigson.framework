@@ -15,7 +15,8 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
             >
     {
 		Task<Solhigson.Framework.Persistence.EntityModels.RolePermission> GetByIdAsync(int id);
-		Task<System.Collections.Generic.IList<Solhigson.Framework.Persistence.EntityModels.RolePermission>> GetByRoleIdAndPermissionIdAsync(string roleId, string permissionId);
+		Task<Solhigson.Framework.Persistence.EntityModels.RolePermission> GetByRoleIdAndPermissionIdAsync(string roleId, string permissionId);
+		Task<System.Collections.Generic.IList<Solhigson.Framework.Persistence.EntityModels.RolePermission>> GetByRoleIdAsync(string roleId);
     
     }
 }
