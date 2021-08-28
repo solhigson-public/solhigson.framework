@@ -165,7 +165,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             if (getPropertiesWithCachedPropertyAttributeOnly)
             {
                 var propertiesWithCachedPropertyAttribute = properties
-                    .Where(t => t.GetAttribute<CachedPropertyAttribute>() != null)
+                    .Where(t => t.GetAttribute<CachedPropertyAttribute>() != null
+                    || t.GetCustomAttributes().Any(s => $"{s.TypeId}" == "Solhigson.Framework.Data.Attributes.CachedPropertyAttribute"))
                     .ToList();
                 if (!propertiesWithCachedPropertyAttribute.Any())
                 {
