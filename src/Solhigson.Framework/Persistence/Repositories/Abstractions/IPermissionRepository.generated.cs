@@ -15,6 +15,7 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
             >
     {
 		Task<Solhigson.Framework.Persistence.EntityModels.Permission> GetByIdAsync(string id);
+		Task<Solhigson.Framework.Persistence.EntityModels.Permission> GetByNameAsync(string name);
     
     }
 }

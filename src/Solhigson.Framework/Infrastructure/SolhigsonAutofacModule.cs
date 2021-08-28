@@ -39,10 +39,10 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<SolhigsonServicesWrapper>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<SolhigsonApiTraceMiddleware>().AsSelf().SingleInstance()
+            builder.RegisterType<ApiTraceMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
-            builder.RegisterType<SolhigsonExceptionHandlingMiddleware>().AsSelf().SingleInstance()
+            builder.RegisterType<ExceptionHandlingMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
             #endregion

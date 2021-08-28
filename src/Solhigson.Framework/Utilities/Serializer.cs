@@ -17,12 +17,11 @@ namespace Solhigson.Framework.Utilities
 {
     public static class Serializer
     {
-        private static readonly XmlWriterSettings DefaultXmlWriterSettings = new XmlWriterSettings {OmitXmlDeclaration = true};
+        private static readonly XmlWriterSettings DefaultXmlWriterSettings = new () {OmitXmlDeclaration = true};
 
-        private static readonly XmlSerializerNamespaces DefaultXmlSerializerNamespaces =
-            new XmlSerializerNamespaces(new[] {XmlQualifiedName.Empty});
+        private static readonly XmlSerializerNamespaces DefaultXmlSerializerNamespaces = new(new[] {XmlQualifiedName.Empty});
         
-        private static readonly JsonSerializerSettings DefaultJsonSerializerSettings = new JsonSerializerSettings
+        private static readonly JsonSerializerSettings DefaultJsonSerializerSettings = new ()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
@@ -67,6 +66,7 @@ namespace Solhigson.Framework.Utilities
             }
         }
 
+        /*
         public static string SerializeToBinaryString(this object obj)
         {
             var result = SerializeToBinaryBytes(obj);
@@ -109,6 +109,7 @@ namespace Solhigson.Framework.Utilities
         {
             return (T) DeserializeFromBinaryString(strData);
         }
+        */
 
         public static string SerializeToXml(this object obj, XmlSerializerNamespaces xmlsn = null,
             XmlWriterSettings settings = null)

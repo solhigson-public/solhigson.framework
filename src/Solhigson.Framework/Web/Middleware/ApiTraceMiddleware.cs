@@ -3,31 +3,33 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.IO;
 using NLog;
-using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Web.Middleware
 {
-    public sealed class SolhigsonApiTraceMiddleware : IMiddleware
+    public sealed class ApiTraceMiddleware : IMiddleware
     {
-        private static readonly LogWrapper Logger = new LogWrapper(nameof(SolhigsonApiTraceMiddleware));
+        private static readonly LogWrapper Logger = new LogWrapper(nameof(ApiTraceMiddleware));
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
-        public SolhigsonApiTraceMiddleware()
+        public ApiTraceMiddleware()
         {
             _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
+            var endpoint = context.GetEndpoint();
+            var authAttr = endpoint.Metadata.GetMetadata<AuthorizeAttribute>();
             var url = context.Request.GetDisplayUrl();
-            if (!url.ToLower().Contains("api/v")) //only log api calls [hack, should fix this later :)]
+            if (!url.ToLower().Contains("api/")) //only log api calls [hack, should fix this later :)]
             {
                 await next(context);
                 return;

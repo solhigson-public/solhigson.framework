@@ -7,8 +7,9 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Web.Middleware
 {
-    public class SolhigsonExceptionHandlingMiddleware : IMiddleware
+    public class ExceptionHandlingMiddleware : IMiddleware
     {
+        
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try

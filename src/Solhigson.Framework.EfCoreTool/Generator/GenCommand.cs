@@ -92,7 +92,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 {
                     continue;
                 }
-                var isCached = typeof(ICachedEntity).IsAssignableFrom(entity);
+                var isCached = typeof(ICachedEntity).IsAssignableFrom(entity)
+                    || entity.GetInterface("Solhigson.Framework.Data.Caching.ICachedEntity") != null;
 
                 GenerateFile(persistenceProjectPath, RepositoryNamespace, RepositoryClassType, entity.Name,
                     entity.Namespace, true, true, GetRepositoryMethods(entity, isCached, true), isCached); //generated interface

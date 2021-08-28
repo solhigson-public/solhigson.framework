@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+<!--
         <TargetFramework>netstandard2.1</TargetFramework>
+-->
+        <TargetFramework>netcoreapp5.0</TargetFramework>
         <PackageId>Solhigson.Framework</PackageId>
         <Authors>Solhigson</Authors>
         <Description>Utility Library</Description>
