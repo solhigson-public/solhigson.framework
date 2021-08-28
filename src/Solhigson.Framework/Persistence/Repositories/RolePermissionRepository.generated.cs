@@ -14,8 +14,8 @@ namespace Solhigson.Framework.Persistence.Repositories
      *
      * This file is ALWAYS overwritten, DO NOT place custom code here
      */
-    public partial class RolePermissionRepository : SolhigsonRepositoryBase<Solhigson.Framework.Persistence.EntityModels.RolePermission
-        >, 
+    public partial class RolePermissionRepository : SolhigsonCachedRepositoryBase<Solhigson.Framework.Persistence.EntityModels.RolePermission
+        ,Solhigson.Framework.Persistence.CacheModels.RolePermissionCacheModel>, 
             Solhigson.Framework.Persistence.Repositories.Abstractions.IRolePermissionRepository
     {
         public RolePermissionRepository(Solhigson.Framework.Persistence.SolhigsonDbContext dbContext) : base(dbContext)
@@ -47,6 +47,35 @@ namespace Solhigson.Framework.Persistence.Repositories
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
 				t => t.RoleId == roleId;
 			return await GetByCondition(query).ToListAsync();
+		}
+
+
+		//Cached Methods
+		public Solhigson.Framework.Persistence.CacheModels.RolePermissionCacheModel GetByIdCached(int id)
+		{
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
+				t => t.Id == id;
+			return GetSingleCached(query);
+		}
+
+		public Solhigson.Framework.Persistence.CacheModels.RolePermissionCacheModel GetByRoleIdAndPermissionIdCached(string roleId, string permissionId)
+		{
+			if (roleId is null || permissionId is null) { return null; }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
+				t => t.RoleId == roleId
+				&& t.PermissionId == permissionId;
+			return GetSingleCached(query);
+		}
+
+		public System.Collections.Generic.IList<Solhigson.Framework.Persistence.CacheModels.RolePermissionCacheModel> GetByRoleIdCached(string roleId)
+		{
+			if (roleId is null) { return new System.Collections.Generic.List<Solhigson.Framework.Persistence.CacheModels.RolePermissionCacheModel>(); }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
+				t => t.RoleId == roleId;
+			return GetListCached(query);
 		}
 
 

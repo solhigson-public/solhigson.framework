@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Logging
+﻿namespace Solhigson.Framework.Infrastructure
 {
     public static class Constants
     {
@@ -19,6 +19,11 @@
         {
             public static string Up = "Up";
             public static string Down = "Down";
+        }
+        
+        public static class ClaimType
+        {
+            public const string RoleId = "Solhigson.RoleId";
         }
     }
 }

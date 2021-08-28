@@ -11,11 +11,15 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
      * This file is ALWAYS overwritten, DO NOT place custom code here
      */
     public partial interface IPermissionRepository 
-        : Solhigson.Framework.Persistence.Repositories.Abstractions.ISolhigsonRepositoryBase<Solhigson.Framework.Persistence.EntityModels.Permission
-            >
+        : Solhigson.Framework.Persistence.Repositories.Abstractions.ISolhigsonCachedRepositoryBase<Solhigson.Framework.Persistence.EntityModels.Permission
+            ,Solhigson.Framework.Persistence.CacheModels.PermissionCacheModel>
     {
 		Task<Solhigson.Framework.Persistence.EntityModels.Permission> GetByIdAsync(string id);
 		Task<Solhigson.Framework.Persistence.EntityModels.Permission> GetByNameAsync(string name);
+
+		//Cached Methods
+		Solhigson.Framework.Persistence.CacheModels.PermissionCacheModel GetByIdCached(string id);
+		Solhigson.Framework.Persistence.CacheModels.PermissionCacheModel GetByNameCached(string name);
     
     }
 }

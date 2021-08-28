@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using NLog;
 using NLog.LayoutRenderers;
+using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Logging.Nlog.Renderers
 {

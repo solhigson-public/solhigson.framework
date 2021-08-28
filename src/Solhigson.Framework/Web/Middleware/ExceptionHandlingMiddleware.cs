@@ -25,9 +25,13 @@ namespace Solhigson.Framework.Web.Middleware
 
         private static async Task HandleExceptionAsync(HttpContext httpContext)
         {
-            httpContext.Response.ContentType = "application/json";
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            await httpContext.Response.WriteAsync(ResponseInfo.FailedResult("Internal Server Error").SerializeToJson());
+            if (httpContext.IsApiController())
+            {
+                httpContext.Response.ContentType = "application/json";
+                await httpContext.Response.WriteAsync(ResponseInfo.FailedResult("Internal Server Error")
+                    .SerializeToJson());
+            }
         }
     }
 }

@@ -14,8 +14,8 @@ namespace Solhigson.Framework.Persistence.Repositories
      *
      * This file is ALWAYS overwritten, DO NOT place custom code here
      */
-    public partial class PermissionRepository : SolhigsonRepositoryBase<Solhigson.Framework.Persistence.EntityModels.Permission
-        >, 
+    public partial class PermissionRepository : SolhigsonCachedRepositoryBase<Solhigson.Framework.Persistence.EntityModels.Permission
+        ,Solhigson.Framework.Persistence.CacheModels.PermissionCacheModel>, 
             Solhigson.Framework.Persistence.Repositories.Abstractions.IPermissionRepository
     {
         public PermissionRepository(Solhigson.Framework.Persistence.SolhigsonDbContext dbContext) : base(dbContext)
@@ -38,6 +38,26 @@ namespace Solhigson.Framework.Persistence.Repositories
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.Permission, bool>> query = 
 				t => t.Name == name;
 			return await GetByCondition(query).FirstOrDefaultAsync();
+		}
+
+
+		//Cached Methods
+		public Solhigson.Framework.Persistence.CacheModels.PermissionCacheModel GetByIdCached(string id)
+		{
+			if (id is null) { return null; }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.Permission, bool>> query = 
+				t => t.Id == id;
+			return GetSingleCached(query);
+		}
+
+		public Solhigson.Framework.Persistence.CacheModels.PermissionCacheModel GetByNameCached(string name)
+		{
+			if (name is null) { return null; }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.Permission, bool>> query = 
+				t => t.Name == name;
+			return GetSingleCached(query);
 		}
 
 

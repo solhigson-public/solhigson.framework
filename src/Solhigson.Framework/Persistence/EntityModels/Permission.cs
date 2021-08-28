@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
+using Solhigson.Framework.Data.Attributes;
 using Solhigson.Framework.Data.Caching;
 
 namespace Solhigson.Framework.Persistence.EntityModels
@@ -13,6 +14,7 @@ namespace Solhigson.Framework.Persistence.EntityModels
         [Key]
         [StringLength(450)]
         [Column(ScriptsManager.PermissionInfo.IdColumn, TypeName = "VARCHAR")]
+        [CachedProperty]
         public string Id { get; set; }
 
         [StringLength(256)]

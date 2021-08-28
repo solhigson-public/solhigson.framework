@@ -5,12 +5,12 @@ namespace Solhigson.Framework.Web.Attributes
     [AttributeUsage(AttributeTargets.Method)]
     public class PermissionAttribute : Attribute
     {
-        public PermissionAttribute(string key, string description)
+        public PermissionAttribute(string name)
         {
-            
+            Name = name;
         }
 
-        public string Key { get; set; }
+        public string Name { get; }
         public string Description { get; set; }
     }
 }

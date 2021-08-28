@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Persistence;
+using Solhigson.Framework.Persistence.Repositories;
+using Solhigson.Framework.Persistence.Repositories.Abstractions;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
@@ -45,11 +47,16 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<ExceptionHandlingMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
+            builder.RegisterType<PermissionsMiddleware>().AsSelf().SingleInstance()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
             #endregion
 
             builder.RegisterType<ApiRequestService>().As<IApiRequestService>().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
+            builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().SingleInstance()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
         }
     }

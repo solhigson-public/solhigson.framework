@@ -11,10 +11,13 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
      * This file is ALWAYS overwritten, DO NOT place custom code here
      */
     public partial interface IAppSettingRepository 
-        : Solhigson.Framework.Persistence.Repositories.Abstractions.ISolhigsonRepositoryBase<Solhigson.Framework.Persistence.EntityModels.AppSetting
-            >
+        : Solhigson.Framework.Persistence.Repositories.Abstractions.ISolhigsonCachedRepositoryBase<Solhigson.Framework.Persistence.EntityModels.AppSetting
+            ,Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel>
     {
 		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByIdAsync(int id);
+
+		//Cached Methods
+		Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByIdCached(int id);
     
     }
 }

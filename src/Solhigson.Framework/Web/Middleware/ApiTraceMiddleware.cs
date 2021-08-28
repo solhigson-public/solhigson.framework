@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.IO;
 using NLog;
+using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities;
 
@@ -16,7 +17,7 @@ namespace Solhigson.Framework.Web.Middleware
 {
     public sealed class ApiTraceMiddleware : IMiddleware
     {
-        private static readonly LogWrapper Logger = new LogWrapper(nameof(ApiTraceMiddleware));
+        private static readonly LogWrapper Logger = new (nameof(ApiTraceMiddleware));
         private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
         public ApiTraceMiddleware()
@@ -26,8 +27,6 @@ namespace Solhigson.Framework.Web.Middleware
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var endpoint = context.GetEndpoint();
-            var authAttr = endpoint.Metadata.GetMetadata<AuthorizeAttribute>();
             var url = context.Request.GetDisplayUrl();
             if (!url.ToLower().Contains("api/")) //only log api calls [hack, should fix this later :)]
             {
@@ -35,7 +34,7 @@ namespace Solhigson.Framework.Web.Middleware
                 return;
             }
 
-            var traceData = await GetRequestData(context.Request);
+            var traceData = await GetRequestData(context.Request, url);
 
             //Copy a pointer to the original response body stream
             var originalBodyStream = context.Response.Body;
@@ -68,7 +67,7 @@ namespace Solhigson.Framework.Web.Middleware
             await responseBody.CopyToAsync(originalBodyStream);
         }
 
-        private async Task<ApiTraceData> GetRequestData(HttpRequest request)
+        private async Task<ApiTraceData> GetRequestData(HttpRequest request, string url)
         {
             string requestContent;
             await using (var bodyStream = _recyclableMemoryStreamManager.GetStream())
@@ -89,13 +88,12 @@ namespace Solhigson.Framework.Web.Middleware
                 request.Body.Position = 0;
             }
 
-            var requestUri = new Uri(request.GetDisplayUrl());
             var method = request.Method.ToUpper();
 
             return new ApiTraceData
             {
                 RequestTime = DateTime.UtcNow,
-                Url = $"{requestUri}",
+                Url = url,
                 Method = method,
                 /*
                 RequestMessage = HelperFunctions.CheckForProtectedFields(requestContent, _servicesWrapper),

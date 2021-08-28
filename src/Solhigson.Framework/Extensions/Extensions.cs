@@ -10,9 +10,11 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using Autofac;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -507,6 +509,13 @@ namespace Solhigson.Framework.Extensions
         public static IActionResult HttpOk<T>(this ResponseInfo<T> response)
         {
             return new OkObjectResult(response);
+        }
+
+        public static bool IsApiController(this HttpContext context)
+        {
+            return context.GetEndpoint()?.Metadata
+                .GetMetadata<ControllerActionDescriptor>()?.ControllerTypeInfo
+                .GetCustomAttribute<ApiControllerAttribute>() != null;
         }
 
     }
