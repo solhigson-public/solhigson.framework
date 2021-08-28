@@ -17,6 +17,7 @@ using Xunit.Abstractions;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Extensions;
+using Solhigson.Framework.Persistence;
 using [ProjectRootNamespace].Web;
 
 
