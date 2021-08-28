@@ -62,6 +62,14 @@ namespace [ProjectRootNamespace].Tests
                 return new [DbContextNamespace].[DbContextName](opt.Options);
             }).AsSelf().InstancePerLifetimeScope();
             
+            builder.Register(c =>
+            {
+                var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
+                opt.UseSqlite(_connection);
+                return new SolhigsonDbContext(opt.Options);
+            }).AsSelf().InstancePerLifetimeScope();
+
+            
             //Any other custom dependency overrides - implementation in BaseTest.cs
             LoadCustomDependencyOverrides(builder);
 
