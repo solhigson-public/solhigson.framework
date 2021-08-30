@@ -1,19 +1,14 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
-using Solhigson.Framework.Logging;
-using Solhigson.Framework.Persistence.Repositories;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Web.Attributes;
-using Xunit;
 
 namespace Solhigson.Framework.Web.Middleware
 {
@@ -63,21 +58,22 @@ namespace Solhigson.Framework.Web.Middleware
                 return;
             }
 
-            var roleIds = context.User.FindFirstValue(Constants.ClaimType.RoleIds);
-            if (string.IsNullOrWhiteSpace(roleIds))
+            var roleIds = context.User.FindAll(Constants.ClaimType.RoleId)
+                .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList();
+            
+            if (!roleIds.Any())
             {
-                await HandleForbidden(context, "User not assigned a role.");
+                await HandleForbidden(context, "User not assigned any roles.");
                 return;
             }
 
-            var roles = roleIds.Split(",", StringSplitOptions.RemoveEmptyEntries);
-
-            if (roles.Any(roleId => _repositoryWrapper.RolePermissionRepository
+            if (roleIds.Any(roleId => _repositoryWrapper.RolePermissionRepository
                 .GetByRoleIdAndPermissionIdCached(roleId, permission.Id) is not null))
             {
                 await next(context);
                 return;
             }
+
             await HandleForbidden(context);
         }
 

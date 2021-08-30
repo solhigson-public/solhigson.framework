@@ -15,15 +15,15 @@
             public const string AppLog = "AppLog";
         }
 
-        public class ServiceStatus
+        public static class ServiceStatus
         {
-            public static string Up = "Up";
-            public static string Down = "Down";
+            public const string Up = "Up";
+            public const string Down = "Down";
         }
         
         public static class ClaimType
         {
-            public const string RoleIds = "Solhigson.RoleId";
+            public const string RoleId = "Solhigson.RoleId";
         }
     }
 }
