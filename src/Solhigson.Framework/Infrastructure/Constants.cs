@@ -23,7 +23,7 @@
         
         public static class ClaimType
         {
-            public const string RoleId = "Solhigson.RoleId";
+            public const string RoleIds = "Solhigson.RoleId";
         }
     }
 }

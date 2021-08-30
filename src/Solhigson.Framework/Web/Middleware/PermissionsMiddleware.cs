@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -62,35 +63,33 @@ namespace Solhigson.Framework.Web.Middleware
                 return;
             }
 
-            var roleId = context.User.FindFirstValue(Constants.ClaimType.RoleId);
-            if (string.IsNullOrWhiteSpace(roleId))
+            var roleIds = context.User.FindFirstValue(Constants.ClaimType.RoleIds);
+            if (string.IsNullOrWhiteSpace(roleIds))
             {
                 await HandleForbidden(context, "User not assigned a role.");
                 return;
             }
-            
-            var isAllowed = _repositoryWrapper.RolePermissionRepository
-                .GetByRoleIdAndPermissionIdCached(roleId, permission.Id);
-            if (isAllowed is null)
+
+            var roles = roleIds.Split(",", StringSplitOptions.RemoveEmptyEntries);
+
+            if (roles.Any(roleId => _repositoryWrapper.RolePermissionRepository
+                .GetByRoleIdAndPermissionIdCached(roleId, permission.Id) is not null))
             {
-                await HandleForbidden(context);
+                await next(context);
                 return;
             }
-            await next(context);
+            await HandleForbidden(context);
         }
 
         private static async Task HandleForbidden(HttpContext httpContext, string message = null)
         {
             var msg = "Access to resource is denied";
-            if (!string.IsNullOrWhiteSpace(message))
-            {
-                msg = $"{msg} - {message}";
-            }
-            else
-            {
-                msg = $"{msg}.";
-            }
+            msg = !string.IsNullOrWhiteSpace(message) 
+                ? $"{msg} - {message}" 
+                : $"{msg}.";
+            
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+            
             if (httpContext.IsApiController())
             {
                 httpContext.Response.ContentType = "application/json";
