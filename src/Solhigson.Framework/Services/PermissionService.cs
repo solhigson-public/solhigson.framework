@@ -107,12 +107,12 @@ namespace Solhigson.Framework.Services
                         continue;
                     }
                     
-                    var actionInfo = ActionDescriptorCollectionProvider.ActionDescriptors.Items.FirstOrDefault(x => (x is ControllerActionDescriptor controllerActionDescriptor)
+                    var actionInfo = ActionDescriptorCollectionProvider.ActionDescriptors.Items.FirstOrDefault(x => x is ControllerActionDescriptor controllerActionDescriptor
                         && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
                         && controllerActionDescriptor.ActionName == methodInfo.Name);
 
-                    var permission = permissionAttribute.Adapt<Permission>();
-                    permission.Id = Guid.NewGuid().ToString();
+                    var permission = RepositoryWrapper.PermissionRepository.New(Guid.NewGuid().ToString());
+                    permission = permissionAttribute.Adapt(permission);
                     RepositoryWrapper.PermissionRepository.Add(permission);
                     permission.Url = actionInfo?.AttributeRouteInfo?.Template;
                     count++;

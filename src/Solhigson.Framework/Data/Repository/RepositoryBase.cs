@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Data.Repository
 {
@@ -16,6 +17,17 @@ namespace Solhigson.Framework.Data.Repository
             DbContext = dbContext;
         }
         
+        public T New(object identifier = null)
+        {
+            var entity = new T();
+            if (identifier != null)
+            {
+                entity.GetType().GetProperties()
+                    .FirstOrDefault(t => t.GetAttribute<KeyAttribute>() != null)?.SetValue(entity, identifier);
+            }
+            return Add(entity);
+        }
+
         public IQueryable<T> GetAll()
         {
             return DbContext.Set<T>().AsNoTracking();
