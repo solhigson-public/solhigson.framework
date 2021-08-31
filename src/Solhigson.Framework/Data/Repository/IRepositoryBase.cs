@@ -8,10 +8,9 @@ namespace Solhigson.Framework.Data.Repository
 {
     public interface IRepositoryBase<T> where T : class, new()
     {
-        T New();
         IQueryable<T> GetAll();
-        IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression);
-        bool ExistsWithCondition(Expression<Func<T, bool>> expression);
+        IQueryable<T> Get(Expression<Func<T, bool>> expression);
+        bool Exists(Expression<Func<T, bool>> expression);
         T Add(T entity);
         void AddRange(IEnumerable<T> entities);
         T Attach(T entity);

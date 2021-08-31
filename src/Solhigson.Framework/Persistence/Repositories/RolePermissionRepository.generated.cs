@@ -27,7 +27,7 @@ namespace Solhigson.Framework.Persistence.Repositories
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
 				t => t.Id == id;
-			return await GetByCondition(query).FirstOrDefaultAsync();
+			return await Get(query).FirstOrDefaultAsync();
 		}
 
 		public async Task<Solhigson.Framework.Persistence.EntityModels.RolePermission> GetByRoleIdAndPermissionIdAsync(string roleId, string permissionId)
@@ -37,7 +37,7 @@ namespace Solhigson.Framework.Persistence.Repositories
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
 				t => t.RoleId == roleId
 				&& t.PermissionId == permissionId;
-			return await GetByCondition(query).FirstOrDefaultAsync();
+			return await Get(query).FirstOrDefaultAsync();
 		}
 
 		public async Task<System.Collections.Generic.IList<Solhigson.Framework.Persistence.EntityModels.RolePermission>> GetByRoleIdAsync(string roleId)
@@ -46,7 +46,7 @@ namespace Solhigson.Framework.Persistence.Repositories
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.RolePermission, bool>> query = 
 				t => t.RoleId == roleId;
-			return await GetByCondition(query).ToListAsync();
+			return await Get(query).ToListAsync();
 		}
 
 

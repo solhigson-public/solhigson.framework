@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
+using Solhigson.Framework.Services.Abstractions;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Web.Attributes;
 
@@ -14,10 +15,10 @@ namespace Solhigson.Framework.Web.Middleware
 {
     public class PermissionsMiddleware : IMiddleware
     {
-        private readonly IRepositoryWrapper _repositoryWrapper;
-        public PermissionsMiddleware(IRepositoryWrapper repositoryWrapper)
+        private readonly IPermissionService _permissionService;
+        public PermissionsMiddleware(IPermissionService permissionService)
         {
-            _repositoryWrapper = repositoryWrapper;
+            _permissionService = permissionService;
         }
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
@@ -28,9 +29,10 @@ namespace Solhigson.Framework.Web.Middleware
                 return;
             }
 
-            if (endPoint.Metadata.GetMetadata<AuthorizeAttribute>() == null && endPoint.Metadata
-                .GetMetadata<ControllerActionDescriptor>()?.ControllerTypeInfo
-                .GetCustomAttribute<AuthorizeAttribute>() == null)
+            if ((endPoint.Metadata.GetMetadata<AuthorizeAttribute>() == null 
+                && endPoint.Metadata.GetMetadata<ControllerActionDescriptor>()?
+                    .ControllerTypeInfo?.GetCustomAttribute<AuthorizeAttribute>() == null)
+                || endPoint.Metadata.GetMetadata<AllowAnonymousAttribute>() != null)
             {
                 await next(context);
                 return;
@@ -41,40 +43,21 @@ namespace Solhigson.Framework.Web.Middleware
             
             if (string.IsNullOrWhiteSpace(permissionName))
             {
-                await next(context);
-                return;
+                if (string.IsNullOrWhiteSpace(permissionName))
+                {
+                    await next(context);
+                    return;
+                }
             }
 
-            if (context.User?.Identity?.IsAuthenticated == false)
-            {
-                await HandleForbidden(context, "User not authenticated.");
-                return;
-            }
-
-            var permission = _repositoryWrapper.PermissionRepository.GetByNameCached(permissionName);
-            if (permission is null)
-            {
-                await HandleForbidden(context, "Resource not configured.");
-                return;
-            }
-
-            var roleIds = context.User.FindAll(Constants.ClaimType.RoleId)
-                .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList();
+            var verifyResult = _permissionService.VerifyPermission(permissionName, context.User);
             
-            if (!roleIds.Any())
+            if (!verifyResult.IsSuccessful)
             {
-                await HandleForbidden(context, "User not assigned any roles.");
+                await HandleForbidden(context, verifyResult.Message);
                 return;
             }
-
-            if (roleIds.Any(roleId => _repositoryWrapper.RolePermissionRepository
-                .GetByRoleIdAndPermissionIdCached(roleId, permission.Id) is not null))
-            {
-                await next(context);
-                return;
-            }
-
-            await HandleForbidden(context);
+            await next(context);
         }
 
         private static async Task HandleForbidden(HttpContext httpContext, string message = null)

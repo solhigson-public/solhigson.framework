@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "solhigson.framework.efcoretool": {
-      "version": "1.1.5",
+      "version": "1.1.8",
       "commands": [
         "solhigson"
       ]

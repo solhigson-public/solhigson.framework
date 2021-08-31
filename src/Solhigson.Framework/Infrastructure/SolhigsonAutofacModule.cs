@@ -5,6 +5,7 @@ using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.Repositories;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
 using Solhigson.Framework.Services;
+using Solhigson.Framework.Services.Abstractions;
 using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
 
@@ -58,6 +59,8 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
+            builder.RegisterType<PermissionService>().As<IPermissionService>().SingleInstance()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
         }
     }
 }

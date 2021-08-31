@@ -28,7 +28,7 @@ namespace Solhigson.Framework.Persistence.Repositories
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.Permission, bool>> query = 
 				t => t.Id == id;
-			return await GetByCondition(query).FirstOrDefaultAsync();
+			return await Get(query).FirstOrDefaultAsync();
 		}
 
 		public async Task<Solhigson.Framework.Persistence.EntityModels.Permission> GetByNameAsync(string name)
@@ -37,7 +37,7 @@ namespace Solhigson.Framework.Persistence.Repositories
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.Permission, bool>> query = 
 				t => t.Name == name;
-			return await GetByCondition(query).FirstOrDefaultAsync();
+			return await Get(query).FirstOrDefaultAsync();
 		}
 
 

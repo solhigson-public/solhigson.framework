@@ -16,23 +16,17 @@ namespace Solhigson.Framework.Data.Repository
             DbContext = dbContext;
         }
         
-        public T New()
-        {
-            var entity = new T();
-            return Add(entity);
-        }
-
         public IQueryable<T> GetAll()
         {
             return DbContext.Set<T>().AsNoTracking();
         }
 
-        public IQueryable<T> GetByCondition(Expression<Func<T, bool>> expression)
+        public IQueryable<T> Get(Expression<Func<T, bool>> expression)
         {
             return DbContext.Set<T>().Where(expression);
         }
         
-        public bool ExistsWithCondition(Expression<Func<T, bool>> expression)
+        public bool Exists(Expression<Func<T, bool>> expression)
         {
             return DbContext.Set<T>().Any(expression);
         }

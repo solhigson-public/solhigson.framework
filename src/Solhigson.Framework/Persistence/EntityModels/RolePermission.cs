@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
@@ -22,5 +23,9 @@ namespace Solhigson.Framework.Persistence.EntityModels
         [StringLength(255)]
         [Column(ScriptsManager.RolePermissionInfo.PermissionIdColumn, TypeName = "VARCHAR")]
         public string PermissionId { get; set; }
+        
+        [ForeignKey(nameof(PermissionId))]
+        public Permission Permission { get; set; }
+
     }
 }

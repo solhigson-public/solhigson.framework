@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Solhigson.Framework.Services.Abstractions;
 using Solhigson.Framework.Web.Api;
 
 namespace Solhigson.Framework.Infrastructure
@@ -20,5 +21,7 @@ namespace Solhigson.Framework.Infrastructure
         public IHttpContextAccessor HttpContextAccessor { get; }
         public IConfiguration Configuration { get; set; }
         public IApiRequestService ApiRequestService { get; set; }
+        
+        public IPermissionService PermissionService { get; set; }
     }
 }

@@ -27,7 +27,7 @@ namespace Solhigson.Framework.Persistence.Repositories
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
 				t => t.Id == id;
-			return await GetByCondition(query).FirstOrDefaultAsync();
+			return await Get(query).FirstOrDefaultAsync();
 		}
 
 
