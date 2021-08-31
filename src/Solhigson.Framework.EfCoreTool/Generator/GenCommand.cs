@@ -363,7 +363,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 }
             }
 
-            var getMethod = "GetByCondition";
+            var getMethod = "Get";
             var resultProjection = indexAttr.IsUnique
                 ? ".FirstOrDefaultAsync()"
                 : ".ToListAsync()";
