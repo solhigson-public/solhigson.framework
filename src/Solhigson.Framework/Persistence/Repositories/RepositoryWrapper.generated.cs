@@ -25,6 +25,10 @@ namespace Solhigson.Framework.Persistence.Repositories
 		public Solhigson.Framework.Persistence.Repositories.Abstractions.IRolePermissionRepository RolePermissionRepository
 		{ get { return _rolePermissionRepository ??= new Solhigson.Framework.Persistence.Repositories.RolePermissionRepository(DbContext); } }
 
+		private Solhigson.Framework.Persistence.Repositories.Abstractions.IAspNetRoleRepository _aspNetRoleRepository;
+		public Solhigson.Framework.Persistence.Repositories.Abstractions.IAspNetRoleRepository AspNetRoleRepository
+		{ get { return _aspNetRoleRepository ??= new Solhigson.Framework.Persistence.Repositories.AspNetRoleRepository(DbContext); } }
+
 
         public RepositoryWrapper(Solhigson.Framework.Persistence.SolhigsonDbContext dbContext)
         {

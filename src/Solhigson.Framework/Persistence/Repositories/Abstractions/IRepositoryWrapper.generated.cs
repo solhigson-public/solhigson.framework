@@ -17,6 +17,7 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
 		Solhigson.Framework.Persistence.Repositories.Abstractions.IAppSettingRepository AppSettingRepository { get; }
 		Solhigson.Framework.Persistence.Repositories.Abstractions.IPermissionRepository PermissionRepository { get; }
 		Solhigson.Framework.Persistence.Repositories.Abstractions.IRolePermissionRepository RolePermissionRepository { get; }
+		Solhigson.Framework.Persistence.Repositories.Abstractions.IAspNetRoleRepository AspNetRoleRepository { get; }
 
     }
 }

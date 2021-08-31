@@ -39,13 +39,18 @@ namespace Solhigson.Framework.Services
                 return ResponseInfo.FailedResult("Resource not configured.");
             }
 
-            var roleIds = claimsPrincipal?.FindAll(Constants.ClaimType.RoleId)
+            var roles = claimsPrincipal?.FindAll(ClaimTypes.Role)
                 .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList();
             
-            if (roleIds == null || !roleIds.Any())
+            if (roles == null || !roles.Any())
             {
-                return ResponseInfo.FailedResult("User not assigned any roles.");
+                return ResponseInfo.FailedResult("User not assigned any roles in Jwt Token.");
             }
+
+            var roleIds = (from role in roles select 
+                RepositoryWrapper.AspNetRoleRepository.GetByNameCached(role) 
+                into roleObj where roleObj != null 
+                select roleObj.Id).ToList();
 
             return roleIds.Any(roleId => RepositoryWrapper.RolePermissionRepository
                 .GetByRoleIdAndPermissionIdCached(roleId, permission.Id) is not null) 
@@ -59,24 +64,55 @@ namespace Solhigson.Framework.Services
             await RepositoryWrapper.SaveChangesAsync();
         }
 
+        public async Task AddRolePermission(RolePermissionDto permissionDto)
+        {
+            RepositoryWrapper.RolePermissionRepository.Add(permissionDto.Adapt<RolePermission>());
+            await RepositoryWrapper.SaveChangesAsync();
+        }
+
+        public async Task RemoveRolePermission(RolePermissionDto permissionDto)
+        {
+            RepositoryWrapper.RolePermissionRepository.Remove(permissionDto.Adapt<RolePermission>());
+            await RepositoryWrapper.SaveChangesAsync();
+        }
+
+        public async Task UpdatePermission(PermissionDto permissionDto)
+        {
+            RepositoryWrapper.PermissionRepository.Update(permissionDto.Adapt<Permission>());
+            await RepositoryWrapper.SaveChangesAsync();
+        }
+
         public async Task<IList<PermissionDto>> GetAllPermissionsAsync()
         {
             return await RepositoryWrapper.PermissionRepository.GetAll().ProjectToType<PermissionDto>().ToListAsync();
         }
 
-        public async Task<IList<PermissionDto>> GetAllPermissionsForRoleAsync(string roleId)
+        public async Task<IList<PermissionDto>> GetAllPermissionsForRoleAsync(string roleName)
         {
             return await (from p in RepositoryWrapper.DbContext.Permissions
                 join rp in RepositoryWrapper.DbContext.RolePermissions
                     on p.Id equals rp.PermissionId
-                where rp.RoleId == roleId
+                    join ar in RepositoryWrapper.DbContext.AspNetRoles
+                    on rp.RoleId equals ar.Id
+                where ar.Name == roleName
                 select p).ProjectToType<PermissionDto>().ToListAsync();
         }
         
-        public IList<PermissionDto> GetAllPermissionsForRoleCached(string roleId)
+        public async Task<IList<string>> GetAllowedRolesForPermissionAsync(string permissionName)
+        {
+            return await (from ar in RepositoryWrapper.DbContext.AspNetRoles
+                join rp in RepositoryWrapper.DbContext.RolePermissions
+                    on ar.Id equals rp.RoleId
+                    join p in RepositoryWrapper.DbContext.Permissions
+                    on rp.PermissionId equals p.Id
+                where p.Name == permissionName
+                select ar.Name).ToListAsync();
+        }
+        
+        public IList<PermissionDto> GetAllPermissionsForRoleCached(string roleName)
         {
             return RepositoryWrapper.DbContext.RolePermissions.Include(t => t.Permission)
-                .Where(t => t.RoleId == roleId)
+                .Where(t => t.RoleId == roleName)
                 .Select(t => t.Permission).ProjectToType<PermissionDto>().FromCacheList();
         }
 
@@ -115,10 +151,18 @@ namespace Solhigson.Framework.Services
                     permission = permissionAttribute.Adapt(permission);
                     RepositoryWrapper.PermissionRepository.Add(permission);
                     permission.Url = actionInfo?.AttributeRouteInfo?.Template;
-                    count++;
+                    try
+                    {
+                        await RepositoryWrapper.SaveChangesAsync();
+                        count++;
+                        this.ELogInfo($"Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]");
+                    }
+                    catch (Exception e)
+                    {
+                        this.ELogError(e, "Saving permission protected endpoint", permission);
+                    }
                 }
             }
-            await RepositoryWrapper.SaveChangesAsync();
             return response.Success(count);
         }
 
