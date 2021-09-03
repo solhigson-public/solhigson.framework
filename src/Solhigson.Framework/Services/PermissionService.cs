@@ -147,7 +147,7 @@ namespace Solhigson.Framework.Services
                         && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
                         && controllerActionDescriptor.ActionName == methodInfo.Name);
 
-                    var permission = RepositoryWrapper.PermissionRepository.New(Guid.NewGuid().ToString());
+                    var permission = RepositoryWrapper.PermissionRepository.New();
                     permission = permissionAttribute.Adapt(permission);
                     RepositoryWrapper.PermissionRepository.Add(permission);
                     permission.Url = actionInfo?.AttributeRouteInfo?.Template;

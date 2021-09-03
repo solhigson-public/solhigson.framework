@@ -13,10 +13,12 @@ using Autofac;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Common;
 using NLog.Config;
@@ -25,6 +27,7 @@ using NLog.Targets.Wrappers;
 using Polly;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
+using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Dto;
@@ -179,6 +182,14 @@ namespace Solhigson.Framework.Extensions
             return services;
         }
 
+        public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services, Action<IdentityOptions> setupAction) where TUser: IdentityUser
+            where TContext : SolhigsonIdentityDbContext<TUser>
+        {
+            services.AddIdentity<TUser, SolhigsonAspNetRole>(setupAction).AddEntityFrameworkStores<TContext>()
+                .AddDefaultTokenProviders();
+            services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
+            return services;
+        }
         #endregion
 
         #region Logging Extensions

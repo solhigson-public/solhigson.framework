@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,11 @@ namespace Solhigson.Framework.Persistence.EntityModels
     [Index(nameof(Name), IsUnique = true)]
     public record Permission : ICachedEntity
     {
+        public Permission()
+        {
+            Id = Guid.NewGuid().ToString();
+        }
+        
         [Key]
         [StringLength(450)]
         [Column(ScriptsManager.PermissionInfo.IdColumn, TypeName = "VARCHAR")]
