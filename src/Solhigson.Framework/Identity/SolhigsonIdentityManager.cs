@@ -3,38 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Identity
 {
-    public class SolhigsonIdentityManager<TUser, TContext> where TUser : IdentityUser where TContext : SolhigsonIdentityDbContext<TUser>
+    public class SolhigsonIdentityManager<TUser, TContext> :
+        SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext>, IDisposable
+        where TUser : IdentityUser
+        where TContext : SolhigsonIdentityDbContext<TUser>
     {
+        public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
+            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext> roleGroupManager,
+            TContext dbContext) : base(userManager, roleManager, roleGroupManager, dbContext)
+        {
+        }
+    }
+
+    public class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext> : IDisposable 
+        where TUser : IdentityUser
+        where TContext : SolhigsonIdentityDbContext<TUser> 
+        where TRoleGroup : SolhigsonRoleGroup, new() 
+        where TRole : SolhigsonAspNetRole
+    {
+        public RoleGroupManager<TRoleGroup, TRole, TUser, TContext> RoleGroupManager { get; }
         public UserManager<TUser> UserManager { get; }
         public RoleManager<SolhigsonAspNetRole> RoleManager { get; }
-        private readonly TContext _dbContext;
+        private readonly DbContext _dbContext;
 
         public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
-            IServiceProvider serviceProvider)
+            RoleGroupManager<TRoleGroup, TRole, TUser, TContext> roleGroupManager,
+            TContext dbContext)
         {
             UserManager = userManager;
             RoleManager = roleManager;
-            _dbContext = serviceProvider.GetRequiredService<TContext>();
-        }
-
-        public async Task<SolhigsonRoleGroup> CreateGroupAsync(string roleGroupName)
-        {
-            var group = new SolhigsonRoleGroup { Name = roleGroupName };
-            _dbContext.Add(group);
-            await _dbContext.SaveChangesAsync();
-            return group;
-        }
-
-        public async Task<IList<SolhigsonAspNetRole>> GetRolesForGroupAsync(string roleGroupName)
-        {
-            return await _dbContext.Roles
-                .Where(t => t.RoleGroup.Name == roleGroupName).ToListAsync();
+            RoleGroupManager = roleGroupManager;
+            _dbContext = dbContext;
         }
 
         public async Task<IdentityResult> CreateRoleAsync(string roleName, string roleGroupName = null)
@@ -42,7 +48,7 @@ namespace Solhigson.Framework.Identity
             string roleGroupId = null;
             if (!string.IsNullOrWhiteSpace(roleGroupName))
             {
-                var roleGroup = await _dbContext.RoleGroups
+                var roleGroup = await _dbContext.Set<SolhigsonRoleGroup>()
                     .FirstOrDefaultAsync(t => t.Name == roleGroupName);
                 if (roleGroup is null)
                 {
@@ -59,40 +65,12 @@ namespace Solhigson.Framework.Identity
             });
         }
 
-        public async Task AddRoleToGroupAsync(string roleName, string roleGroupName)
+        public void Dispose()
         {
-            var roleGroup = await _dbContext.RoleGroups
-                .FirstOrDefaultAsync(t => t.Name == roleGroupName);
-            if (roleGroup is null)
-            {
-                throw new Exception($"RoleGroup: {roleGroupName} not found");
-            }
-
-            var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
-            if (role is null)
-            {
-                throw new Exception($"Role: {roleName} not found");
-            }
-
-            role.RoleGroupId = roleGroup.Id;
-            await _dbContext.SaveChangesAsync();
-        }
-
-        public async Task<bool> HasRoleGroups()
-        {
-            return await _dbContext.RoleGroups.AnyAsync();
-        }
-
-        public bool RoleBelongsToGroupCached(string roleName, string roleGroupName)
-        {
-            return _dbContext.Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingle()
-                ?.RoleGroup.Name == roleGroupName;
-        }
-        
-        public string GetRoleGroupCached(string roleName)
-        {
-            return _dbContext.Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingle()
-                ?.RoleGroup.Name;
+            UserManager?.Dispose();
+            RoleManager?.Dispose();
+            RoleGroupManager?.Dispose();
+            _dbContext?.Dispose();
         }
     }
 }

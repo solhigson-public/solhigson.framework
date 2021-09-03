@@ -18,8 +18,5 @@ namespace Solhigson.Framework.Identity
         protected SolhigsonIdentityDbContext() { }
         
         public DbSet<SolhigsonRoleGroup> RoleGroups { get; set; }
-
-        
     }
-
 }

@@ -182,12 +182,13 @@ namespace Solhigson.Framework.Extensions
             return services;
         }
 
-        public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services, Action<IdentityOptions> setupAction) where TUser: IdentityUser
-            where TContext : SolhigsonIdentityDbContext<TUser>
+        public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
+            Action<IdentityOptions> setupAction = null) where TUser : IdentityUser where TContext : SolhigsonIdentityDbContext<TUser>
         {
             services.AddIdentity<TUser, SolhigsonAspNetRole>(setupAction).AddEntityFrameworkStores<TContext>()
                 .AddDefaultTokenProviders();
             services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
+            services.TryAddScoped<RoleGroupManager<SolhigsonRoleGroup,SolhigsonAspNetRole, TUser, TContext>>();
             return services;
         }
         #endregion
