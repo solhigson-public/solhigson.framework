@@ -11,11 +11,6 @@ namespace Solhigson.Framework.Identity
         {
             
         }
-        public SolhigsonAspNetRole(string roleName, string roleGroupId) : base(roleName)
-        {
-            RoleGroupId = roleGroupId;
-        }
-        
         [StringLength(450)]
         public string RoleGroupId { get; set; }
         

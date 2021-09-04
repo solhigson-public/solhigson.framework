@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -36,6 +37,7 @@ using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
+using Solhigson.Framework.Web;
 using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
 using Xunit.Abstractions;
@@ -528,6 +530,39 @@ namespace Solhigson.Framework.Extensions
             return context.GetEndpoint()?.Metadata
                 .GetMetadata<ControllerActionDescriptor>()?.ControllerTypeInfo
                 .GetCustomAttribute<ApiControllerAttribute>() != null;
+        }
+
+        public static bool IsPermissionAllowed(this SolhigsonMvcControllerBase controller, string permission)
+        {
+            return controller.SolhigsonServicesWrapper.PermissionService
+                .VerifyPermission(permission, controller.User).IsSuccessful;
+        }
+
+        public static bool IsPermissionAllowed(this SolhigsonApiControllerBase controller, string permission)
+        {
+            return controller.SolhigsonServicesWrapper.PermissionService
+                .VerifyPermission(permission, controller.User).IsSuccessful;
+        }
+        
+        private static SolhigsonMvcControllerBase GetController(this IRazorPage view)
+        {
+            if (view.ViewContext.ActionDescriptor is not ControllerActionDescriptor cont)
+            {
+                return null;
+            }
+
+            if (view.ViewContext.HttpContext.RequestServices.GetService(cont.ControllerTypeInfo) is SolhigsonMvcControllerBase
+                baseController)
+            {
+                return baseController;
+            }
+
+            return null;
+        }
+        
+        public static bool IsPermissionAllowed(this IRazorPage view, string permission)
+        {
+            return GetController(view)?.IsPermissionAllowed(permission) == true;
         }
 
     }
