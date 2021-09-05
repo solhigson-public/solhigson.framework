@@ -154,7 +154,7 @@ namespace Solhigson.Framework.Data
             using (var conn = new SqlConnection(connectionString))
             {
                 using var cmd = new SqlCommand(sBuilder.ToString(), conn);
-                conn.OpenAsync();
+                conn.Open();
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = cleanUpScript;
                 cmd.ExecuteNonQuery();
