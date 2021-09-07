@@ -326,17 +326,17 @@ namespace Solhigson.Framework.Extensions
             return key;
         }
 
-        public static IList<T> FromCacheList<T>(this IQueryable<T> query) where T : class
+        public static IList<T> FromCacheList<T>(this IQueryable<T> query, Type monitoredEntityType = null) where T : class
         {
-            return GetCacheData<T, List<T>>(query, ResolveToList);
+            return GetCacheData<T, List<T>>(query, ResolveToList, monitoredEntityType) ?? new List<T>();
+        }
+        
+        public static T FromCacheSingle<T>(this IQueryable<T> query, Type iCachedEntityType = null) where T : class
+        {
+            return GetCacheData<T, T>(query, ResolveToSingle, iCachedEntityType);
         }
 
-        public static T FromCacheSingle<T>(this IQueryable<T> query) where T : class
-        {
-            return GetCacheData<T, T>(query, ResolveToSingle);
-        }
-
-        private static TK GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func)
+        private static TK GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func, Type monitoredEntityType = null)
             where TK : class where T : class
         {
             var key = query.GetCacheKey();
@@ -363,6 +363,13 @@ namespace Solhigson.Framework.Extensions
                 }
 
                 data = func(query) as TK;
+                
+                if (monitoredEntityType is not null)
+                {
+                    CacheManager.AddToCache(key, data, monitoredEntityType);
+                    return data;
+                }
+                
                 var type = typeof(T);
                 try
                 {
