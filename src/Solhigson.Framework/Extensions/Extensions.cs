@@ -326,7 +326,7 @@ namespace Solhigson.Framework.Extensions
             return key;
         }
 
-        public static IList<T> FromCacheList<T>(this IQueryable<T> query, Type monitoredEntityType = null) where T : class
+        public static List<T> FromCacheList<T>(this IQueryable<T> query, Type monitoredEntityType = null) where T : class
         {
             return GetCacheData<T, List<T>>(query, ResolveToList, monitoredEntityType) ?? new List<T>();
         }

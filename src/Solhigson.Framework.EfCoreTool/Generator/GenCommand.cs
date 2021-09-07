@@ -474,7 +474,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             if (!indexAttr.IsUnique)
             {
-                className = $"System.Collections.Generic.IList<{className}>";
+                className = $"System.Collections.Generic.List<{className}>";
             }
 
             var asyncPostfix = "";
