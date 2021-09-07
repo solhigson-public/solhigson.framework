@@ -19,6 +19,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 {
     internal class GenCommand : CommandBase
     {
+        private const string PersistenceProjectPathOption = "-pp";
         private const string RepositoryDirectoryOption = "-rd";
         private const string ServicesDirectoryOption = "-sd";
         private const string DtoProjectPathOption = "-cp";
@@ -33,6 +34,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         protected override (bool IsValid, string ErrorMessage) Validate()
         {
+            ValidOptions.Add(PersistenceProjectPathOption);
             ValidOptions.Add(RepositoryDirectoryOption);
             ValidOptions.Add(ServicesDirectoryOption);
             ValidOptions.Add(DtoProjectPathOption);
@@ -57,10 +59,15 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             const string dtoClassType = "Dto";
 
             Console.WriteLine("Running...");
-            var persistenceProjectPath = $"{Environment.CurrentDirectory}";
+            
+            if (!Args.TryGetValue(PersistenceProjectPathOption, out var persistenceProjectPath))
+            {
+                persistenceProjectPath = Environment.CurrentDirectory;
+            }
             #if DEBUG
                 persistenceProjectPath = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
             #endif
+
 
             Console.WriteLine($"Using path: {persistenceProjectPath}");
             if (!Args.TryGetValue(DtoProjectPathOption, out var serviceProjectPath))
