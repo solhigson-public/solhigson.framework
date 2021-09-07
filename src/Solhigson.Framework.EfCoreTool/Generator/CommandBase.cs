@@ -61,6 +61,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         }
 
         internal IList<Type> Models { get; private set; }
+        internal string AssemblyFolderPath { get; set; }
 
         internal abstract void Run();
         internal abstract string CommandName { get; }
@@ -79,6 +80,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 {
                     return (false, $"Invalid assembly file path: {assemblyPath}");
                 }
+
+                AssemblyFolderPath = new FileInfo(assemblyPath).DirectoryName;
 
                 var assembly = Assembly.LoadFile(assemblyPath);
                 var databaseContexts = assembly
@@ -167,9 +170,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             return Validate();
         }
 
-        private static Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            return ((AppDomain)sender).GetAssemblies().FirstOrDefault(t => t.FullName == args.Name);
+            var path = $"{AssemblyFolderPath}\\{args.Name.Split(',')[0] + ".dll".ToLower()}";
+            return Assembly.LoadFile(path);
         }
 
         internal void Display()
