@@ -100,7 +100,7 @@ namespace Solhigson.Framework.Data.Caching
 
         public static void AddToCache(string key, object value, Type type)
         {
-            if (string.IsNullOrWhiteSpace(key) || value == null || type is null)
+            if (string.IsNullOrWhiteSpace(key) || type is null)
             {
                 return;
             }
@@ -117,11 +117,13 @@ namespace Solhigson.Framework.Data.Caching
 
         public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
         {
-            if (string.IsNullOrWhiteSpace(key) || value == null)
+            if (string.IsNullOrWhiteSpace(key))// || value == null)
             {
                 changeMonitor?.Dispose();
                 return;
             }
+
+            var entry = new CustomCacheEntry{ Value = value };
 
             try
             {
@@ -135,7 +137,7 @@ namespace Solhigson.Framework.Data.Caching
                     policy.AbsoluteExpiration = DateTime.UtcNow.AddMinutes(_cacheExpirationPeriodMinutes);
                 }
 
-                DefaultMemoryCache.Set(key, value, policy);
+                DefaultMemoryCache.Set(key, entry, policy);
                 CacheKeys.Add(key);
             }
             catch (Exception e)
@@ -144,14 +146,9 @@ namespace Solhigson.Framework.Data.Caching
             }
         }
 
-        public static T GetFromCache<T>(string key) where T : class
+        internal static CustomCacheEntry GetFromCache<T>(string key) where T : class
         {
-            return GetItem(key) as T;
-        }
-
-        private static object GetItem(string key)
-        {
-            return DefaultMemoryCache.Get(key);
+            return DefaultMemoryCache.Get(key) as CustomCacheEntry;
         }
 
         internal static TableChangeTracker GetTableChangeTracker(Type type)
@@ -179,5 +176,12 @@ namespace Solhigson.Framework.Data.Caching
 
             return tableChangeTracker;
         }
+
+
+    }
+    
+    internal class CustomCacheEntry
+    {
+        public object Value { get; set; }
     }
 }

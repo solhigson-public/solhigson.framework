@@ -69,6 +69,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         {
             try
             {
+                AppDomain.CurrentDomain.AssemblyResolve += CurrentDomainOnAssemblyResolve;
                 if (!Args.TryGetValue(AssemblyPathOption, out var assemblyPath))
                 {
                     return (false, "Assembly path is required [-a <path>]");
@@ -164,6 +165,11 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             }
 
             return Validate();
+        }
+
+        private static Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            return ((AppDomain)sender).GetAssemblies().FirstOrDefault(t => t.FullName == args.Name);
         }
 
         internal void Display()

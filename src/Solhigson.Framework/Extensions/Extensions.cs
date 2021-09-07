@@ -340,14 +340,14 @@ namespace Solhigson.Framework.Extensions
             where TK : class where T : class
         {
             var key = query.GetCacheKey();
-            var data = CacheManager.GetFromCache<TK>(key);
-            if (data != null)
+            var customCacheEntry = CacheManager.GetFromCache<TK>(key);
+            if (customCacheEntry != null)
             {
                 if (Logger.IsDebugEnabled)
                 {
                     Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
                 }
-                return data;
+                return customCacheEntry.Value as TK;
             }
 
             if (Logger.IsDebugEnabled)
@@ -356,18 +356,18 @@ namespace Solhigson.Framework.Extensions
             }
             lock (key)
             {
-                data = CacheManager.GetFromCache<TK>(key);
-                if (data != null)
+                customCacheEntry = CacheManager.GetFromCache<TK>(key);
+                if (customCacheEntry != null)
                 {
-                    return data;
+                    return customCacheEntry.Value as TK;
                 }
 
-                data = func(query) as TK;
+                var result = func(query) as TK;
                 
                 if (monitoredEntityType is not null)
                 {
-                    CacheManager.AddToCache(key, data, monitoredEntityType);
-                    return data;
+                    CacheManager.AddToCache(key, result, monitoredEntityType);
+                    return result;
                 }
                 
                 var type = typeof(T);
@@ -386,8 +386,8 @@ namespace Solhigson.Framework.Extensions
                     Logger.Error(e);
                 }
 
-                CacheManager.AddToCache(key, data, type);
-                return data;
+                CacheManager.AddToCache(key, result, type);
+                return result;
             }
         }
 
