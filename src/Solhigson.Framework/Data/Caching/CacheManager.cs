@@ -108,7 +108,7 @@ namespace Solhigson.Framework.Data.Caching
             if (!typeof(ICachedEntity).IsAssignableFrom(type))
             {
                 Logger.Warn(
-                    $"Data of type: [{value.GetType()}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
+                    $"Data of type: [{type}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
                 return;
             }
 
