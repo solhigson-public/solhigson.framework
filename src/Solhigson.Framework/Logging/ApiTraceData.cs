@@ -25,11 +25,11 @@ namespace Solhigson.Framework.Logging
         public DateTime ResponseTime { get; set; }
         public string TimeTaken { get; set; }
 
-        internal string GetUserIdentity(HttpContext httpContext = null)
+        internal string GetUserIdentity()
         {
-            var userIdentity = httpContext?.User?.FindFirstValue(ClaimTypes.Email);
+            string userIdentity = null;
             
-            if (string.IsNullOrWhiteSpace(userIdentity) && RequestHeaders != null &&
+            if (RequestHeaders != null &&
                 RequestHeaders.TryGetValue(UserHttpHeaderIdentifier, out var jToken))
             {
                 userIdentity = jToken.Value<string>();

@@ -76,7 +76,7 @@ namespace Solhigson.Framework.Extensions
         }
 
         public static IApplicationBuilder UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
-            DefaultNLogParameters defaultNLogParameters = null, IHttpContextAccessor httpContextAccessor = null)
+            DefaultNLogParameters defaultNLogParameters = null)
         {
             defaultNLogParameters ??= new DefaultNLogParameters();
             if (defaultNLogParameters.LogApiTrace)
@@ -99,7 +99,7 @@ namespace Solhigson.Framework.Extensions
             config.AddRule(LogLevel.Info, LogLevel.Error, fileTarget);
             NLog.LogManager.Configuration = config;
             LogManager.SetLogLevel(defaultNLogParameters.LogLevel);
-            LogManager.HttpContextAccessor = httpContextAccessor;
+            LogManager.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
             return app;
         }
         

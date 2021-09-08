@@ -61,7 +61,7 @@ namespace Solhigson.Framework.Web.Middleware
 
             Logger.Log(desc, LogLevel.Info, traceData, null,
                 null, Constants.ServiceType.Self,
-                Constants.Group.ServiceStatus, status, traceData.Url, traceData.GetUserIdentity(context));
+                Constants.Group.ServiceStatus, status, traceData.Url, traceData.GetUserIdentity());
 
             //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
             await responseBody.CopyToAsync(originalBodyStream);
