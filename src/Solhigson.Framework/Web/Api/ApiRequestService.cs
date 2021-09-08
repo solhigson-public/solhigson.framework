@@ -398,7 +398,7 @@ namespace Solhigson.Framework.Web.Api
                     _logger.Log(desc, LogLevel.Info, traceData, null,
                         serviceName, serviceType,
                         Constants.Group.ServiceStatus, status, traceData.Url,
-                        traceData.GetUserIdentityFromRequestHeaders());
+                        traceData.GetUserIdentity());
                 }
                 catch (Exception e)
                 {

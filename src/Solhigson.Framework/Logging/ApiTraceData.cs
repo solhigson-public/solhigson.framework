@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Net.Http;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -22,10 +25,11 @@ namespace Solhigson.Framework.Logging
         public DateTime ResponseTime { get; set; }
         public string TimeTaken { get; set; }
 
-        internal string GetUserIdentityFromRequestHeaders()
+        internal string GetUserIdentity(HttpContext httpContext = null)
         {
-            string userIdentity = null;
-            if (RequestHeaders != null &&
+            var userIdentity = httpContext?.User?.FindFirstValue(ClaimTypes.Email);
+            
+            if (string.IsNullOrWhiteSpace(userIdentity) && RequestHeaders != null &&
                 RequestHeaders.TryGetValue(UserHttpHeaderIdentifier, out var jToken))
             {
                 userIdentity = jToken.Value<string>();
