@@ -59,7 +59,7 @@ namespace Solhigson.Framework.Logging.Nlog.Renderers
                 }
             }
 
-            builder.Append(new {Type = typeName, Data = data}.SerializeToJson(JsonSerializerSettings));
+            builder.Append(new {Type = typeName, Data = data}.SerializeToJson(jsonSerializerSettings: JsonSerializerSettings));
         }
     }
 }

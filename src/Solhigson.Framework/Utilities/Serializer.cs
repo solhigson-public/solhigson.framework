@@ -141,7 +141,7 @@ namespace Solhigson.Framework.Utilities
             return stream.ToString();
         }
         
-        public static string SerializeToJson(this object obj, JsonSerializerSettings jsonSerializerSettings = null)
+        public static string SerializeToJson(this object obj, bool indent = false, JsonSerializerSettings jsonSerializerSettings = null)
         {
             if (obj == null)
             {
@@ -149,10 +149,15 @@ namespace Solhigson.Framework.Utilities
             }
 
             jsonSerializerSettings ??= DefaultJsonSerializerSettings;
+            var format = jsonSerializerSettings.Formatting;
+            if (indent)
+            {
+                format = Formatting.Indented;
+            }
                 
-            return JsonConvert.SerializeObject(obj, Formatting.None, jsonSerializerSettings);
+            return JsonConvert.SerializeObject(obj, format, jsonSerializerSettings);
         }
-
+        
         private static object DeserializeFromJson(this string jsonString, Type objType)
         {
             if (string.IsNullOrEmpty(jsonString)) return null;
