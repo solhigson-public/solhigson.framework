@@ -16,8 +16,8 @@ namespace Solhigson.Framework.Identity
         where TContext : SolhigsonIdentityDbContext<TUser>
     {
         public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
-            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext> roleGroupManager,
-            TContext dbContext) : base(userManager, roleManager, roleGroupManager, dbContext)
+            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext> roleGroupManager, SignInManager<TUser> signInManager,
+            TContext dbContext) : base(userManager, roleManager, roleGroupManager, signInManager, dbContext)
         {
         }
     }
@@ -31,15 +31,17 @@ namespace Solhigson.Framework.Identity
         public RoleGroupManager<TRoleGroup, TRole, TUser, TContext> RoleGroupManager { get; }
         public UserManager<TUser> UserManager { get; }
         public RoleManager<SolhigsonAspNetRole> RoleManager { get; }
+        public SignInManager<TUser> SignInManager { get; }
         private readonly DbContext _dbContext;
 
         public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
-            RoleGroupManager<TRoleGroup, TRole, TUser, TContext> roleGroupManager,
+            RoleGroupManager<TRoleGroup, TRole, TUser, TContext> roleGroupManager, SignInManager<TUser> signInManager,
             TContext dbContext)
         {
             UserManager = userManager;
             RoleManager = roleManager;
             RoleGroupManager = roleGroupManager;
+            SignInManager = signInManager;
             _dbContext = dbContext;
         }
 
