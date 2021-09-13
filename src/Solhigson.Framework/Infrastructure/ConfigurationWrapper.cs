@@ -36,7 +36,8 @@ namespace Solhigson.Framework.Infrastructure
             return GetConfig(group, key, defaultValue, true);
         }
 
-        public T GetConfig<T>(string groupName, string key = null, object defaultValue = null)
+        public T GetConfig<T>(string groupName, string key = null, object defaultValue = null,
+            bool useAppSettingsFileOnly = false)
         {
             string val = null;
             if (defaultValue != null) val = defaultValue.ToString();
