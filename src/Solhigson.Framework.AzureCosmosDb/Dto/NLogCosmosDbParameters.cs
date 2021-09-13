@@ -1,11 +1,11 @@
-﻿using Solhigson.Framework.Logging.Dto;
+﻿using Microsoft.Azure.Cosmos;
+using Solhigson.Framework.Logging.Dto;
 
 namespace Solhigson.Framework.AzureCosmosDb.Dto
 {
     public class NLogCosmosDbParameters : DefaultNLogParameters
     {
-        public string ConnectionString { get; set; }
-        public string Database { get; set; }
+        public Database Database { get; set; }
         public string Container { get; set; }
     }
 }

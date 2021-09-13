@@ -12,12 +12,9 @@ namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
     {
         private CosmosDbService _service;
 
-        public CosmosDbTarget(string connectionString, string database, string container)
+        public CosmosDbTarget(Database database, string containerName)
         {
-            _service = new CosmosDbService(new CosmosClient(connectionString, new CosmosClientOptions
-            {
-                ConnectionMode = ConnectionMode.Gateway
-            }), database, container);
+            _service = new CosmosDbService(database.Client, database.Id, containerName);
         }
 
         protected override void Write(LogEventInfo logEvent)

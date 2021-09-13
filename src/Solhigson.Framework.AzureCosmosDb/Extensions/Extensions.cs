@@ -20,8 +20,7 @@ namespace Solhigson.Framework.Extensions
             NLogCosmosDbParameters parameters = null)
         {
             if (string.IsNullOrWhiteSpace(parameters?.Container)
-                || string.IsNullOrWhiteSpace(parameters?.ConnectionString)
-                || string.IsNullOrWhiteSpace(parameters?.Database))
+                || parameters?.Database == null)
             {
                 app.UseSolhigsonNLogDefaultFileTarget();
                 InternalLogger.Error(
@@ -37,8 +36,7 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
            
-            var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.ConnectionString, 
-                parameters.Database, parameters.Container)
+            var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container)
             {
                 Name = "custom document",
                 Layout = NLogDefaults.GetDefaultJsonLayout(),
@@ -52,18 +50,10 @@ namespace Solhigson.Framework.Extensions
         {
             try
             {
-                var client = new CosmosClient(parameters.ConnectionString);
-                var tp = ThroughputProperties.CreateManualThroughput(400);
-                var database = AsyncTools.RunSync(() => client.CreateDatabaseIfNotExistsAsync(parameters.Database, tp));
-                if (database == null)
-                {
-                    Logger.Warn($"Unable to create CosmosDbService for container: {parameters.Container} as Database initialize failed");
-                    return null;
-                }
-                var containerResponse = database.Database
+                var containerResponse = parameters.Database
                     .CreateContainerIfNotExistsAsync(parameters.Container, "/id").Result;
 
-                Logger.Info($"{parameters.Container} on database {database.Database.Id} create status: {containerResponse.StatusCode}");
+                Logger.Info($"{parameters.Container} on database {parameters.Database.Id} create status: {containerResponse.StatusCode}");
             
                 if (containerResponse.StatusCode == HttpStatusCode.Created)
                 {
@@ -74,7 +64,7 @@ namespace Solhigson.Framework.Extensions
                     AsyncTools.RunSync(() => containerResponse.Container.ReplaceContainerAsync(containerResponse.Resource));
                 }
             
-                return new CosmosDbService(database.Database.Client, database.Database.Id, parameters.Container);
+                return new CosmosDbService(parameters.Database.Client, parameters.Database.Id, parameters.Container);
             }
             catch (Exception e)
             {
