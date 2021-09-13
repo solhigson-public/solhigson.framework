@@ -25,6 +25,12 @@ namespace Solhigson.Framework.Infrastructure
             _dbContext = serviceProvider.GetService<SolhigsonDbContext>();
         }
 
+        public T GetFromAppSettingFileOnly<T>(string group, string key = null, string defaultValue = null)
+        {
+            var setting = GetConfig(group, key, defaultValue, true);
+            return VerifySetting<T>(setting, key, group, defaultValue);
+        }
+        
         public string GetFromAppSettingFileOnly(string group, string key = null, string defaultValue = null)
         {
             return GetConfig(group, key, defaultValue, true);

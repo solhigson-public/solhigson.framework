@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Reflection;
@@ -62,6 +63,7 @@ namespace Solhigson.Framework.Extensions
 
         #region Application Startup
 
+      
         public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, string connectionString = null)
         {
             builder.RegisterModule(new SolhigsonAutofacModule(connectionString));
@@ -75,7 +77,7 @@ namespace Solhigson.Framework.Extensions
             return app;
         }
 
-        public static IApplicationBuilder UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
+        private static IApplicationBuilder ConfigureSolhigsonNLogDefaults(this IApplicationBuilder app,
             DefaultNLogParameters defaultNLogParameters = null)
         {
             defaultNLogParameters ??= new DefaultNLogParameters();
@@ -87,21 +89,53 @@ namespace Solhigson.Framework.Extensions
                 type == typeof(CustomDataRenderer)
                     ? new CustomDataRenderer(defaultNLogParameters.ProtectedFields)
                     : Activator.CreateInstance(type);
+            
+            return app;
+        }
+
+        public static IApplicationBuilder UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
+            DefaultNLogParameters defaultNLogParameters = null)
+        {
+            app.ConfigureSolhigsonNLogDefaults(defaultNLogParameters);
+            defaultNLogParameters ??= new DefaultNLogParameters();
+            
             var config = new LoggingConfiguration();
-            var fileTarget = new FormattedJsonFileTarget
-            {
-                FileName = $"{Environment.CurrentDirectory}/log.log",
-                Name = "FileDefault",
-                ArchiveAboveSize = 2560000,
-                ArchiveNumbering = ArchiveNumberingMode.Sequence,
-                Layout = DefaultLayout.GetDefaultJsonLayout(defaultNLogParameters.EncodeChildJsonContent)
-            };
-            config.AddRule(LogLevel.Info, LogLevel.Error, fileTarget);
+            config.AddRule(LogLevel.Info, LogLevel.Error, NLogDefaults.GetDefaultFileTarget(defaultNLogParameters.EncodeChildJsonContent));
             NLog.LogManager.Configuration = config;
             LogManager.SetLogLevel(defaultNLogParameters.LogLevel);
             LogManager.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
             return app;
         }
+        
+        public static IApplicationBuilder UseSolhigsonNLogCustomTarget(this IApplicationBuilder app,
+            [NotNull] CustomNLogTargetParameters customNLogTargetParameters)
+        {
+            if (customNLogTargetParameters == null)
+            {
+                app.UseSolhigsonNLogDefaultFileTarget();
+                InternalLogger.Error(
+                    "Unable to initalize Custom NLog Target because one or more the the required parameters are missing: " +
+                    "[WorkspaceId, Sharedkey or LogName].");
+                return app;
+            }
+            
+            app.ConfigureSolhigsonNLogDefaults(customNLogTargetParameters);
+            
+            var config = new LoggingConfiguration();
+            var fallbackGroupTarget = new FallbackGroupTarget
+            {
+                Name = "FallBackTargets",
+            };
+
+            fallbackGroupTarget.Targets.Add(customNLogTargetParameters.Target);
+            fallbackGroupTarget.Targets.Add(NLogDefaults.GetDefaultFileTarget(customNLogTargetParameters.EncodeChildJsonContent, true));
+            config.AddRule(LogLevel.Info, LogLevel.Error, fallbackGroupTarget);
+
+            NLog.LogManager.Configuration = config;
+
+            return app;
+        }
+
         
         public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
         {
@@ -114,7 +148,7 @@ namespace Solhigson.Framework.Extensions
             var testOutputHelperTarget = new XUnitTestOutputHelperTarget(outputHelper)
             {
                 Name = "TestsOutput",
-                Layout = DefaultLayout.TestsLayout
+                Layout = NLogDefaults.TestsLayout
             };
             config.AddRule(LogLevel.Info, LogLevel.Error, testOutputHelperTarget);
             NLog.LogManager.Configuration = config;
@@ -123,46 +157,25 @@ namespace Solhigson.Framework.Extensions
         public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
             DefaultNLogAzureLogAnalyticsTarget defaultNLogAzureLogAnalyticsTarget = null)
         {
-            defaultNLogAzureLogAnalyticsTarget ??= new DefaultNLogAzureLogAnalyticsTarget();
-            app.UseSolhigsonNLogDefaultFileTarget(defaultNLogAzureLogAnalyticsTarget);
-            
-            if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsWorkspaceId)
-                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsSharedSecret)
-                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsLogName))
+            if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget?.AzureAnalyticsWorkspaceId)
+                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget?.AzureAnalyticsSharedSecret)
+                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget?.AzureAnalyticsLogName))
             {
+                app.UseSolhigsonNLogDefaultFileTarget();
                 InternalLogger.Error(
                     "Unable to initalize NLog Azure Analytics Target because one or more the the required parameters are missing: " +
                     "[WorkspaceId, Sharedkey or LogName].");
                 return app;
             }
 
-            var config = new LoggingConfiguration();
-            var fallbackGroupTarget = new FallbackGroupTarget
-            {
-                Name = "FallBackTargets",
-            };
-            var fileFallbackTarget = new FileTarget
-            {
-                FileName = $"{Environment.CurrentDirectory}/log.log",
-                Name = "FileFallback",
-                ArchiveAboveSize = 2560000,
-                ArchiveNumbering = ArchiveNumberingMode.Sequence,
-                Layout = DefaultLayout.GetDefaultJsonLayout(false)
-            };
-
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsWorkspaceId, 
                 defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsLogName)
             {
                 Name = "custom document",
-                Layout = DefaultLayout.GetDefaultJsonLayout(),
+                Layout = NLogDefaults.GetDefaultJsonLayout(),
             };
 
-            fallbackGroupTarget.Targets.Add(customTarget);
-            fallbackGroupTarget.Targets.Add(fileFallbackTarget);
-            config.AddRule(LogLevel.Info, LogLevel.Error, fallbackGroupTarget);
-
-            NLog.LogManager.Configuration = config;
-
+            app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
             return app;
         }
 

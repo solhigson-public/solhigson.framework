@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.EfCoreT
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Tests", "Solhigson.Framework.Tests\Solhigson.Framework.Tests.csproj", "{8821BA48-56EF-43D3-BF00-EE60A235D5B1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.AzureCosmosDb", "Solhigson.Framework.AzureCosmosDb\Solhigson.Framework.AzureCosmosDb.csproj", "{C4619724-0FA9-4461-8EFD-948D263E9172}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,5 +39,9 @@ Global
 		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8821BA48-56EF-43D3-BF00-EE60A235D5B1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4619724-0FA9-4461-8EFD-948D263E9172}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4619724-0FA9-4461-8EFD-948D263E9172}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4619724-0FA9-4461-8EFD-948D263E9172}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4619724-0FA9-4461-8EFD-948D263E9172}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

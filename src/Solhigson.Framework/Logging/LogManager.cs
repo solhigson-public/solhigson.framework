@@ -10,7 +10,7 @@ namespace Solhigson.Framework.Logging
     public static class LogManager
     {
         private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
-            new ConcurrentDictionary<string, LogWrapper>();
+            new ();
 
         internal static IHttpContextAccessor HttpContextAccessor { get; set; }
 

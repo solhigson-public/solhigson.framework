@@ -1,9 +1,24 @@
-﻿using NLog.Layouts;
+﻿using System;
+using NLog.Layouts;
+using NLog.Targets;
+using Solhigson.Framework.Logging.Nlog.Targets;
 
 namespace Solhigson.Framework.Logging.Nlog
 {
-    public static class DefaultLayout
+    public static class NLogDefaults
     {
+        public static Target GetDefaultFileTarget(bool encodeChildJsonContent = true, bool isFallBack = false)
+        {
+            return new FormattedJsonFileTarget
+            {
+                FileName = $"{Environment.CurrentDirectory}/log.log",
+                Name = isFallBack ? "FileFallback" : "FileDefault",
+                ArchiveAboveSize = 2560000,
+                ArchiveNumbering = ArchiveNumberingMode.Sequence,
+                Layout = GetDefaultJsonLayout(encodeChildJsonContent)
+            };
+        }
+
         public static JsonLayout GetDefaultJsonLayout(bool encodeChildJsonContent = true)
         {
             return new JsonLayout
