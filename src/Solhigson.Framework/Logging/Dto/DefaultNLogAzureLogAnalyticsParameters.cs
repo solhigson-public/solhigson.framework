@@ -1,6 +1,6 @@
 ﻿namespace Solhigson.Framework.Logging.Dto
 {
-    public class DefaultNLogAzureLogAnalyticsTarget : DefaultNLogParameters
+    public class DefaultNLogAzureLogAnalyticsParameters : DefaultNLogParameters
     {
         public string AzureAnalyticsWorkspaceId { get; set; }
         

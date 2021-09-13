@@ -1,7 +1,10 @@
 ﻿using System;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
+using NLog;
+using NLog.Common;
 using NLog.Targets;
+using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
 {
@@ -16,11 +19,31 @@ namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
                 ConnectionMode = ConnectionMode.Gateway
             }), database, container);
         }
-        
-        public void CreateJson(string jsonString)
-        {            
-            var document = JsonConvert.DeserializeObject<T>(jsonString);
-            //AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
+
+        protected override void Write(LogEventInfo logEvent)
+        {
+            var log = Layout.Render(logEvent);
+            if (SendToAzureCosmosDb(log))
+            {
+                return;
+            }
+            InternalLogger.Log(logEvent.Level, log);
+        }
+
+
+        private bool SendToAzureCosmosDb(string jsonString)
+        {
+            try
+            {
+                var document = JsonConvert.DeserializeObject<T>(jsonString);
+                AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
+                return true;
+            }
+            catch (Exception e)
+            {
+                InternalLogger.Error(e, "Error while sending log messages to Azure Cosmos Db");
+                return false;
+            }
         }
 
         protected override void Dispose(bool disposing)

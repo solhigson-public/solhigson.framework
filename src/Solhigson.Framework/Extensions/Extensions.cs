@@ -155,11 +155,11 @@ namespace Solhigson.Framework.Extensions
         }
 
         public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
-            DefaultNLogAzureLogAnalyticsTarget defaultNLogAzureLogAnalyticsTarget = null)
+            DefaultNLogAzureLogAnalyticsParameters defaultNLogAzureLogAnalyticsParameters = null)
         {
-            if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget?.AzureAnalyticsWorkspaceId)
-                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget?.AzureAnalyticsSharedSecret)
-                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsTarget?.AzureAnalyticsLogName))
+            if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsWorkspaceId)
+                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsSharedSecret)
+                || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsLogName))
             {
                 app.UseSolhigsonNLogDefaultFileTarget();
                 InternalLogger.Error(
@@ -168,8 +168,8 @@ namespace Solhigson.Framework.Extensions
                 return app;
             }
 
-            var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsWorkspaceId, 
-                defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsTarget.AzureAnalyticsLogName)
+            var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
+                defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName)
             {
                 Name = "custom document",
                 Layout = NLogDefaults.GetDefaultJsonLayout(),

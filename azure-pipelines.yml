@@ -14,16 +14,17 @@ variables:
   solution: '**/*.sln'
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
+  azureCosmosProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.AzureCosmosDb.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  isDev: $[eq(variables['Build.SourceBranchName'], 'dev')]
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageTool: false
-  packageFramework: true
+  packageTool: $[eq(variables['Build.SourceBranchName'], 'efcore.tool.release')]
+  packageFramework: $[eq(variables['Build.SourceBranchName'], 'solhigson.framework.release')]
+  packageAzureCosmos: $[eq(variables['Build.SourceBranchName'], 'azure.cosmosdb.release')]
 
 stages:
   - stage: build
-    condition: or(eq(variables.isDev, true), and(eq(variables.packageFramework, false),  eq(variables.packageTool, false)))
+    condition: eq(variables.isMaster, true)
     displayName: Validate Check-in
     jobs:
       - job:
@@ -47,12 +48,13 @@ stages:
               platform: '$(buildPlatform)'
               configuration: '$(buildConfiguration)'
 
+
   - stage: nuget_package_framework
-    condition: and(eq(variables.isMaster, true), eq(variables.packageFramework, true))
-    displayName: Deploy Framework to Nuget.Org
+    condition: eq(variables.packageFramework, true)
+    displayName: Deploy Solhigson Framework package to Nuget.Org
     jobs:
       - job:
-        displayName: Package & Push Framework
+        displayName: Package & Push Solhigson Framework
         steps:
           - task: NuGetToolInstaller@1
             displayName: Install Nuget Tool
@@ -87,12 +89,54 @@ stages:
               nuGetFeedType: 'external'
               publishFeedCredentials: 'nuget'
 
-  - stage: nuget_package_tools
-    condition: and(eq(variables.isMaster, true), eq(variables.packageTool, true))
-    displayName: Deploy Tools to Nuget.Org
+
+  - stage: nuget_package_azureCosmos
+    condition: eq(variables.packageAzureCosmos, true)
+    displayName: Deploy AzureCosmos Package to Nuget.Org
     jobs:
       - job:
-        displayName: Package & Push Tools
+        displayName: Package & Push AzureCosmos Package
+        steps:
+          - task: NuGetToolInstaller@1
+            displayName: Install Nuget Tool
+
+          - task: NuGetCommand@2
+            displayName: Restore Nuget Packages
+            inputs:
+              command: 'restore'
+              restoreSolution: '$(solution)'
+              feedsToUse: 'config'
+
+          - task: VSBuild@1
+            displayName: Build Project
+            inputs:
+              solution: '$(solution)'
+              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+              platform: '$(buildPlatform)'
+              configuration: '$(buildConfiguration)'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Package EfCoreTool'
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(azureCosmosProj)'
+              versioningScheme: 'off'
+
+          - task: NuGetCommand@2
+            displayName: 'Push'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'nuget'
+
+
+  - stage: nuget_package_efCoreTool
+    condition: eq(variables.packageTool, true)
+    displayName: Deploy EfCoreTool to Nuget.Org
+    jobs:
+      - job:
+        displayName: Package & Push EFCoreTool
         steps:
           - task: NuGetToolInstaller@1
             displayName: Install Nuget Tool
