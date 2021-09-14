@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http;
 using NLog;
 using NLog.Common;
 using NLog.Targets;
@@ -11,9 +12,9 @@ namespace Solhigson.Framework.Logging.Nlog.Targets
     {
         private static AzureLogAnalyticsService _analyticsService;
 
-        public AzureLogAnalyticsTarget(string workspaceId, string sharedKey, string logName)
+        public AzureLogAnalyticsTarget(string workspaceId, string sharedKey, string logName, IHttpClientFactory httpClientFactory)
         {
-            _analyticsService = new AzureLogAnalyticsService(workspaceId, sharedKey, logName);
+            _analyticsService = new AzureLogAnalyticsService(workspaceId, sharedKey, logName, httpClientFactory);
         }
 
         protected override void Write(LogEventInfo logEvent)

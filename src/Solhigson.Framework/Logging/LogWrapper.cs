@@ -32,7 +32,7 @@ namespace Solhigson.Framework.Logging
             eventInfo.Properties[GroupRenderer.Name] = group;
             eventInfo.Properties["status"] = status;
             eventInfo.Properties["url"] = endPointUrl;
-            var authenticatedEmail = LogManager.HttpContextAccessor.GetEmailClaim();
+            var authenticatedEmail = Constants.HttpContextAccessor.GetEmailClaim();
             if (string.IsNullOrWhiteSpace(authenticatedEmail))
             {
                 authenticatedEmail = userEmail;

@@ -66,51 +66,6 @@ namespace Solhigson.Framework.Utilities
             }
         }
 
-        /*
-        public static string SerializeToBinaryString(this object obj)
-        {
-            var result = SerializeToBinaryBytes(obj);
-            return Convert.ToBase64String(result);
-        }
-
-        public static byte[] SerializeToBinaryBytes(this object obj)
-        {
-            if (obj == null) return null;
-            var stream = new MemoryStream();
-
-            var formatter = new BinaryFormatter();
-            formatter.Serialize(stream, obj);
-
-            return stream.ToArray();
-        }
-
-        private static object DeserializeFromBinaryBytes(this byte[] data)
-        {
-            if (data == null) return null;
-
-            var formatter = new BinaryFormatter();
-
-            var stream = new MemoryStream(data);
-
-            return formatter.Deserialize(stream);
-        }
-
-        public static T DeserializeFromBinaryBytes<T>(this byte[] data) where T : class
-        {
-            return (T) DeserializeFromBinaryBytes(data);
-        }
-
-        private static object DeserializeFromBinaryString(this string strData)
-        {
-            return DeserializeFromBinaryBytes(Convert.FromBase64String(strData));
-        }
-
-        public static T DeserializeFromBinaryString<T>(this string strData) where T : class
-        {
-            return (T) DeserializeFromBinaryString(strData);
-        }
-        */
-
         public static string SerializeToXml(this object obj, XmlSerializerNamespaces xmlsn = null,
             XmlWriterSettings settings = null)
         {

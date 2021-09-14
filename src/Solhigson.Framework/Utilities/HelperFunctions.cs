@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using Solhigson.Framework.Infrastructure;
@@ -352,6 +353,92 @@ namespace Solhigson.Framework.Utilities
             }
             return text;
         }
+        
+        public static T SafeGetSessionData<T>(string key, HttpContext httpContext) where T : class
+        {
+            try
+            {
+                var obj = httpContext?.Session.GetString(key) ?? Thread.GetData(Thread.GetNamedDataSlot(key)) as string;
+                if (obj?.Contains('{') == true)
+                {
+                    return obj.DeserializeFromJson<T>();
+                }
+                return obj as T;
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+                return null;
+            }
+        }
+
+        public static T SafeGetSessionData<T>(string key, IHttpContextAccessor httpContextAccessor) where T : class
+        {
+            return SafeGetSessionData<T>(key, httpContextAccessor?.HttpContext);
+        }
+        
+        public static string SafeGetSessionData(string key, IHttpContextAccessor httpContextAccessor)
+        {
+            return SafeGetSessionData<string>(key, httpContextAccessor?.HttpContext);
+        }
+        
+        public static string SafeGetSessionData(string key, HttpContext httpContext)
+        {
+            return SafeGetSessionData<string>(key, httpContext);
+        }
+
+        public static void SafeSetSessionData(string key, object value, IHttpContextAccessor httpContextAccessor)
+        {
+            SafeSetSessionData(key, value, httpContextAccessor?.HttpContext);
+        }
+        public static void SafeSetSessionData(string key, object value, HttpContext httpContext)
+        {
+            try
+            {
+                if (value is null)
+                {
+                    return;
+                }
+                var data = value is not string ? value.SerializeToJson() : value.ToString();
+                if (httpContext?.Session != null)
+                {
+                    httpContext.Session.SetString(key, data);
+                }
+                else
+                {
+                    Thread.SetData(Thread.GetNamedDataSlot(key), data);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
+        }
+
+        public static void SafeRemoveSessionData(string key, HttpContext httpContext)
+        {
+            try
+            {
+                if (httpContext?.Session != null)
+                {
+                    httpContext.Session.Remove(key);
+                }
+                else
+                {
+                    Thread.SetData(Thread.GetNamedDataSlot(key), null);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Error(e);
+            }
+        }
+
+        public static void SafeRemoveSessionData(string key, IHttpContextAccessor httpContextAccessor)
+        {
+            SafeRemoveSessionData(key, httpContextAccessor?.HttpContext);
+        }
+
 
     }
 }

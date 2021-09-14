@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -36,6 +37,7 @@ using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
+using Solhigson.Framework.Services;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
 using Solhigson.Framework.Web;
@@ -90,6 +92,7 @@ namespace Solhigson.Framework.Extensions
                     ? new CustomDataRenderer(defaultNLogParameters.ProtectedFields)
                     : Activator.CreateInstance(type);
             
+            Constants.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
             return app;
         }
 
@@ -103,7 +106,6 @@ namespace Solhigson.Framework.Extensions
             config.AddRule(LogLevel.Info, LogLevel.Error, NLogDefaults.GetDefaultFileTarget(defaultNLogParameters.EncodeChildJsonContent));
             NLog.LogManager.Configuration = config;
             LogManager.SetLogLevel(defaultNLogParameters.LogLevel);
-            LogManager.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
             return app;
         }
         
@@ -157,6 +159,7 @@ namespace Solhigson.Framework.Extensions
         public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
             DefaultNLogAzureLogAnalyticsParameters defaultNLogAzureLogAnalyticsParameters = null)
         {
+            /*
             if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsWorkspaceId)
                 || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsSharedSecret)
                 || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsLogName))
@@ -167,9 +170,11 @@ namespace Solhigson.Framework.Extensions
                     "[WorkspaceId, Sharedkey or LogName].");
                 return app;
             }
+            */
 
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
-                defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName)
+                defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName,
+                app.ApplicationServices.GetRequiredService<IHttpClientFactory>())
             {
                 Name = "custom document",
                 Layout = NLogDefaults.GetDefaultJsonLayout(),
@@ -181,18 +186,24 @@ namespace Solhigson.Framework.Extensions
 
         public static IServiceCollection AddSolhigsonDefaultHttpClient(this IServiceCollection services)
         {
+            IAsyncPolicy<HttpResponseMessage> ConfigurePolicy(PolicyBuilder<HttpResponseMessage> builder) =>
+                builder.WaitAndRetryAsync(new[]
+                {
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10)
+                }, 
+                onRetry: (outcome, timespan, retryAttempt, context) =>
+                {
+                    LogManager.GetLogger("HttpPollyService")
+                        .Warn($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
+                });
+
             services.AddHttpClient(ApiRequestService.DefaultNamedHttpClient)
-                .AddTransientHttpErrorPolicy(builder => builder.WaitAndRetryAsync(new[]
-                    {
-                        TimeSpan.FromSeconds(1),
-                        TimeSpan.FromSeconds(5),
-                        TimeSpan.FromSeconds(10)
-                    },
-                    onRetry: (outcome, timespan, retryAttempt, context) =>
-                    {
-                        LogManager.GetLogger("HttpPollyService")
-                            .Warn($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
-                    }));
+                .AddTransientHttpErrorPolicy(ConfigurePolicy);
+
+            services.AddHttpClient(AzureLogAnalyticsService.AzureLogAnalyticsNamedHttpClient)
+                .AddTransientHttpErrorPolicy(ConfigurePolicy);
 
             return services;
         }
@@ -548,6 +559,41 @@ namespace Solhigson.Framework.Extensions
         {
             return HelperFunctions.IsValidPhoneNumber(phoneNumber, ignoreEmpty);
         }
+        #endregion
+        
+        #region DateTime
+        
+        public static string ToClientTime(this DateTime dt, string format = null)
+        {
+            return dt.AddMinutes(LocaleUtil.GetTimeZoneOffset()).ToString(format);
+        }
+        
+        public static string ToClientTime(this DateTime? dt, string format = null)
+        {
+            return dt.HasValue ? dt.Value.ToClientTime(format) : "-";
+        }
+        
+        public static DateTime ToClientDateTime(this DateTime dt, int offSet)
+        {
+            return dt.AddMinutes(offSet);
+        }
+
+        public static DateTime ToClientDateTime(this DateTime? dt, int offSet)
+        {
+            return dt?.ToClientDateTime(offSet) ?? DateTime.UtcNow.ToClientDateTime(offSet);
+        }
+
+        public static DateTime ToClientDateTime(this DateTime dt)
+        {
+            return dt.AddMinutes(LocaleUtil.GetTimeZoneOffset());
+        }
+        
+        public static DateTime ToClientDateTime(this DateTime? dt)
+        {
+            return dt?.ToClientDateTime() ?? DateTime.UtcNow.ToClientDateTime();
+        }
+
+        
         #endregion
         
         public static bool IsAsyncMethod(this MethodInfo method)

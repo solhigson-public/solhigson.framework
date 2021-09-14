@@ -199,5 +199,7 @@ namespace Solhigson.Framework.Utilities
             var toDate = fromDate.AddDays(1).AddMilliseconds(-1);
             return (fromDate, toDate);
         }
+        
+        
     }
 }

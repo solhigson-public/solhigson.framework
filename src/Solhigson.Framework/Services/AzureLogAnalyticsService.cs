@@ -11,17 +11,19 @@ namespace Solhigson.Framework.Services
 {
     public class AzureLogAnalyticsService
     {
-        private static readonly HttpClient Client = new ();
+        private readonly IHttpClientFactory _httpClientFactory;
+        internal const string AzureLogAnalyticsNamedHttpClient = "AzureLogAnalyticsService";
 
         private string _logName;
         private string _sharedKey;
         private string _workspaceId;
 
-        public AzureLogAnalyticsService(string workspaceId, string sharedKey, string logName)
+        public AzureLogAnalyticsService(string workspaceId, string sharedKey, string logName, IHttpClientFactory httpClientFactory)
         {
             _workspaceId = workspaceId;
             _sharedKey = sharedKey;
             _logName = logName;
+            _httpClientFactory = httpClientFactory;
         }
 
         private bool RequiredParametersValid()
@@ -60,17 +62,18 @@ namespace Solhigson.Framework.Services
             try
             {
                 var url = "https://" + _workspaceId + ".ods.opinsights.azure.com/api/logs?api-version=2016-04-01";
-                Client.DefaultRequestHeaders.Clear();
-                Client.DefaultRequestHeaders.Add("Accept", "application/json");
-                Client.DefaultRequestHeaders.Add("Log-Type", _logName);
-                Client.DefaultRequestHeaders.Add("Authorization", signature);
-                Client.DefaultRequestHeaders.Add("x-ms-date", date);
+                var client = _httpClientFactory.CreateClient(AzureLogAnalyticsNamedHttpClient);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Accept", "application/json");
+                client.DefaultRequestHeaders.Add("Log-Type", _logName);
+                client.DefaultRequestHeaders.Add("Authorization", signature);
+                client.DefaultRequestHeaders.Add("x-ms-date", date);
                 //client.DefaultRequestHeaders.Add("time-generated-field", TimeStampField);
 
                 HttpContent httpContent = new StringContent(json, Encoding.UTF8);
                 httpContent.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-                var response = Client.PostAsync(new Uri(url), httpContent).Result;
+                var response = client.PostAsync(new Uri(url), httpContent).Result;
 
                 if (response.StatusCode == HttpStatusCode.OK) return true;
                 var result = response.Content.ReadAsStringAsync().Result;

@@ -12,8 +12,6 @@ namespace Solhigson.Framework.Logging
         private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
             new ();
 
-        internal static IHttpContextAccessor HttpContextAccessor { get; set; }
-
         public static void SetLogLevel(string level)
         {
             level ??= "info";
