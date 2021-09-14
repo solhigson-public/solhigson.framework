@@ -269,35 +269,28 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         private static void SaveFile(string file, string path)
         {
-            try
+            Console.WriteLine($"Attempting to generate path: {path}");
+            var directory = Path.GetDirectoryName(path);
+            if (directory != null)
             {
-                Console.WriteLine($"Attempting to generate path: {path}");
-                var directory = Path.GetDirectoryName(path);
-                if (directory != null)
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                if (!path.Contains(".generated.cs") && File.Exists(path))
-                {
-                    Console.WriteLine($"Skipping");
-                    return;
-                }
-
-                if (File.Exists(path))
-                {
-                    File.Delete(path);
-                }
-
-                using var fileStream = File.OpenWrite(path);
-                using var streamWriter = new StreamWriter(fileStream);
-                streamWriter.Write(file);
-                Console.WriteLine($"Generated: {path}");
+                Directory.CreateDirectory(directory);
             }
-            catch (Exception e)
+
+            if (!path.Contains(".generated.cs") && File.Exists(path))
             {
-                Console.WriteLine($"Unable to generate path: {path} - {e.Message}");
+                Console.WriteLine($"Skipping");
+                return;
             }
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+
+            using var fileStream = File.OpenWrite(path);
+            using var streamWriter = new StreamWriter(fileStream);
+            streamWriter.Write(file);
+            Console.WriteLine($"Generated: {path}");
         }
 
         private static string GetComment(string comment, bool includeDate = true)

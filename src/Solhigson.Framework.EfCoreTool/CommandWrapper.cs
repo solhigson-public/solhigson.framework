@@ -40,7 +40,15 @@ namespace Solhigson.Framework.EfCoreTool
 
         internal void Run()
         {
-            Command.Run();
+            try
+            {
+                Command.Run();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                Console.WriteLine("***Tool ending prematurely***");
+            }
         }
     }
 }
