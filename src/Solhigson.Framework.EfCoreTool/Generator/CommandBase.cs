@@ -28,7 +28,6 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         private string DbContextName { get; set; }
 
         protected string ServicesFolder { get; set; }
-        protected string DtoFolder { get; set; }
 
 
         protected string DtoProjectNamespace { get; set; }

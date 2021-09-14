@@ -54,7 +54,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         internal override void Run()
         {
-            DtoFolder = "Dto";
+            const string dtoFolder = "Dto";
             ServicesFolder = "Services";
             const string dtoClassType = "Dto";
 
@@ -82,15 +82,13 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 //persistenceProjectPath += $"/{repositoryDirectoryPath}";
                 RepositoryNamespace = $"{repositoryDirectoryPath}.{RepositoriesFolder}";
-             //   CachedEntityNamespace = $"{repositoryDirectoryPath}.{CachedEntityFolder}";
+                CachedEntityNamespace = $"{repositoryDirectoryPath}.{CachedEntityFolder}";
             }
             else
             {
                 RepositoryNamespace = RepositoriesFolder;
-              //  CachedEntityNamespace = CachedEntityFolder;
+                CachedEntityNamespace = CachedEntityFolder;
             }
-
-            CachedEntityNamespace = DtoFolder;
 
 
             DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
@@ -115,10 +113,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     entity.Namespace, false, false, isCachedEntity: isCached); //custom class
 
 
-                GenerateFile(serviceProjectPath, DtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
+                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     true, GetDtoProperties(entity, false)); //generated dto
 
-                GenerateFile(serviceProjectPath, DtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
+                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     false); //custom dto
 
                 if (!isCached)
@@ -126,10 +124,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     continue;
                 }
 
-                GenerateFile(serviceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, true, GetDtoProperties(entity, true)); //generated cached dto
 
-                GenerateFile(serviceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
+                GenerateFile(persistenceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom cached dto
             }
             
@@ -355,7 +353,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         private string GetCachedDtoClassType(Type type)
         {
-            return $"{DtoProjectNamespace}.{CachedEntityNamespace}.{type.Name}{CacheEntityClassType}";
+            return $"{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{type.Name}{CacheEntityClassType}";
         }
 
         private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)
