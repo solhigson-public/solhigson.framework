@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 
 namespace Solhigson.Framework.Identity
 {
@@ -6,5 +7,6 @@ namespace Solhigson.Framework.Identity
     {
         public bool IsEnabled { get; set; }
         public bool RequirePasswordChange { get; set; }
+        public List<SolhigsonAspNetRole> Roles { get; set; }
     }
 }

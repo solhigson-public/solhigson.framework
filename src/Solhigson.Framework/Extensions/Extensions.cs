@@ -159,7 +159,6 @@ namespace Solhigson.Framework.Extensions
         public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
             DefaultNLogAzureLogAnalyticsParameters defaultNLogAzureLogAnalyticsParameters = null)
         {
-            /*
             if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsWorkspaceId)
                 || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsSharedSecret)
                 || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsLogName))
@@ -170,7 +169,6 @@ namespace Solhigson.Framework.Extensions
                     "[WorkspaceId, Sharedkey or LogName].");
                 return app;
             }
-            */
 
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
                 defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName,
@@ -209,7 +207,7 @@ namespace Solhigson.Framework.Extensions
         }
 
         public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
-            Action<IdentityOptions> setupAction = null) where TUser : IdentityUser where TContext : SolhigsonIdentityDbContext<TUser>
+            Action<IdentityOptions> setupAction = null) where TUser : SolhigsonUser where TContext : SolhigsonIdentityDbContext<TUser>
         {
             services.AddIdentity<TUser, SolhigsonAspNetRole>(setupAction).AddEntityFrameworkStores<TContext>()
                 .AddDefaultTokenProviders();
