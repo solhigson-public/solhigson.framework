@@ -94,6 +94,7 @@ namespace Solhigson.Framework.Identity
                 response.User.Roles = new List<SolhigsonAspNetRole>();
                 foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id == userRole.RoleId).FromCacheSingle()).Where(role => role != null))
                 {
+                    role.RoleGroup = _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingle();
                     response.User.Roles.Add(role);
                 }
             }
