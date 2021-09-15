@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.Identity;
 using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Persistence
@@ -18,9 +19,7 @@ namespace Solhigson.Framework.Persistence
         }
 
         public DbSet<AppSetting> AppSettings { get; set; }
-        public DbSet<Permission> Permissions { get; set; }
-        public DbSet<RolePermission> RolePermissions { get; set; }
-        public DbSet<AspNetRole> AspNetRoles { get; set; }
+        public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
     }
     
 

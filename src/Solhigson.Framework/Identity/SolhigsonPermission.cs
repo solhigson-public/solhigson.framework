@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
@@ -7,13 +6,13 @@ using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
 using Solhigson.Framework.Data.Caching;
 
-namespace Solhigson.Framework.Persistence.EntityModels
+namespace Solhigson.Framework.Identity
 {
     [Table(ScriptsManager.PermissionInfo.TableName)]
     [Index(nameof(Name), IsUnique = true)]
-    public record Permission : ICachedEntity
+    public record SolhigsonPermission : ICachedEntity
     {
-        public Permission()
+        public SolhigsonPermission()
         {
             Id = Guid.NewGuid().ToString();
         }

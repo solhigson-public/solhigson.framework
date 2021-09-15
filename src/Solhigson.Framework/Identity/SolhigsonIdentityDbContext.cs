@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Identity
 {
-    public class SolhigsonIdentityDbContext<T> : IdentityDbContext<T, SolhigsonAspNetRole, string> where T : IdentityUser
+    public class SolhigsonIdentityDbContext<T> : IdentityDbContext<T, SolhigsonAspNetRole, string> where T : SolhigsonUser
     {
         /// <summary>
         /// Initializes a new instance of <see cref="SolhigsonIdentityDbContext"/>.
@@ -18,5 +19,7 @@ namespace Solhigson.Framework.Identity
         protected SolhigsonIdentityDbContext() { }
         
         public DbSet<SolhigsonRoleGroup> RoleGroups { get; set; }
+        public DbSet<SolhigsonPermission> Permissions { get; set; }
+        public DbSet<SolhigsonRolePermission> RolePermissions { get; set; }
     }
 }

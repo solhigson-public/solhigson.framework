@@ -213,6 +213,8 @@ namespace Solhigson.Framework.Extensions
                 .AddDefaultTokenProviders();
             services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
             services.TryAddScoped<RoleGroupManager<SolhigsonRoleGroup,SolhigsonAspNetRole, TUser, TContext>>();
+            services.TryAddScoped<PermissionManager<TUser, TContext>>();
+            services.TryAddScoped<PermissionsMiddleware<TUser, TContext>>();
             return services;
         }
         #endregion
@@ -616,6 +618,7 @@ namespace Solhigson.Framework.Extensions
                 .GetCustomAttribute<ApiControllerAttribute>() != null;
         }
 
+        /*
         public static bool IsPermissionAllowed(this SolhigsonMvcControllerBase controller, string permission)
         {
             return controller.SolhigsonServicesWrapper.PermissionService
@@ -627,6 +630,7 @@ namespace Solhigson.Framework.Extensions
             return controller.SolhigsonServicesWrapper.PermissionService
                 .VerifyPermission(permission, controller.User).IsSuccessful;
         }
+        */
         
         private static SolhigsonMvcControllerBase GetController(this IRazorPage view)
         {
@@ -644,10 +648,12 @@ namespace Solhigson.Framework.Extensions
             return null;
         }
         
+        /*
         public static bool IsPermissionAllowed(this IRazorPage view, string permission)
         {
             return GetController(view)?.IsPermissionAllowed(permission) == true;
         }
 
+    */
     }
 }

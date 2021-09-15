@@ -10,7 +10,7 @@ namespace Solhigson.Framework.Persistence.CacheModels
      *
      * This file is ALWAYS overwritten, DO NOT place custom code here
      */
-    public partial record RolePermissionCacheModel
+    public partial record NotificationTemplateCacheModel
     { 
 
     }

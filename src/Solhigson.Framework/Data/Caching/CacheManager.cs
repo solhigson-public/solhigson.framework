@@ -31,7 +31,7 @@ namespace Solhigson.Framework.Data.Caching
 
         internal static void Initialize(string connectionString,
             int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-            int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null)
+            int cacheExpirationPeriodMinutes = 1440, Assembly dbContextAssembly = null)
         {
             try
             {
@@ -39,7 +39,7 @@ namespace Solhigson.Framework.Data.Caching
                 _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
                 _cacheDependencyChangeTrackerTimerIntervalMilliseconds =
                     cacheDependencyChangeTrackerTimerIntervalMilliseconds;
-                ScriptsManager.SetUpDatabaseObjects(databaseModelsAssembly, connectionString);
+                ScriptsManager.SetUpDatabaseObjects(dbContextAssembly, connectionString);
                 StartCacheTimer();
             }
             catch (Exception e)

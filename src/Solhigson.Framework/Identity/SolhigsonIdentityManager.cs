@@ -12,13 +12,14 @@ using Solhigson.Framework.Infrastructure;
 namespace Solhigson.Framework.Identity
 {
     public class SolhigsonIdentityManager<TUser, TContext> :
-        SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext>, IDisposable
+        SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext>
         where TUser : SolhigsonUser
         where TContext : SolhigsonIdentityDbContext<TUser>
     {
         public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
             RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext> roleGroupManager, SignInManager<TUser> signInManager,
-            TContext dbContext) : base(userManager, roleManager, roleGroupManager, signInManager, dbContext)
+            PermissionManager<TUser, TContext> permissionManager, TContext dbContext) 
+            : base(userManager, roleManager, roleGroupManager, signInManager, permissionManager, dbContext)
         {
         }
     }
@@ -33,16 +34,18 @@ namespace Solhigson.Framework.Identity
         public UserManager<TUser> UserManager { get; }
         public RoleManager<SolhigsonAspNetRole> RoleManager { get; }
         public SignInManager<TUser> SignInManager { get; }
+        public PermissionManager<TUser, TContext> PermissionManager { get; }
         private readonly SolhigsonIdentityDbContext<TUser>  _dbContext;
 
         public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
             RoleGroupManager<TRoleGroup, TRole, TUser, TContext> roleGroupManager, SignInManager<TUser> signInManager,
-            TContext dbContext)
+            PermissionManager<TUser, TContext> permissionManager, TContext dbContext)
         {
             UserManager = userManager;
             RoleManager = roleManager;
             RoleGroupManager = roleGroupManager;
             SignInManager = signInManager;
+            PermissionManager = permissionManager;
             _dbContext = dbContext;
         }
 

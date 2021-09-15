@@ -17,17 +17,9 @@ namespace Solhigson.Framework.Persistence.Repositories
 		public Solhigson.Framework.Persistence.Repositories.Abstractions.IAppSettingRepository AppSettingRepository
 		{ get { return _appSettingRepository ??= new Solhigson.Framework.Persistence.Repositories.AppSettingRepository(DbContext); } }
 
-		private Solhigson.Framework.Persistence.Repositories.Abstractions.IPermissionRepository _permissionRepository;
-		public Solhigson.Framework.Persistence.Repositories.Abstractions.IPermissionRepository PermissionRepository
-		{ get { return _permissionRepository ??= new Solhigson.Framework.Persistence.Repositories.PermissionRepository(DbContext); } }
-
-		private Solhigson.Framework.Persistence.Repositories.Abstractions.IRolePermissionRepository _rolePermissionRepository;
-		public Solhigson.Framework.Persistence.Repositories.Abstractions.IRolePermissionRepository RolePermissionRepository
-		{ get { return _rolePermissionRepository ??= new Solhigson.Framework.Persistence.Repositories.RolePermissionRepository(DbContext); } }
-
-		private Solhigson.Framework.Persistence.Repositories.Abstractions.IAspNetRoleRepository _aspNetRoleRepository;
-		public Solhigson.Framework.Persistence.Repositories.Abstractions.IAspNetRoleRepository AspNetRoleRepository
-		{ get { return _aspNetRoleRepository ??= new Solhigson.Framework.Persistence.Repositories.AspNetRoleRepository(DbContext); } }
+		private Solhigson.Framework.Persistence.Repositories.Abstractions.INotificationTemplateRepository _notificationTemplateRepository;
+		public Solhigson.Framework.Persistence.Repositories.Abstractions.INotificationTemplateRepository NotificationTemplateRepository
+		{ get { return _notificationTemplateRepository ??= new Solhigson.Framework.Persistence.Repositories.NotificationTemplateRepository(DbContext); } }
 
 
         public RepositoryWrapper(Solhigson.Framework.Persistence.SolhigsonDbContext dbContext)

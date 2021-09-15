@@ -11,7 +11,7 @@ namespace Solhigson.Framework.Identity
     public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext> : IDisposable 
         where TRoleGroup : SolhigsonRoleGroup, new() 
         where TRole : SolhigsonAspNetRole 
-        where TUser : IdentityUser
+        where TUser : SolhigsonUser
         where TContext : SolhigsonIdentityDbContext<TUser>
     {
         private readonly TContext _dbContext;

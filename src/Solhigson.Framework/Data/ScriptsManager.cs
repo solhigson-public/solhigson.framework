@@ -5,15 +5,17 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
+using Solhigson.Framework.Identity;
 using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Data
 {
     public static class ScriptsManager
     {
-        internal static void SetUpDatabaseObjects(Assembly databaseModelsAssembly, string connectionString)
+        internal static void SetUpDatabaseObjects(Assembly dbContextAssembly, string connectionString)
         {
             var sBuilder = new StringBuilder();
             var getAllChangeTrackerBuilder = new StringBuilder();
@@ -53,6 +55,21 @@ namespace Solhigson.Framework.Data
             sBuilder.Append($"( [{AppSettingInfo.NameColumn}] ASC ); END; ");
             #endregion
             
+            #region Notification Templates Table
+            sBuilder.Append($"IF OBJECT_ID(N'[{NotificationTemplateInfo.TableName}]') IS NULL ");
+            sBuilder.Append("BEGIN ");
+            sBuilder.Append($"CREATE TABLE [{NotificationTemplateInfo.TableName}] ( ");
+            sBuilder.Append($"[{NotificationTemplateInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
+                            $"[{NotificationTemplateInfo.NameColumn}] NVARCHAR(255) NOT NULL, " +
+                            $"[{NotificationTemplateInfo.TemplateColumn}] NVARCHAR(MAX) NOT NULL ");
+            sBuilder.Append($"CONSTRAINT [PK__{NotificationTemplateInfo.TableName}] PRIMARY KEY ([{NotificationTemplateInfo.IdColumn}])); ");//END;");
+            
+            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{NotificationTemplateInfo.TableName}_ON_{NotificationTemplateInfo.NameColumn}] ");
+            sBuilder.Append($"ON [{NotificationTemplateInfo.TableName}] ");
+            sBuilder.Append($"( [{NotificationTemplateInfo.NameColumn}] ASC ); END; ");
+            #endregion
+
+            /*
             #region Permission Table
             sBuilder.Append($"IF OBJECT_ID(N'[{PermissionInfo.TableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
@@ -93,6 +110,7 @@ namespace Solhigson.Framework.Data
             sBuilder.Append($"ON [{RolePermissionInfo.TableName}] ");
             sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC, [{RolePermissionInfo.PermissionIdColumn}] ASC ); END; ");
             #endregion
+            */
             
             sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
@@ -139,36 +157,50 @@ namespace Solhigson.Framework.Data
 
             var dbTriggerCommands = new List<StringBuilder>();
             dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(AppSetting)));
-            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(RolePermission)));
-            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(Permission)));
-            if (databaseModelsAssembly != null)
+            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(NotificationTemplate)));
+            /*
+            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(SolhigsonRolePermission)));
+            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(SolhigsonPermission)));
+            */
+            if (dbContextAssembly != null)
             {
+                var dbContextType = typeof(DbContext);
                 var cachedEntityType = typeof(ICachedEntity);
-                foreach (var type in databaseModelsAssembly.GetTypes()
+                foreach (var dbContext in dbContextAssembly.GetTypes()
+                    .Where(t => dbContextType.IsAssignableFrom(t)))
+                {
+                    foreach (var prop in dbContext.GetProperties())
+                    {
+                        if (cachedEntityType.IsAssignableFrom(prop.PropertyType))
+                        {
+                            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(prop.PropertyType));
+                        }
+                    }
+                }
+
+                foreach (var type in dbContextAssembly.GetTypes()
                     .Where(t => cachedEntityType.IsAssignableFrom(t) && !t.IsInterface))
                 {
                     dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(type));
                 }
             }
 
-            using (var conn = new SqlConnection(connectionString))
+            using var conn = new SqlConnection(connectionString);
+            using var cmd = new SqlCommand(sBuilder.ToString(), conn);
+            conn.Open();
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = cleanUpScript;
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = updateChangeTrackerBuilder.ToString();
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = getAllChangeTrackerBuilder.ToString();
+            cmd.ExecuteNonQuery();
+            cmd.CommandText = getTableChangeTrackerBuilder.ToString();
+            cmd.ExecuteNonQuery();
+            foreach (var command in dbTriggerCommands)
             {
-                using var cmd = new SqlCommand(sBuilder.ToString(), conn);
-                conn.Open();
+                cmd.CommandText = command.ToString();
                 cmd.ExecuteNonQuery();
-                cmd.CommandText = cleanUpScript;
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = updateChangeTrackerBuilder.ToString();
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = getAllChangeTrackerBuilder.ToString();
-                cmd.ExecuteNonQuery();
-                cmd.CommandText = getTableChangeTrackerBuilder.ToString();
-                cmd.ExecuteNonQuery();
-                foreach (var command in dbTriggerCommands)
-                {
-                    cmd.CommandText = command.ToString();
-                    cmd.ExecuteNonQuery();
-                }
             }
         }
 
@@ -225,18 +257,18 @@ namespace Solhigson.Framework.Data
 
         public static class CacheChangeTrackerInfo
         {
-            public const string TableName = "__SolhigsonCacheChangeTracker";
+            public const string TableName = "SolhigsonCacheChangeTracker";
             public const string TableNameColumn = "TableName";
             public const string ChangeIdColumn = "ChangeId";
-            public const string UpdateChangeTrackerSpName = "__SolhigsonUpdateChangeTracker";
-            public const string GetAllChangeTrackerSpName = "__SolhigsonGetAllChangeTrackerIds";
-            public const string GetTableChangeTrackerSpName = "__SolhigsonGetTableChangeTrackerId";
+            public const string UpdateChangeTrackerSpName = "SolhigsonUpdateChangeTracker";
+            public const string GetAllChangeTrackerSpName = "SolhigsonGetAllChangeTrackerIds";
+            public const string GetTableChangeTrackerSpName = "SolhigsonGetTableChangeTrackerId";
             
         }
 
         public static class AppSettingInfo
         {
-            public const string TableName = "__SolhigsonAppSettings";
+            public const string TableName = "SolhigsonAppSettings";
             public const string NameColumn = "Name";
             public const string ValueColumn = "Value";
             public const string IdColumn = "Id";
@@ -244,7 +276,7 @@ namespace Solhigson.Framework.Data
         
         public static class PermissionInfo
         {
-            public const string TableName = "__SolhigsonPermissions";
+            public const string TableName = "SolhigsonPermissions";
             public const string NameColumn = "Name";
             public const string DescriptionColumn = "Description";
             public const string IsMenuColumn = "IsMenu";
@@ -260,11 +292,27 @@ namespace Solhigson.Framework.Data
 
         public static class RolePermissionInfo
         {
-            public const string TableName = "__SolhigsonRolePermissions";
+            public const string TableName = "SolhigsonRolePermissions";
             public const string RoleIdColumn = "RoleId";
             public const string PermissionIdColumn = "PermissionId";
             public const string IdColumn = "Id";
         }
+
+        public static class NotificationTemplateInfo
+        {
+            public const string TableName = "SolhigsonNotificationTemplates";
+            public const string IdColumn = "Id";
+            public const string NameColumn = "Name";
+            public const string TemplateColumn = "Template";
+        }
+        
+        public static class RoleGroupInfo
+        {
+            public const string TableName = "SolhigsonRoleGroups";
+            public const string IdColumn = "Id";
+            public const string NameColumn = "Name";
+        }
+
         
     }
 }

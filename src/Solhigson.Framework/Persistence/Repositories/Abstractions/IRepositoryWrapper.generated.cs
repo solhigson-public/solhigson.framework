@@ -15,9 +15,7 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
         System.Threading.Tasks.Task SaveChangesAsync();
         int SaveChanges();
 		Solhigson.Framework.Persistence.Repositories.Abstractions.IAppSettingRepository AppSettingRepository { get; }
-		Solhigson.Framework.Persistence.Repositories.Abstractions.IPermissionRepository PermissionRepository { get; }
-		Solhigson.Framework.Persistence.Repositories.Abstractions.IRolePermissionRepository RolePermissionRepository { get; }
-		Solhigson.Framework.Persistence.Repositories.Abstractions.IAspNetRoleRepository AspNetRoleRepository { get; }
+		Solhigson.Framework.Persistence.Repositories.Abstractions.INotificationTemplateRepository NotificationTemplateRepository { get; }
 
     }
 }
