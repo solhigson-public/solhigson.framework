@@ -97,9 +97,9 @@ namespace Solhigson.Framework.Services
             SendSmsInternal(parameters);
         }
 
-        public Task SendSmsAsync(SmsParameters parameters)
+        public void SendSmsAsync(SmsParameters parameters)
         {
-            return Task.Run(() => SendSmsInternal(parameters));
+            Task.Factory.StartNew(() => SendSmsInternal(parameters));
         }
 
         private void SendSmsInternal(SmsParameters parameters)
