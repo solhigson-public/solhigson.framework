@@ -9,7 +9,7 @@ namespace Solhigson.Framework.Identity
     [Table(ScriptsManager.RolePermissionInfo.TableName)]
     [Index(nameof(RoleId), nameof(PermissionId), IsUnique = true)]
     [Index(nameof(RoleId))]
-    public record SolhigsonRolePermission : ICachedEntity
+    public record SolhigsonRolePermission<T> : ICachedEntity
     {
         [Key]
         [Column(ScriptsManager.RolePermissionInfo.IdColumn)]
@@ -17,7 +17,7 @@ namespace Solhigson.Framework.Identity
         
         [StringLength(450)]
         [Column(ScriptsManager.RolePermissionInfo.RoleIdColumn, TypeName = "VARCHAR")]
-        public string RoleId { get; set; }
+        public T RoleId { get; set; }
         
         [StringLength(450)]
         [Column(ScriptsManager.RolePermissionInfo.PermissionIdColumn, TypeName = "VARCHAR")]

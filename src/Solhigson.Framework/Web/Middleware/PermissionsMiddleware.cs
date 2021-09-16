@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,10 +12,34 @@ using Solhigson.Framework.Web.Attributes;
 
 namespace Solhigson.Framework.Web.Middleware
 {
-    public class PermissionsMiddleware<TUser, TContext> : IMiddleware where TUser : SolhigsonUser where TContext : SolhigsonIdentityDbContext<TUser>
+    public class PermissionsMiddleware<TUser, TContext> : PermissionsMiddleware<TUser, SolhigsonAspNetRole, string, TContext>
+        where TUser : SolhigsonUser
+        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
     {
-        private readonly PermissionManager<TUser, TContext> _permissionManager;
-        public PermissionsMiddleware(PermissionManager<TUser, TContext> permissionManager)
+        public PermissionsMiddleware(PermissionManager<TUser, SolhigsonAspNetRole, TContext, string> permissionManager) : base(permissionManager)
+        {
+        }
+    }
+    
+    public class PermissionsMiddleware<TUser, TKey, TContext> : PermissionsMiddleware<TUser, SolhigsonAspNetRole<TKey>, TKey, TContext>
+        where TUser : SolhigsonUser<TKey>
+        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
+        where TKey : IEquatable<TKey>
+    {
+        public PermissionsMiddleware(PermissionManager<TUser, SolhigsonAspNetRole<TKey>, TContext, TKey> permissionManager) : base(permissionManager)
+        {
+        }
+    }
+
+
+    public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IMiddleware 
+        where TUser : SolhigsonUser<TKey> 
+        where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
+        where TRole : SolhigsonAspNetRole<TKey>
+        where TKey : IEquatable<TKey>
+    {
+        private readonly PermissionManager<TUser, TRole, TContext, TKey> _permissionManager;
+        public PermissionsMiddleware(PermissionManager<TUser, TRole, TContext, TKey> permissionManager)
         {
             _permissionManager = permissionManager;
         }

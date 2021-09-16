@@ -213,17 +213,43 @@ namespace Solhigson.Framework.Extensions
             return services;
         }
 
-        public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
-            Action<IdentityOptions> setupAction = null) where TUser : SolhigsonUser where TContext : SolhigsonIdentityDbContext<TUser>
+        static IServiceCollection AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
+            Action<IdentityOptions> setupAction = null) 
+            where TUser : SolhigsonUser<TKey>
+            where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
+            where TRole : SolhigsonAspNetRole<TKey>, new()
+            where TRoleGroup : SolhigsonRoleGroup, new()
+            where TKey : IEquatable<TKey>
         {
             services.AddIdentity<TUser, SolhigsonAspNetRole>(setupAction).AddEntityFrameworkStores<TContext>()
                 .AddDefaultTokenProviders();
-            services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
-            services.TryAddScoped<RoleGroupManager<SolhigsonRoleGroup,SolhigsonAspNetRole, TUser, TContext>>();
-            services.TryAddScoped<PermissionManager<TUser, TContext>>();
-            services.TryAddScoped<PermissionsMiddleware<TUser, TContext>>();
+            services.TryAddScoped<SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey>>();
+            services.TryAddScoped<RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey>>();
+            services.TryAddScoped<PermissionManager<TUser, TRole, TContext, TKey>>();
+            services.TryAddScoped<PermissionsMiddleware<TUser, TRole, TKey, TContext>>();
             return services;
         }
+        
+        public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
+            Action<IdentityOptions> setupAction = null) 
+            where TUser : SolhigsonUser
+            where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
+        {
+            services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole, SolhigsonRoleGroup, string, TContext>(setupAction);
+            return services;
+        }
+        
+        public static IServiceCollection AddSolhigsonIdentityManager<TUser, TKey, TContext>(this IServiceCollection services,
+            Action<IdentityOptions> setupAction = null) 
+            where TUser : SolhigsonUser<TKey>
+            where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
+            where TKey : IEquatable<TKey>
+        {
+            services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
+            return services;
+        }
+
+
         #endregion
 
         #region Logging Extensions

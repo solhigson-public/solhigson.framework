@@ -15,7 +15,11 @@ using Solhigson.Framework.Web.Attributes;
 
 namespace Solhigson.Framework.Identity
 {
-    public class PermissionManager<TUser, TContext> where TUser : SolhigsonUser where TContext : SolhigsonIdentityDbContext<TUser>
+    public class PermissionManager<TUser, TRole, TContext, TKey> 
+        where TUser : SolhigsonUser<TKey> 
+        where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
+        where TRole : SolhigsonAspNetRole<TKey>
+        where TKey : IEquatable<TKey>
     {
         private readonly TContext _dbContext;
         public IActionDescriptorCollectionProvider ActionDescriptorCollectionProvider { get; set; }
@@ -51,7 +55,7 @@ namespace Solhigson.Framework.Identity
                 into roleObj where roleObj != null 
                 select roleObj.Id).ToList();
 
-            return roleIds.Any(roleId => _dbContext.RolePermissions.Where(t => t.RoleId == roleId && t.PermissionId == permission.Id)
+            return roleIds.Any(roleId => _dbContext.RolePermissions.Where(t => t.RoleId.Equals(roleId) && t.PermissionId == permission.Id)
                 .FromCacheSingle() is not null) 
                 ? ResponseInfo.SuccessResult() 
                 : ResponseInfo.FailedResult();
@@ -63,13 +67,13 @@ namespace Solhigson.Framework.Identity
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task AddRolePermission(SolhigsonRolePermission rolePermission)
+        public async Task AddRolePermission(SolhigsonRolePermission<TKey> rolePermission)
         {
             _dbContext.RolePermissions.Add(rolePermission);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveRolePermission(SolhigsonRolePermission rolePermission)
+        public async Task RemoveRolePermission(SolhigsonRolePermission<TKey> rolePermission)
         {
             _dbContext.RolePermissions.Remove(rolePermission);
             await _dbContext.SaveChangesAsync();
@@ -110,9 +114,12 @@ namespace Solhigson.Framework.Identity
         
         public IList<SolhigsonPermission> GetAllPermissionsForRoleCached(string roleName)
         {
-            return _dbContext.RolePermissions.Include(t => t.SolhigsonPermission)
-                .Where(t => t.RoleId == roleName)
-                .Select(t => t.SolhigsonPermission).FromCacheList();
+            return (from rolePerm in _dbContext.RolePermissions
+                join role in _dbContext.Roles
+                    on rolePerm.RoleId equals role.Id
+                join perm in _dbContext.Permissions
+                    on rolePerm.PermissionId equals perm.Id
+                select perm).FromCacheList(typeof(SolhigsonRolePermission<TKey>));
         }
 
         public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly)

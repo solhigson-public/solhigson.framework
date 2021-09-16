@@ -8,11 +8,12 @@ using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Identity
 {
-    public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext> : IDisposable 
+    public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> : IDisposable 
         where TRoleGroup : SolhigsonRoleGroup, new() 
-        where TRole : SolhigsonAspNetRole 
-        where TUser : SolhigsonUser
-        where TContext : SolhigsonIdentityDbContext<TUser>
+        where TRole : SolhigsonAspNetRole<TKey> 
+        where TUser : SolhigsonUser<TKey>
+        where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
+        where TKey : IEquatable<TKey>
     {
         private readonly TContext _dbContext;
         public RoleGroupManager(TContext context)
