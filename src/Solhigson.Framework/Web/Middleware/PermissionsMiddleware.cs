@@ -38,14 +38,11 @@ namespace Solhigson.Framework.Web.Middleware
             
             var permissionName = endPoint.Metadata
                 .GetMetadata<PermissionAttribute>()?.Name;
-            
+
             if (string.IsNullOrWhiteSpace(permissionName))
             {
-                if (string.IsNullOrWhiteSpace(permissionName))
-                {
-                    await next(context);
-                    return;
-                }
+                await next(context);
+                return;
             }
 
             var verifyResult = _permissionManager.VerifyPermission(permissionName, context.User);

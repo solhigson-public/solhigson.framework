@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -102,6 +103,18 @@ namespace Solhigson.Framework.Identity
                 }
             }
             return response;
+        }
+
+        public async Task<List<T>> GetUsersInRoles<T>(string[] roles)
+        {
+            return await (from user in _dbContext.Users
+                join userRole in _dbContext.UserRoles
+                    on user.Id equals userRole.UserId
+                join role in _dbContext.Roles
+                    on userRole.RoleId equals role.Id
+                where roles.Contains(role.Name)
+                && user.IsEnabled
+                select user).ProjectToType<T>().ToListAsync();
         }
 
         public void Dispose()

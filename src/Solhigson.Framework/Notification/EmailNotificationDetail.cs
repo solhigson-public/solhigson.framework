@@ -8,11 +8,6 @@ namespace Solhigson.Framework.Notification
 {
     public class EmailNotificationDetail
     {
-        public EmailNotificationDetail()
-        {
-            
-        }
-
         public void AddToAddress(string address)
         {
             AddAddress(address, ToAddresses);
@@ -58,8 +53,6 @@ namespace Solhigson.Framework.Notification
 
         public IList<AttachmentHelper> Attachments { get; set; }
 
-        public object CustomData { get; set; }
-
         public string FromAddress { get; set; }
 
         public string FromDisplayAddress { get; set; }
@@ -69,14 +62,12 @@ namespace Solhigson.Framework.Notification
         public List<string> ToAddresses
         {
             get { return _toAddresses ??= new List<string>(); }
-            set => _toAddresses = value;
         }
 
         private List<string> _ccAddresses;
         public List<string> CcAddresses
         {
             get { return _ccAddresses ??= new List<string>(); }
-            set => _ccAddresses = value;
         }
 
         private List<string> _bccAddresses;
@@ -84,17 +75,6 @@ namespace Solhigson.Framework.Notification
         public List<string> BccAddresses
         {
             get { return _bccAddresses ??= new List<string>(); }
-            set => _bccAddresses = value;
         }
-
-        public string SendGridTemplateId { get; set; }
-
-        public string ChainId { get; set; }
-
-        internal string ToEmail { get; private set; }
-
-        internal List<string> ValidatedEmailAddresses { get; set; } 
-
-        public bool ValidateEmailAddresses { get; set; }
     }
 }

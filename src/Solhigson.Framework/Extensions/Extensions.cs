@@ -37,6 +37,7 @@ using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
+using Solhigson.Framework.Notification;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
@@ -180,6 +181,12 @@ namespace Solhigson.Framework.Extensions
 
             app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
             return app;
+        }
+
+        public static IServiceCollection AddDefaultSmtpMailProvider(this IServiceCollection services)
+        {
+            services.AddSingleton<IMailProvider, SmtpMailProvider>();
+            return services;
         }
 
         public static IServiceCollection AddSolhigsonDefaultHttpClient(this IServiceCollection services)

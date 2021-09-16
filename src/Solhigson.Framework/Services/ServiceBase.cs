@@ -1,4 +1,6 @@
 
+using Solhigson.Framework.Infrastructure;
+
 namespace Solhigson.Framework.Services
 {
     /*
@@ -12,6 +14,6 @@ namespace Solhigson.Framework.Services
      */
     public abstract partial class ServiceBase
     {
-        
+        public SolhigsonServicesWrapper SolhigsonServicesWrapper { get; set; }
     }
 }

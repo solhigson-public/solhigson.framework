@@ -12,6 +12,7 @@ namespace Solhigson.Framework.Persistence.CacheModels
      */
     public partial record NotificationTemplateCacheModel
     { 
+		public string Template { get; set; }
 
     }
 }
