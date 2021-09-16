@@ -12,11 +12,11 @@ using Solhigson.Framework.Web.Attributes;
 
 namespace Solhigson.Framework.Web.Middleware
 {
-    public class PermissionsMiddleware<TUser, TContext> : PermissionsMiddleware<TUser, SolhigsonAspNetRole, string, TContext>
+    public class PermissionsMiddleware<TUser, TContext> : PermissionsMiddleware<TUser, SolhigsonAspNetRole<string>, string, TContext>
         where TUser : SolhigsonUser
-        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
+        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<string>, string>
     {
-        public PermissionsMiddleware(PermissionManager<TUser, SolhigsonAspNetRole, TContext, string> permissionManager) : base(permissionManager)
+        public PermissionsMiddleware(PermissionManager<TUser, SolhigsonAspNetRole<string>, TContext, string> permissionManager) : base(permissionManager)
         {
         }
     }

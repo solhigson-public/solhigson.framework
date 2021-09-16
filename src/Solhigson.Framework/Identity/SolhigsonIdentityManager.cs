@@ -13,17 +13,35 @@ using Solhigson.Framework.Infrastructure;
 namespace Solhigson.Framework.Identity
 {
     public class SolhigsonIdentityManager<TUser, TContext> :
-        SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext, string>
+        SolhigsonIdentityManager<TUser, string, TContext>
         where TUser : SolhigsonUser
-        where TContext : SolhigsonIdentityDbContext<TUser>
+        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<string>, string>
     {
-        public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole> roleManager,
-            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext, string> roleGroupManager, SignInManager<TUser> signInManager,
-            PermissionManager<TUser, SolhigsonAspNetRole, TContext, string> permissionManager, TContext dbContext) 
+        public SolhigsonIdentityManager(UserManager<TUser> userManager,
+            RoleManager<SolhigsonAspNetRole<string>> roleManager,
+            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole<string>, TUser, TContext, string> roleGroupManager,
+            SignInManager<TUser> signInManager,
+            PermissionManager<TUser, SolhigsonAspNetRole<string>, TContext, string> permissionManager,
+            TContext dbContext) : base(userManager, roleManager, roleGroupManager, signInManager, permissionManager,
+            dbContext)
+        {
+        }
+    }
+    
+    public class SolhigsonIdentityManager<TUser, TKey, TContext> :
+        SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TContext, TKey>
+        where TUser : SolhigsonUser<TKey>
+        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
+        where TKey : IEquatable<TKey>
+    {
+        public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole<TKey>> roleManager,
+            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TUser, TContext, TKey> roleGroupManager, SignInManager<TUser> signInManager,
+            PermissionManager<TUser, SolhigsonAspNetRole<TKey>, TContext, TKey> permissionManager, TContext dbContext) 
             : base(userManager, roleManager, roleGroupManager, signInManager, permissionManager, dbContext)
         {
         }
     }
+
 
     public class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey> : IDisposable 
         where TUser : SolhigsonUser<TKey>

@@ -6,7 +6,7 @@ using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Identity
 {
-    public class SolhigsonIdentityDbContext<T> : SolhigsonIdentityDbContext<T, SolhigsonAspNetRole, string> where T : SolhigsonUser
+    public class SolhigsonIdentityDbContext<T> : SolhigsonIdentityDbContext<T, SolhigsonAspNetRole<string>, string> where T : SolhigsonUser
     {
         /// <summary>
         /// Initializes a new instance of <see cref="SolhigsonIdentityDbContext"/>.
