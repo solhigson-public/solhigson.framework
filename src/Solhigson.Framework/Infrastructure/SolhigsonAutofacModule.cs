@@ -52,7 +52,7 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<ApiRequestService>().As<IApiRequestService>().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().SingleInstance()
+            builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
             builder.RegisterType<NotificationService>().As<INotificationService>().SingleInstance()

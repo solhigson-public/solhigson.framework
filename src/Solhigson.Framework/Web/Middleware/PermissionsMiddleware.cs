@@ -12,27 +12,7 @@ using Solhigson.Framework.Web.Attributes;
 
 namespace Solhigson.Framework.Web.Middleware
 {
-    public class PermissionsMiddleware<TUser, TContext> : PermissionsMiddleware<TUser, SolhigsonAspNetRole<string>, string, TContext>
-        where TUser : SolhigsonUser
-        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<string>, string>
-    {
-        public PermissionsMiddleware(PermissionManager<TUser, SolhigsonAspNetRole<string>, TContext, string> permissionManager) : base(permissionManager)
-        {
-        }
-    }
-    
-    public class PermissionsMiddleware<TUser, TKey, TContext> : PermissionsMiddleware<TUser, SolhigsonAspNetRole<TKey>, TKey, TContext>
-        where TUser : SolhigsonUser<TKey>
-        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
-        where TKey : IEquatable<TKey>
-    {
-        public PermissionsMiddleware(PermissionManager<TUser, SolhigsonAspNetRole<TKey>, TContext, TKey> permissionManager) : base(permissionManager)
-        {
-        }
-    }
-
-
-    public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IMiddleware 
+    public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMiddleware 
         where TUser : SolhigsonUser<TKey> 
         where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
         where TRole : SolhigsonAspNetRole<TKey>

@@ -26,7 +26,7 @@ namespace Solhigson.Framework.Web.Middleware
         private static async Task HandleExceptionAsync(HttpContext httpContext)
         {
             httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-            if (httpContext.IsApiController())
+            if (httpContext.Response.Body.CanWrite && httpContext.IsApiController())
             {
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsync(ResponseInfo.FailedResult("Internal Server Error")
