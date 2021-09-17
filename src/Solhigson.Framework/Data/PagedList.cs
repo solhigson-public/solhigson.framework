@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace Solhigson.Framework.Data
@@ -24,7 +25,12 @@ namespace Solhigson.Framework.Data
         public bool HasNext => CurrentPage < TotalPages;
 
         [JsonProperty]
-        public List<T> Results { get; } = new List<T>();
+        public List<T> Results { get; } = new ();
+
+        public bool Any()
+        {
+            return Results.Any();
+        }
 
         internal string GetMetaData()
         {

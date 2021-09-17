@@ -496,6 +496,12 @@ namespace Solhigson.Framework.Extensions
             return new PagedList<T>(items, count, pageNumber, pageSize);
         }
 
+        public static IQueryable<T> DateRangeQuery<T>(this IQueryable<T> source, DateTime fromDate, DateTime toDate)
+        where T: IDateSearchable
+        {
+            return source.Where(t => t.GetDateField() >= fromDate && t.GetDateField() <= toDate);
+        }
+
         #endregion
 
         #region Misc
