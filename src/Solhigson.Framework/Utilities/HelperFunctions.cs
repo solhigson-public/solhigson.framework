@@ -10,12 +10,15 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
+using Solhigson.Framework.Utilities.Pluralization;
 
 namespace Solhigson.Framework.Utilities
 {
     public static class HelperFunctions
     {
         private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        private static EnglishPluralizationService _pluralizationService = new ();
+        
         public const string MatchEmailPattern =
             @"\A(?:[a-z0-9A-Z!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9A-Z](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\Z";
 
@@ -39,7 +42,11 @@ namespace Solhigson.Framework.Utilities
                 : PhoneNumberMatchRegex.IsMatch(phoneNumber);
         }
 
-        
+        public static string Capitalize(string word)
+        {
+            return _pluralizationService.Capitalize(word);
+        }
+
         public static string GetCallerIp(HttpContext httpContext)
         {
             if (httpContext is null)
