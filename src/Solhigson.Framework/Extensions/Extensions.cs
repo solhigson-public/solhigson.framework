@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.AspNetCore.Authorization;
@@ -689,6 +690,54 @@ namespace Solhigson.Framework.Extensions
 
             return null;
         }
+
+        private const string ChainIdKey = "::ApiTrace::ChainId::Key";
+        public static string GetChainId(this HttpContext httpContext)
+        {
+            object chainIdObj = null;
+            try
+            {
+                if (httpContext != null)
+                {
+                    httpContext.Items?.TryGetValue(ChainIdKey, out chainIdObj);
+                }
+                else
+                {
+                    chainIdObj = Thread.GetData(Thread.GetNamedDataSlot(ChainIdKey));
+                }
+            }
+            catch(Exception e)
+            {
+                Logger.Error(e);
+            }
+
+            if (chainIdObj == null)
+            {
+                return null;
+            }
+            var cId = Convert.ToString(chainIdObj);
+            return !string.IsNullOrWhiteSpace(cId) ? cId : null;
+        }
+
+        public static void AddChainId(this HttpContext httpContext, string value)
+        {
+            try
+            {
+                if (httpContext != null)
+                {
+                    httpContext.Items?.TryAdd(ChainIdKey, value);
+                }
+                else
+                {
+                    Thread.SetData(Thread.GetNamedDataSlot(ChainIdKey), value);
+                }
+            }
+            catch(Exception e)
+            {
+                Logger.Error(e);
+            }
+        }
+
         
         /*
         public static bool IsPermissionAllowed(this IRazorPage view, string permission)

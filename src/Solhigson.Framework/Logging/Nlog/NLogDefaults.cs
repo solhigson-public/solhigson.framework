@@ -34,6 +34,7 @@ namespace Solhigson.Framework.Logging.Nlog
                     new JsonAttribute("ServiceType", "${event-properties:item=serviceType}", true),
                     new JsonAttribute("ServiceUrl", "${event-properties:item=url}", true),
                     new JsonAttribute("Status", "${event-properties:item=status}", true),
+                    new JsonAttribute("ChainId", "${event-properties:item=chainId}", true),
 
                     new JsonAttribute("Group", "${solhigson-group}", true),
                     new JsonAttribute("Exception", "${solhigson-exception}", encodeChildJsonContent),

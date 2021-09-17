@@ -32,12 +32,12 @@ namespace Solhigson.Framework.Logging
             eventInfo.Properties[GroupRenderer.Name] = group;
             eventInfo.Properties["status"] = status;
             eventInfo.Properties["url"] = endPointUrl;
-            var authenticatedEmail = Constants.HttpContextAccessor.GetEmailClaim();
+            var authenticatedEmail = Constants.HttpContextAccessor?.GetEmailClaim();
             if (string.IsNullOrWhiteSpace(authenticatedEmail))
             {
                 authenticatedEmail = userEmail;
             }
-
+            eventInfo.Properties["chainId"] = Constants.HttpContextAccessor?.HttpContext?.GetChainId();
             eventInfo.Properties[UserRenderer.Name] = authenticatedEmail;
             _logger.Log(typeof(LogWrapper), eventInfo);
         }

@@ -57,6 +57,10 @@ namespace Solhigson.Framework.AzureCosmosDb.Dto
         [JsonProperty("Status")]
         public string Status { get; set; }
 
+        [JsonPropertyName("ChainId")]
+        [JsonProperty("ChainId")]
+        public string ChainId { get; set; }
+
         [Newtonsoft.Json.JsonIgnore]
         public DateTime Date
         {
