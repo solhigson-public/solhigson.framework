@@ -16,8 +16,6 @@ namespace Solhigson.Framework.Identity
         [Column(ScriptsManager.RolePermissionInfo.IdColumn)]
         public int Id { get; set; }
         
-        [StringLength(450)]
-        [Column(ScriptsManager.RolePermissionInfo.RoleIdColumn, TypeName = "VARCHAR")]
         public T RoleId { get; set; }
         
         [StringLength(450)]
