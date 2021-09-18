@@ -15,6 +15,9 @@ namespace Solhigson.Framework.Identity
         [StringLength(450)]
         public string RoleGroupId { get; set; }
         
+        [StringLength(450)]
+        public string StartPage { get; set; }
+
         [ForeignKey(nameof(RoleGroupId))]
         public SolhigsonRoleGroup RoleGroup { get; set; }
     }

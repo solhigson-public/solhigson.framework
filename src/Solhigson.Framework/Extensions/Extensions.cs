@@ -184,6 +184,17 @@ namespace Solhigson.Framework.Extensions
             return app;
         }
 
+        /// <summary>
+        /// Configuration entries:
+        /// 
+        /// [Smtp:Server]
+        /// [Smtp:Port]
+        /// [Smtp:Username]
+        /// [Smtp:Password]
+        /// [Smtp:EnableSsl] - Optional - Default(true)
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
         public static IServiceCollection AddDefaultSmtpMailProvider(this IServiceCollection services)
         {
             services.AddSingleton<IMailProvider, SmtpMailProvider>();

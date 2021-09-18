@@ -13,9 +13,6 @@ namespace Solhigson.Framework.Infrastructure
         }
         public string ProtectedFields => _configurationWrapper.GetConfig("Solhigson.Framework", "ProtectedFields", "");
         
-        public string Test => _configurationWrapper.GetConfig("TestGroup", "TestValue", "Let's see how it goes");
-        
-        
         #region Smtp
 
         private T GetSmtpConfig<T>(string config, string defaultValue = null)
