@@ -8,16 +8,12 @@ using Solhigson.Framework.Data.Caching;
 namespace Solhigson.Framework.Identity
 {
     [Table(ScriptsManager.RolePermissionInfo.TableName)]
-    [Index(nameof(RoleId), nameof(PermissionId), IsUnique = true)]
-    [Index(nameof(RoleId))]
     public record SolhigsonRolePermission<T> : ICachedEntity where T : IEquatable<T>
     {
         [Key]
-        [Column(ScriptsManager.RolePermissionInfo.IdColumn)]
-        public int Id { get; set; }
-        
         public T RoleId { get; set; }
         
+        [Key]
         [StringLength(450)]
         [Column(ScriptsManager.RolePermissionInfo.PermissionIdColumn, TypeName = "VARCHAR")]
         public string PermissionId { get; set; }
