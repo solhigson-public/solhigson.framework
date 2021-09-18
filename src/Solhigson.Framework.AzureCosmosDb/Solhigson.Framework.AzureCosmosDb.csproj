@@ -7,7 +7,7 @@
         <Description>Azure Cosmos Db Single Client and NLog Target</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>1.6.16</PackageVersion>
+        <PackageVersion>1.6.18</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>9</LangVersion>
