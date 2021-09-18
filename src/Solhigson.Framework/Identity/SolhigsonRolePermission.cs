@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
@@ -9,7 +10,7 @@ namespace Solhigson.Framework.Identity
     [Table(ScriptsManager.RolePermissionInfo.TableName)]
     [Index(nameof(RoleId), nameof(PermissionId), IsUnique = true)]
     [Index(nameof(RoleId))]
-    public record SolhigsonRolePermission<T> : ICachedEntity
+    public record SolhigsonRolePermission<T> : ICachedEntity where T : IEquatable<T>
     {
         [Key]
         [Column(ScriptsManager.RolePermissionInfo.IdColumn)]
@@ -26,5 +27,7 @@ namespace Solhigson.Framework.Identity
         [ForeignKey(nameof(PermissionId))]
         public SolhigsonPermission SolhigsonPermission { get; set; }
 
+        [ForeignKey(nameof(RoleId))]
+        public SolhigsonAspNetRole<T> Role { get; set; }
     }
 }

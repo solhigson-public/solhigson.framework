@@ -6,6 +6,11 @@ namespace Solhigson.Framework.Identity
 {
     public class SolhigsonUser : SolhigsonUser<string>
     {
+        public SolhigsonUser()
+        {
+            Id = Guid.NewGuid().ToString();
+            SecurityStamp = Guid.NewGuid().ToString();
+        }
     }
 
     public class SolhigsonUser<T> : IdentityUser<T> where T : IEquatable<T>

@@ -225,7 +225,7 @@ namespace Solhigson.Framework.Extensions
             return services;
         }
 
-        static IServiceCollection AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
+        private static IServiceCollection AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
             Action<IdentityOptions> setupAction = null) 
             where TUser : SolhigsonUser<TKey>
             where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
@@ -247,7 +247,7 @@ namespace Solhigson.Framework.Extensions
             where TUser : SolhigsonUser<string>
             where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<string>, string>
         {
-            services.AddSolhigsonIdentityManager<TUser, string, TContext>();
+            services.AddSolhigsonIdentityManager<TUser, string, TContext>(setupAction);
             services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
             return services;
         }
@@ -258,7 +258,7 @@ namespace Solhigson.Framework.Extensions
             where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
             where TKey : IEquatable<TKey>
         {
-            services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>();
+            services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
             services.TryAddScoped<SolhigsonIdentityManager<TUser, TKey, TContext>>();
             return services;
         }
