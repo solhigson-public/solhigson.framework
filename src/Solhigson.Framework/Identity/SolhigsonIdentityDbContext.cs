@@ -58,6 +58,15 @@ namespace Solhigson.Framework.Identity
         public DbSet<SolhigsonRoleGroup> RoleGroups { get; set; }
         public DbSet<SolhigsonPermission> Permissions { get; set; }
         public DbSet<SolhigsonRolePermission<TKey>> RolePermissions { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<SolhigsonRolePermission<TKey>>(b =>
+            {
+                b.HasKey(r => new { r.PermissionId, r.RoleId });
+            });
+            base.OnModelCreating(builder);
+        }
     }
 
 }
