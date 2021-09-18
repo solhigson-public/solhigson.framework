@@ -12,7 +12,6 @@ namespace Solhigson.Framework.Dto
      */
     public partial record NotificationTemplateDto
     { 
-		public int Id { get; set; }
 		public string Name { get; set; }
 		public string Template { get; set; }
 

@@ -59,14 +59,15 @@ namespace Solhigson.Framework.Data
             sBuilder.Append($"IF OBJECT_ID(N'[{NotificationTemplateInfo.TableName}]') IS NULL ");
             sBuilder.Append("BEGIN ");
             sBuilder.Append($"CREATE TABLE [{NotificationTemplateInfo.TableName}] ( ");
-            sBuilder.Append($"[{NotificationTemplateInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
-                            $"[{NotificationTemplateInfo.NameColumn}] NVARCHAR(255) NOT NULL, " +
+            sBuilder.Append($"[{NotificationTemplateInfo.NameColumn}] NVARCHAR(255) NOT NULL, " +
                             $"[{NotificationTemplateInfo.TemplateColumn}] NVARCHAR(MAX) NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{NotificationTemplateInfo.TableName}] PRIMARY KEY ([{NotificationTemplateInfo.IdColumn}])); ");//END;");
+            sBuilder.Append($"CONSTRAINT [PK__{NotificationTemplateInfo.TableName}] PRIMARY KEY ([{NotificationTemplateInfo.NameColumn}])); END;");
             
+            /*
             sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{NotificationTemplateInfo.TableName}_ON_{NotificationTemplateInfo.NameColumn}] ");
             sBuilder.Append($"ON [{NotificationTemplateInfo.TableName}] ");
             sBuilder.Append($"( [{NotificationTemplateInfo.NameColumn}] ASC ); END; ");
+            */
             #endregion
 
             /*
