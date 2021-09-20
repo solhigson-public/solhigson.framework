@@ -385,6 +385,14 @@ namespace Solhigson.Framework.Extensions
 
         #region EntityFramework Data Extensions (Caching & Paging)
 
+        public static bool IsDbSetType(this Type type)
+        {
+            if (type is null)
+            {
+                return false;
+            }
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DbSet<>);
+        }
         public static string GetCacheKey(this IQueryable query, bool hash = true)
         {
             var expression = query.Expression;
@@ -406,37 +414,69 @@ namespace Solhigson.Framework.Extensions
             return key;
         }
 
-        public static ResponseInfo<object> GetCacheStatus<T>(this IQueryable<T> query, Type iCachedEntityType = null) where T : class
+        public static ResponseInfo<object> GetCacheStatus<T>(this IQueryable<T> query, params Type [] iCachedEntityType) where T : class
         {
             var response = new ResponseInfo<object>();
-            var type = GetQueryBaseType(query, iCachedEntityType);
+            var types = GetQueryBaseType(query, iCachedEntityType);
             var queryExpression = query.GetCacheKey(false);
             var data = new
             {
-                Type = $"{type.Namespace}.{type.Name}",
+                Type = $"{CacheManager.Flatten(types.Select(t => $"{t.Namespace}.{t.Name}"))}",
                 CacheKey = queryExpression.ToSha256(),
                 QueryExpression = queryExpression,
             };
-            return !typeof(ICachedEntity).IsAssignableFrom(type) 
-                ? response.Fail($"{type.Name} does not Inherit from ICacheEntity", result: data) 
+            var validTypes = CacheManager.GetValidICacheEntityTypes(iCachedEntityType);
+            return !validTypes.Any()
+                ? response.Fail($"{CacheManager.Flatten(types.Select(t => t.Name))} does not Inherit from ICacheEntity", result: data) 
                 : response.Success(data);
         }
 
-        public static List<T> FromCacheList<T>(this IQueryable<T> query, Type iCachedEntityType = null) where T : class
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static List<T> FromCacheList<T>(this IQueryable<T> query, params Type [] iCachedEntityTypesToMonitor) where T : class
         {
-            return GetCacheData<T, List<T>>(query, ResolveToList, iCachedEntityType) ?? new List<T>();
+            return GetCacheData<T, List<T>>(query, ResolveToList, iCachedEntityTypesToMonitor) ?? new List<T>();
         }
         
-        public static T FromCacheSingle<T>(this IQueryable<T> query, Type iCachedEntityType = null) where T : class
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static T FromCacheSingle<T>(this IQueryable<T> query, params Type [] iCachedEntityTypesToMonitor) where T : class
         {
-            return GetCacheData<T, T>(query, ResolveToSingle, iCachedEntityType);
+            return GetCacheData<T, T>(query, ResolveToSingle, iCachedEntityTypesToMonitor);
         }
 
-        private static TK GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func, Type iCachedEntityType = null)
+        public static void AddCustomResultToCache<T>(this IQueryable<T> query, object result, params Type [] types) where T : class
+        {
+            CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseType(query, types));
+        }
+        
+        public static T GetCustomResultFromCache<T>(this IQueryable query) where T : class
+        {
+            var result = CacheManager.GetFromCache(query.GetCacheKey());
+            if (result == null)
+            {
+                return null;
+            }
+            Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+            return result.Value as T;
+        }
+
+
+        private static TK GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func, params Type [] iCachedEntityType)
             where TK : class where T : class
         {
             var key = query.GetCacheKey();
-            var customCacheEntry = CacheManager.GetFromCache<TK>(key);
+            var customCacheEntry = CacheManager.GetFromCache(key);
             if (customCacheEntry != null)
             {
                 if (Logger.IsDebugEnabled)
@@ -452,7 +492,7 @@ namespace Solhigson.Framework.Extensions
             }
             lock (key)
             {
-                customCacheEntry = CacheManager.GetFromCache<TK>(key);
+                customCacheEntry = CacheManager.GetFromCache(key);
                 if (customCacheEntry != null)
                 {
                     return customCacheEntry.Value as TK;
@@ -466,11 +506,12 @@ namespace Solhigson.Framework.Extensions
             }
         }
 
-        private static Type GetQueryBaseType<T>(IQueryable<T> query, Type iCachedEntityType = null) where T : class
+        private static IEnumerable<Type> GetQueryBaseType<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
         {
-            if (iCachedEntityType is not null)
+            var types = new List<Type>();
+            if (iCachedEntityTypes != null && iCachedEntityTypes.Any())
             {
-                return iCachedEntityType;
+                return CacheManager.GetValidICacheEntityTypes(iCachedEntityTypes);
             }
             var type = typeof(T);
             try
@@ -488,7 +529,8 @@ namespace Solhigson.Framework.Extensions
                 Logger.Error(e);
             }
 
-            return type;
+            types.Add(type);
+            return types;
         }
 
         private static object ResolveToList<T>(IQueryable<T> query) where T : class

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.EfCoreTool.Generator
 {
@@ -135,7 +136,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 Models = databaseContext.GetProperties(BindingFlags.DeclaredOnly |
                                                        BindingFlags.Public |
                                                        BindingFlags.Instance).Where(t =>
-                        t.PropertyType.IsGenericType && t.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                        t.PropertyType.IsDbSetType())
                     .Select(t => t.PropertyType.GetGenericArguments()[0]).ToList();
 
                 if (!Models.Any())

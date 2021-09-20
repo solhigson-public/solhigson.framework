@@ -1,28 +1,45 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Data.Caching
 {
     public class TableChangeTracker : IDisposable
     {
-        private int _currentChangeTrackId;
-        internal readonly string TableName;
         public event EventHandler OnChanged;
 
-        public TableChangeTracker(string tableName)
+        private readonly Dictionary<string, short> _changeIds = new();
+        public TableChangeTracker(IEnumerable<string> tableNames)
         {
-            TableName = tableName;
-            _currentChangeTrackId = CacheManager.GetTableChangeTrackerId(tableName).Result;
+            foreach (var tableName in tableNames)
+            {
+                _changeIds.Add(tableName, CacheManager.GetTableChangeTrackerId(tableName).Result);
+            }
             CacheManager.OnTableChangeTimerElapsed += OnTableChangeTimerElapsed;
         }
+
+        internal string TableNames => CacheManager.Flatten(_changeIds.Keys.ToList());
         
         private void OnTableChangeTimerElapsed(object sender, EventArgs e)
         {
-            if (!(e is ChangeTrackerEventArgs ce))
+            if (e is not ChangeTrackerEventArgs ce)
             {
                 return;
             }
+            
+            foreach (var key in _changeIds.Keys)
+            {
+                if (ce.ChangeIds.TryGetValue(key, out var changeId) && _changeIds[key] != changeId)
+                {
+                    _changeIds[key] = changeId;
+                    this.ELogDebug($"Change tracker changed for [{key}]");
+                    OnChanged?.Invoke(null, EventArgs.Empty);
+                }
+            }
 
+
+            /*
             if (!ce.ChangeIds.TryGetValue(TableName, out var changeId))
             {
                 return;
@@ -33,9 +50,12 @@ namespace Solhigson.Framework.Data.Caching
                 return;
             }
             
+            */
+            /*
             _currentChangeTrackId = changeId;
             this.ELogDebug($"Change tracker changed for [{TableName}]");
             OnChanged?.Invoke(null, new EventArgs());
+        */
         }
 
         public void Dispose()

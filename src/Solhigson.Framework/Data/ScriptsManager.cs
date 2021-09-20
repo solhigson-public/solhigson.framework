@@ -170,11 +170,13 @@ namespace Solhigson.Framework.Data
                 foreach (var dbContext in dbContextAssembly.GetTypes()
                     .Where(t => dbContextType.IsAssignableFrom(t)))
                 {
-                    foreach (var prop in dbContext.GetProperties())
+                    var props = dbContext.GetProperties();
+                    foreach (var prop in props.Where(t => t.PropertyType.IsDbSetType()))
                     {
-                        if (cachedEntityType.IsAssignableFrom(prop.PropertyType))
+                        var genericArg = prop.PropertyType.GetGenericArguments().FirstOrDefault();
+                        if (genericArg is not null && cachedEntityType.IsAssignableFrom(genericArg))
                         {
-                            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(prop.PropertyType));
+                            dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(genericArg));
                         }
                     }
                 }

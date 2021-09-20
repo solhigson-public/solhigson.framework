@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Mvc;
@@ -100,7 +101,7 @@ namespace Solhigson.Framework.Infrastructure
                     };
                     _dbContext.AppSettings.Add(setting);
                     _dbContext.SaveChanges();
-                    CacheManager.AddToCache(query.GetCacheKey(), value, typeof(AppSetting));
+                    CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
                 }
             }
             catch (Exception e)

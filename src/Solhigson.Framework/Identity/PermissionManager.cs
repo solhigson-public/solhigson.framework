@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Web.Attributes;
@@ -119,8 +120,48 @@ namespace Solhigson.Framework.Identity
                     on rolePerm.RoleId equals role.Id
                 join perm in _dbContext.Permissions
                     on rolePerm.PermissionId equals perm.Id
-                select perm).FromCacheList(typeof(SolhigsonRolePermission<TKey>));
+                    where role.Name == roleName
+                select perm).FromCacheList(typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
         }
+        
+        public IList<SolhigsonPermission> GetMenuPermissionsForRoleCached(string roleName)
+        {
+            var query = (from rolePerm in _dbContext.RolePermissions
+                join role in _dbContext.Roles
+                    on rolePerm.RoleId equals role.Id
+                join perm in _dbContext.Permissions.Include(t => t.Children.Where(t => t.IsMenu && t.Enabled))
+                    on rolePerm.PermissionId equals perm.Id
+                where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName &&
+                      perm.Children.Any(t => t.IsMenu && t.Enabled)
+                select perm);
+
+            var result = query.GetCustomResultFromCache<IList<SolhigsonPermission>>();
+            if (result != null)
+            {
+                return result;
+            }
+            var topLevel = query.ToList();
+            var cachedRole = _dbContext.Roles.Where(t => t.Name == roleName).FromCacheSingle();
+            if (cachedRole != null)
+            {
+                foreach (var perm in topLevel)
+                {
+                    foreach (var child in perm.Children)
+                    {
+                        if (_dbContext.RolePermissions
+                            .Where(t => t.PermissionId == child.Id && t.RoleId.Equals(cachedRole.Id))
+                            .FromCacheSingle() == null)
+                        {
+                            perm.Children.Remove(child);
+                        }
+                    }
+                }
+            }
+            
+            query.AddCustomResultToCache(topLevel, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+            return topLevel;
+        }
+
 
         public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly)
         {

@@ -10,6 +10,7 @@ namespace Solhigson.Framework.Identity
     {
     }
 
+    [Table("AspNetRoles")]
     public class SolhigsonAspNetRole<T> : IdentityRole<T>, ICachedEntity where T : IEquatable<T>
     {
         [StringLength(450)]

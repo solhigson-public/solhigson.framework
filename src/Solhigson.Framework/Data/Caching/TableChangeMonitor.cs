@@ -9,9 +9,8 @@ namespace Solhigson.Framework.Data.Caching
         private readonly TableChangeTracker _tableChangeTracker;
         public TableChangeMonitor(TableChangeTracker tableChangeTracker)
         {
-            var id = $"{tableChangeTracker.TableName}_{Guid.NewGuid().ToString()}";
-            UniqueId = id;
-            this.ELogDebug($"New Change monitor: {id}");
+            UniqueId = $"{tableChangeTracker.TableNames}_{Guid.NewGuid().ToString()}";
+            this.ELogDebug($"New Change monitor: {UniqueId}");
             _tableChangeTracker = tableChangeTracker;
             _tableChangeTracker.OnChanged += TableChangeTrackerOnChanged;
             InitializationComplete();

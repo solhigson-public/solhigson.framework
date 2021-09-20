@@ -24,7 +24,7 @@ namespace Solhigson.Framework.Data.Caching
         private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
         private static int _cacheExpirationPeriodMinutes;
         public static event EventHandler OnTableChangeTimerElapsed;
-        private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeMonitors = new();
+        private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeTrackers = new();
 
         private static MemoryCache DefaultMemoryCache { get; } = new ("Solhigson::Data::Cache::Manager");
         private static ConcurrentBag<string> CacheKeys { get; } = new ();
@@ -98,21 +98,30 @@ namespace Solhigson.Framework.Data.Caching
             return 0;
         }
 
-        public static void AddToCache(string key, object value, Type type)
+        internal static void AddToCache(string key, object value, IEnumerable<Type> types)
         {
-            if (string.IsNullOrWhiteSpace(key) || type is null)
+            if (string.IsNullOrWhiteSpace(key) || types == null || !types.Any())
             {
                 return;
             }
 
-            if (!typeof(ICachedEntity).IsAssignableFrom(type))
-            {
-                Logger.Warn(
-                    $"Data of type: [{type}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
-                return;
-            }
+            InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
+        }
 
-            InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(type)));
+        internal static IEnumerable<Type> GetValidICacheEntityTypes(IEnumerable<Type> types)
+        {
+            var validTypes = new List<Type>();
+            foreach (var type in types)
+            {
+                if (!typeof(ICachedEntity).IsAssignableFrom(type))
+                {
+                    Logger.Warn(
+                        $"Data of type: [{type}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
+                    continue;
+                }
+                validTypes.Add(type);
+            }
+            return validTypes;
         }
 
         public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
@@ -146,28 +155,29 @@ namespace Solhigson.Framework.Data.Caching
             }
         }
 
-        internal static CustomCacheEntry GetFromCache<T>(string key) where T : class
+        internal static CustomCacheEntry GetFromCache(string key)// where T : class
         {
             return DefaultMemoryCache.Get(key) as CustomCacheEntry;
         }
 
-        internal static TableChangeTracker GetTableChangeTracker(Type type)
+        private static TableChangeTracker GetTableChangeTracker(IEnumerable<Type> types)
         {
-            return GetTableChangeTracker(ScriptsManager.GetTableName(type));
+            return GetTableChangeTracker(types.Select(t => ScriptsManager.GetTableName(t)).ToList());
         }
 
 
-        private static TableChangeTracker GetTableChangeTracker(string tableName)
+        private static TableChangeTracker GetTableChangeTracker(IReadOnlyCollection<string> tableNames)
         {
-            if (ChangeMonitors.TryGetValue(tableName, out var tableChangeTracker))
+            var changeTrackerKey = Flatten(tableNames);
+            if (ChangeTrackers.TryGetValue(changeTrackerKey, out var tableChangeTracker))
             {
                 return tableChangeTracker;
             }
 
-            tableChangeTracker = new TableChangeTracker(tableName);
+            tableChangeTracker = new TableChangeTracker(tableNames);
             try
             {
-                ChangeMonitors.TryAdd(tableName, tableChangeTracker);
+                ChangeTrackers.TryAdd(changeTrackerKey, tableChangeTracker);
             }
             catch (Exception e)
             {
@@ -177,6 +187,22 @@ namespace Solhigson.Framework.Data.Caching
             return tableChangeTracker;
         }
 
+        internal static string Flatten(IEnumerable<string> tableNames)
+        {
+            var result = "";
+            foreach (var tableName in tableNames)
+            {
+                if (string.IsNullOrEmpty(result))
+                {
+                    result = tableName;
+                }
+                else
+                {
+                    result = $"{result}-{tableName}";
+                }
+            }
+            return result;
+        }
 
     }
     

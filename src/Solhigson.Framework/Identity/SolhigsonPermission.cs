@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
@@ -63,5 +65,14 @@ namespace Solhigson.Framework.Identity
         [Column(ScriptsManager.PermissionInfo.EnabledColumn)]
         [Required]
         public bool Enabled { get; set; }
+        
+        [ForeignKey(nameof(ParentId))]
+        [Newtonsoft.Json.JsonIgnore]
+        [JsonIgnore]
+        public SolhigsonPermission Parent { get; set; }
+        
+        [InverseProperty(nameof(Parent))]
+        public virtual ICollection<SolhigsonPermission> Children { get; set; }
+
     }
 }
