@@ -68,12 +68,19 @@ namespace Solhigson.Framework.Web.Middleware
                 : $"{msg}.";
             
             httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            
+            if (!httpContext.Response.Body.CanWrite)
+            {
+                return;
+            }
             if (httpContext.IsApiController())
             {
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsync(ResponseInfo.FailedResult(msg, StatusCode.UnAuthorised)
                     .SerializeToJson());
+            }
+            else
+            {
+                httpContext.Response.Redirect("~/_403");
             }
         }
     }

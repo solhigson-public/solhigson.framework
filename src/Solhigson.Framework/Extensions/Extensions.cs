@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -654,6 +656,72 @@ namespace Solhigson.Framework.Extensions
         }
 
         
+        #endregion
+
+        #region Mvc
+
+        internal static bool ViewExists(this Controller controller, string name)
+        {
+            var services = controller.HttpContext.RequestServices;
+            var viewEngine = services.GetService<ICompositeViewEngine>();
+            if (viewEngine is null)
+            {
+                return false;
+            }
+            var result = viewEngine.GetView(null, name, true);
+            if (!result.Success)
+                result = viewEngine.FindView(controller.ControllerContext, name, true);
+            return result.Success;
+        }
+        
+        public static void SetDisplayMessage(this SolhigsonMvcControllerBase controller, string message, PageMessageType messageType,
+            bool closeOnClick = true,
+            bool clearBeforeAdd = false, bool encodeHtml = true)
+        {
+            SetDisplayMessage(controller.TempData, message, messageType, closeOnClick, clearBeforeAdd, encodeHtml);
+        }
+
+        public static List<PageMessage> GetDisplayMessages(this ITempDataDictionary tempData)
+        {
+            var serializedMessages = tempData[PageMessage.MessageKey];
+
+            return serializedMessages == null
+                ? new List<PageMessage>()
+                : ((string)serializedMessages).DeserializeFromJson<List<PageMessage>>();
+        }
+
+        private static void SetDisplayMessages(this ITempDataDictionary tempData, List<PageMessage> messages)
+        {
+            tempData[PageMessage.MessageKey] = messages.SerializeToJson();
+        }
+
+        public static void SetDisplayMessage(this ITempDataDictionary tempData, string message,
+            PageMessageType messageType,
+            bool closeOnClick = true,
+            bool clearBeforeAdd = false, bool encodeHtml = true)
+        {
+            var messages = tempData.GetDisplayMessages();
+
+            if (clearBeforeAdd)
+            {
+                messages.Clear();
+            }
+
+            if (messages.All(t => string.Compare(t.Message, message, StringComparison.OrdinalIgnoreCase) != 0))
+            {
+                messages.Add(new PageMessage
+                {
+                    Message = message,
+                    Type = messageType,
+                    CloseOnClick = closeOnClick,
+                    EncodeHtml = encodeHtml,
+                });
+            }
+
+            tempData.SetDisplayMessages(messages);
+        }
+
+
         #endregion
         
         public static bool IsAsyncMethod(this MethodInfo method)
