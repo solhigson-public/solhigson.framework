@@ -123,13 +123,30 @@ namespace Solhigson.Framework.Identity
                     where role.Name == roleName
                 select perm).FromCacheList(typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
         }
+
+        public IList<SolhigsonPermission> GetMenuPermissionsForRoleCached(ClaimsPrincipal claimsPrincipal)
+        {
+            if (claimsPrincipal?.Identity?.IsAuthenticated == false)
+            {
+                return new List<SolhigsonPermission>();
+            }
+
+            var role = claimsPrincipal?.FindFirstValue(ClaimTypes.Role);
+            
+            return GetMenuPermissionsForRoleCached(role);
+        }
+
         
         public IList<SolhigsonPermission> GetMenuPermissionsForRoleCached(string roleName)
         {
+            if (string.IsNullOrWhiteSpace(roleName))
+            {
+                return new List<SolhigsonPermission>();
+            }
             var query = (from rolePerm in _dbContext.RolePermissions
                 join role in _dbContext.Roles
                     on rolePerm.RoleId equals role.Id
-                join perm in _dbContext.Permissions.Include(t => t.Children.Where(t => t.IsMenu && t.Enabled))
+                join perm in _dbContext.Permissions.Include(t => t.Children.Where(child => child.IsMenu && child.Enabled))
                     on rolePerm.PermissionId equals perm.Id
                 where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName &&
                       perm.Children.Any(t => t.IsMenu && t.Enabled)
