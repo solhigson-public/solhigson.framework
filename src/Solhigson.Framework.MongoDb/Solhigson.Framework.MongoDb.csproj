@@ -1,10 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp5.0</TargetFramework>
-        <PackageId>Solhigson.Framework.AzureCosmosDb</PackageId>
+        <TargetFramework>net5.0</TargetFramework>
         <Authors>Solhigson</Authors>
-        <Description>Azure Cosmos Db Client and NLog Target</Description>
+        <Description>Mongo Db  Client and NLog Target</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
         <PackageVersion>1.6.18</PackageVersion>
@@ -14,7 +13,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.21.0" />
+      <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
       <PackageReference Include="Solhigson.Framework" Version="1.6.31" />
     </ItemGroup>
 

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Tests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.AzureCosmosDb", "Solhigson.Framework.AzureCosmosDb\Solhigson.Framework.AzureCosmosDb.csproj", "{C4619724-0FA9-4461-8EFD-948D263E9172}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.MongoDb", "Solhigson.Framework.MongoDb\Solhigson.Framework.MongoDb.csproj", "{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,5 +45,9 @@ Global
 		{C4619724-0FA9-4461-8EFD-948D263E9172}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4619724-0FA9-4461-8EFD-948D263E9172}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4619724-0FA9-4461-8EFD-948D263E9172}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

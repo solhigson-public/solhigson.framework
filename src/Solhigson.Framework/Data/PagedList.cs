@@ -17,7 +17,7 @@ namespace Solhigson.Framework.Data
         public int PageSize { get;  }
         
         [JsonProperty]
-        public int TotalCount { get; }
+        public long TotalCount { get; }
         
         [JsonProperty]
         public bool HasPrevious => CurrentPage > 1;
@@ -45,7 +45,7 @@ namespace Solhigson.Framework.Data
             });
         }
 
-        public PagedList(List<T> items, int count, int pageNumber, int pageSize)
+        public PagedList(List<T> items, long count, int pageNumber, int pageSize)
         {
             TotalCount = count;
             PageSize = pageSize;
