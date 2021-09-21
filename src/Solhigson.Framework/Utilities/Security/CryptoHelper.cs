@@ -1,16 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Utilities.Security
 {
     public static class CryptoHelper
     {
+        public static string GenerateJwtToken(string userIdentifier, string role, string email, string key, double expirationMinutes,
+            string algorithm = SecurityAlgorithms.HmacSha512)
+        {
+            var claims = new List<Claim>()
+            {
+                new (ClaimTypes.NameIdentifier, userIdentifier),
+                new (ClaimTypes.Email, email),
+                new (ClaimTypes.Role, role)
+            };
+            return GenerateJwtToken(claims, key, expirationMinutes, algorithm);
+        }
+
+        public static string GenerateJwtToken(IEnumerable<Claim> claims, string key, double expirationMinutes,
+            string algorithm = SecurityAlgorithms.HmacSha512)
+        {
+            var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+
+            var signingCredentials = new SigningCredentials(symmetricKey, algorithm);
+
+            var securityTokenDescription = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
+                SigningCredentials = signingCredentials
+            };
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var token = tokenHandler.CreateToken(securityTokenDescription);
+            return tokenHandler.WriteToken(token);
+        }
+
         private static RNGCryptoServiceProvider _rngProvider;
         private static RNGCryptoServiceProvider RngProvider
         {
