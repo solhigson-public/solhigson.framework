@@ -36,19 +36,23 @@ namespace Solhigson.Framework.Identity
                 return ResponseInfo.FailedResult("User not authenticated.");
             }
 
+            return VerifyPermission(permissionName, claimsPrincipal?.FindAll(ClaimTypes.Role)
+                .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList());
+
+        }
+        
+        public ResponseInfo VerifyPermission(string permissionName, IReadOnlyCollection<string> roles)
+        {
+            if (roles == null || !roles.Any())
+            {
+                return ResponseInfo.FailedResult("User not assigned any roles in Jwt Token.");
+            }
+
             var permission = _dbContext.Permissions.Where(t => t.Name == permissionName)
                 .FromCacheSingle();
             if (permission is null)
             {
                 return ResponseInfo.FailedResult("Resource not configured.");
-            }
-
-            var roles = claimsPrincipal?.FindAll(ClaimTypes.Role)
-                .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList();
-            
-            if (roles == null || !roles.Any())
-            {
-                return ResponseInfo.FailedResult("User not assigned any roles in Jwt Token.");
             }
 
             var roleIds = (from role in roles select 
@@ -61,6 +65,7 @@ namespace Solhigson.Framework.Identity
                 ? ResponseInfo.SuccessResult() 
                 : ResponseInfo.FailedResult();
         }
+
 
         public async Task AddPermission(SolhigsonPermission permission)
         {
