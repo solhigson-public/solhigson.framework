@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net5.0</TargetFramework>
         <Authors>Solhigson</Authors>
-        <Description>Mongo Db  Client and NLog Target</Description>
+        <Description>Mongo Db Client and NLog Target</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
         <PackageVersion>1.6.32</PackageVersion>
