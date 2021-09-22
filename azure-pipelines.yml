@@ -15,7 +15,7 @@ variables:
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
   azureCosmosProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.AzureCosmosDb.csproj'
-  mongoDbProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.MongoDb.csproj'
+  mongoDbProj: '**/Solhigson.Framework.MongoDb/Solhigson.Framework.MongoDb.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
@@ -122,8 +122,7 @@ stages:
             inputs:
               command: 'pack'
               packagesToPack: '$(azureCosmosProj)'
-              versioningScheme: 'byEnvVar'
-              versionEnvVar: '$(version)'
+              versioningScheme: 'off'
 
           - task: NuGetCommand@2
             displayName: 'Push'
