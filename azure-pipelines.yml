@@ -4,7 +4,6 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-  - dev
   - master
   - "*.release"
 
@@ -16,15 +15,14 @@ variables:
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
   azureCosmosProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.AzureCosmosDb.csproj'
+  mongoDbProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.MongoDb.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  version: '1.6.19'
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
   packageTool: $[eq(variables['Build.SourceBranchName'], 'efcore.tool.release')]
   packageFramework: $[eq(variables['Build.SourceBranchName'], 'solhigson.framework.release')]
-  #packageAzureCosmos: $[eq(variables['Build.SourceBranchName'], 'azure.cosmosdb.release')]
-  packageAzureCosmos: true
-  packageMongo: $[eq(variables['Build.SourceBranchName'], 'azure.cosmosdb.release')]
+  packageAzureCosmosDb: $[eq(variables['Build.SourceBranchName'], 'azure.cosmosdb.release')]
+  packageMongoDb: $[eq(variables['Build.SourceBranchName'], 'azure.mongodb.release')]
 
 stages:
   - stage: build
@@ -95,7 +93,7 @@ stages:
 
 
   - stage: nuget_package_azureCosmos
-    condition: eq(variables.packageAzureCosmos, true)
+    condition: eq(variables.packageAzureCosmosDb, true)
     displayName: Deploy AzureCosmos Package to Nuget.Org
     jobs:
       - job:
@@ -166,6 +164,49 @@ stages:
             inputs:
               command: 'pack'
               packagesToPack: '$(toolsProj)'
+              versioningScheme: 'off'
+
+          - task: NuGetCommand@2
+            displayName: 'Push'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'nuget'
+              
+            
+            
+            
+  - stage: nuget_package_mongodb
+    condition: eq(variables.packageMongoDb, true)
+    displayName: Deploy Solhigson MongoDb package to Nuget.Org
+    jobs:
+      - job:
+        displayName: Package & Push Solhigson MongoDb
+        steps:
+          - task: NuGetToolInstaller@1
+            displayName: Install Nuget Tool
+
+          - task: NuGetCommand@2
+            displayName: Restore Nuget Packages
+            inputs:
+              command: 'restore'
+              restoreSolution: '$(solution)'
+              feedsToUse: 'config'
+
+          - task: VSBuild@1
+            displayName: Build Project
+            inputs:
+              solution: '$(solution)'
+              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+              platform: '$(buildPlatform)'
+              configuration: '$(buildConfiguration)'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Package MongoDb'
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(mongoDbProj)'
               versioningScheme: 'off'
 
           - task: NuGetCommand@2
