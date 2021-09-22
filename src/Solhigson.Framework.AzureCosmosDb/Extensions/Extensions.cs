@@ -16,7 +16,7 @@ namespace Solhigson.Framework.Extensions
     public static class Extensions
     {
         private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
-        public static CosmosDbService UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
+        public static CosmosDbService UseSolhigsonNLogCosmosDbTarget(this IApplicationBuilder app,
             NLogCosmosDbParameters parameters = null)
         {
             if (string.IsNullOrWhiteSpace(parameters?.Container)
@@ -25,7 +25,7 @@ namespace Solhigson.Framework.Extensions
                 app.UseSolhigsonNLogDefaultFileTarget();
                 InternalLogger.Error(
                     "Unable to initalize NLog Azure Cosmos Db Target because one or more the the required parameters are missing: " +
-                    "[ConnectionString, Database or Container].");
+                    "[Database or Container].");
                 return null;
             }
             
