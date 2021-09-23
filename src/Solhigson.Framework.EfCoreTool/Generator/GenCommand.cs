@@ -393,7 +393,8 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Where(t => propertyNames.Contains(t.Name))
                 .Where(t => (Nullable.GetUnderlyingType(t.PropertyType) != null || !t.PropertyType.IsPrimitive
                                                                                || t.PropertyType == typeof(string))
-                                                                                && t.PropertyType != typeof(DateTime))
+                                                                                && t.PropertyType != typeof(DateTime)
+                                                                                && !t.PropertyType.IsEnum)
                 .ToList();
             var nullCheck = "";
             if (totalNullableTypesCount.Any())
