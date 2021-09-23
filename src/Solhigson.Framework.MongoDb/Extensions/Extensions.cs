@@ -25,7 +25,12 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
             
-            var service = new MongoDbService<MongoDbLog>(parameters.ConnectionString, parameters.Database, parameters.Collection);
+            var service = MongoDbServiceFactory.Create<MongoDbLog>(parameters.ConnectionString, parameters.Database, parameters.Collection);
+            if (service == null)
+            {
+                InternalLogger.Error($"Unable to create Mongo Db service with supplied parameters, check log for errror.");
+                return null;
+            }
 
             var customTarget = new MongoDbTarget<MongoDbLog>(service)
             {

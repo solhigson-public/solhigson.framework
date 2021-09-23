@@ -3,11 +3,30 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using MongoDB.Driver;
+using NLog.Common;
 using Solhigson.Framework.Data;
+using Solhigson.Framework.Logging;
 using Solhigson.Framework.MongoDb.Dto;
 
 namespace Solhigson.Framework.MongoDb.Services
 {
+    internal static class MongoDbServiceFactory
+    {
+        internal static MongoDbService<TK> Create<TK>(string connectionString, string database, string collection)
+            where TK : MongoDbDocumentBase
+        {
+            try
+            {
+                return new MongoDbService<TK>(connectionString, database, collection);
+            }
+            catch (Exception e)
+            {
+                InternalLogger.Error(e, "Unable to intialize mongo db service");
+            }
+
+            return null;
+        }
+    }
     public class MongoDbService<T> where T : MongoDbDocumentBase
     {
         private readonly IMongoCollection<T> _collection;
