@@ -40,8 +40,8 @@ namespace Solhigson.Framework.Identity
 
     
     public class SolhigsonIdentityDbContext<TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey> 
-        where TUser : IdentityUser<TKey> 
-        where TRole : IdentityRole<TKey>
+        where TUser : SolhigsonUser<TKey> 
+        where TRole : SolhigsonAspNetRole<TKey>
         where TKey : IEquatable<TKey>
     {
         /// <summary>
