@@ -10,6 +10,7 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Web
 {
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class SolhigsonMvcControllerBase : Controller
     {
         public SolhigsonServicesWrapper SolhigsonServicesWrapper { get; set; }

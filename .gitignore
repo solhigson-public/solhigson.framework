@@ -334,6 +334,7 @@ deployments/creds/
 src/Solhigson.Framework.Playground/Whiteboard
 src/Solhigson.Framework.Playground/Migrations
 src/Solhigson.Framework.Playground/Dto
+src/Solhigson.Framework.Playground/Views
 src/Solhigson.Framework.Playground/Repositories
 src/Solhigson.Framework.Playground/CacheModels
 src/Solhigson.Framework.Playground/Services
