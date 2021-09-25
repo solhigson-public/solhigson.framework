@@ -15,7 +15,7 @@ namespace Solhigson.Framework.Utilities.Security
 {
     public static class CryptoHelper
     {
-        public static string GenerateJwtToken(string userIdentifier, string role, string email, string key, double expirationMinutes,
+        public static (string Token, double ExpireTimestamp) GenerateJwtToken(string userIdentifier, string role, string email, string key, double expirationMinutes,
             string algorithm = SecurityAlgorithms.HmacSha512)
         {
             var claims = new List<Claim>()
@@ -27,7 +27,7 @@ namespace Solhigson.Framework.Utilities.Security
             return GenerateJwtToken(claims, key, expirationMinutes, algorithm);
         }
 
-        public static string GenerateJwtToken(IEnumerable<Claim> claims, string key, double expirationMinutes,
+        public static (string Token, double ExpireTimestamp) GenerateJwtToken(IEnumerable<Claim> claims, string key, double expirationMinutes,
             string algorithm = SecurityAlgorithms.HmacSha512)
         {
             var symmetricKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -43,7 +43,7 @@ namespace Solhigson.Framework.Utilities.Security
 
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(securityTokenDescription);
-            return tokenHandler.WriteToken(token);
+            return (tokenHandler.WriteToken(token), DateUtils.ToUnixTimestamp(securityTokenDescription.Expires.Value));
         }
 
         private static RNGCryptoServiceProvider _rngProvider;

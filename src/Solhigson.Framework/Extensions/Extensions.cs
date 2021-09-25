@@ -44,6 +44,7 @@ using Solhigson.Framework.Notification;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Utilities.Linq;
+using Solhigson.Framework.Utilities.Security;
 using Solhigson.Framework.Web;
 using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
@@ -346,6 +347,13 @@ namespace Solhigson.Framework.Extensions
         {
             return httpContextAccessor?.HttpContext?.User?.Identity?.GetClaimValue(ClaimTypes.Email);
         }
+        
+        public static (string Token, double ExpireTimestamp) GenerateJwtToken(this IEnumerable<Claim> claims, string key, double expirationMinutes,
+            string algorithm = SecurityAlgorithms.HmacSha512)
+        {
+            return CryptoHelper.GenerateJwtToken(claims, key, expirationMinutes, algorithm);
+        }
+
 
 
         public static ClaimsPrincipal GetPrincipal(string jwtTokenString, string secret,
