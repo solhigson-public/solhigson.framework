@@ -195,11 +195,38 @@ namespace Solhigson.Framework.Utilities
 
         public static (DateTime FromDate, DateTime ToDate) TodayDateRange(bool utc = true)
         {
-            var fromDate = utc ? DateTime.UtcNow : DateTime.Now;
+            var anchor = DateTime.Now;
+            var timeZoneDiff = anchor.ToUniversalTime() - anchor;
+            var fromDate = anchor.Date;
+            if (utc)
+            {
+                fromDate = fromDate.Add(timeZoneDiff);
+            }
             var toDate = fromDate.AddDays(1).AddMilliseconds(-1);
             return (fromDate, toDate);
         }
         
+        public static (DateTime FromDate, DateTime ToDate) ThisMonthDateRange(bool utc = true)
+        {
+            var anchor = DateTime.Now;
+            var timeZoneDiff = anchor.ToUniversalTime() - anchor;
+            var fromDate = new DateTime(anchor.Year, anchor.Month, 1);
+            if (utc)
+            {
+                fromDate = fromDate.Add(timeZoneDiff);
+            }
+
+            var dateToUse = fromDate;
+            if (timeZoneDiff.TotalMinutes < 0)
+            {
+                dateToUse = anchor;
+            }
+
+            var toDate = fromDate.AddDays(LastDayOfMonth(dateToUse)).AddMilliseconds(-1);
+
+            return (fromDate, toDate);
+        }
+
         
     }
 }
