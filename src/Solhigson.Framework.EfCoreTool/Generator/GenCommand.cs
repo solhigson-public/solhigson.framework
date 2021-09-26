@@ -23,6 +23,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         private const string RepositoryDirectoryOption = "-rd";
         private const string ServicesDirectoryOption = "-sd";
         private const string DtoProjectPathOption = "-cp";
+        private const string ContractsProjectPathOption = "-cc";
         private const string TestsProjectPathOption = "-tp";
         private const string RepositoryClassType = "Repository";
         private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
@@ -40,6 +41,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             ValidOptions.Add(DtoProjectPathOption);
             ValidOptions.Add(TestsProjectPathOption);
             ValidOptions.Add(RootNamespaceOption);
+            ValidOptions.Add(ContractsProjectPathOption);
             
             foreach (var key in Args)
             {
@@ -74,6 +76,12 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 serviceProjectPath = persistenceProjectPath;
             }
+            
+            if (!Args.TryGetValue(ContractsProjectPathOption, out var contractsProjectPath))
+            {
+                contractsProjectPath = serviceProjectPath;
+            }
+
 
             Args.TryGetValue(TestsProjectPathOption, out var testsProjectPath);
             Args.TryGetValue(RepositoryDirectoryOption, out var repositoryDirectoryPath);
@@ -92,6 +100,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
 
             DtoProjectNamespace = new DirectoryInfo(serviceProjectPath).Name;
+            ContractsProjectNamespace = new DirectoryInfo(contractsProjectPath).Name;
 
             foreach (var entity in Models)
             {
@@ -113,10 +122,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     entity.Namespace, false, false, isCachedEntity: isCached); //custom class
 
 
-                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
+                GenerateFile(contractsProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     true, GetDtoProperties(entity, false)); //generated dto
 
-                GenerateFile(serviceProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
+                GenerateFile(contractsProjectPath, dtoFolder, dtoClassType, entity.Name, entity.Namespace, false,
                     false); //custom dto
 
                 if (!isCached)

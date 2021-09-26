@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace [DtoProjectNamespace].[Folder]
+namespace [ContractsProjectNamespace].[Folder]
 {
     [GeneratedFileComment]
     public partial record [Placeholder]Dto

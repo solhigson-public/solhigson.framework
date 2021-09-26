@@ -342,3 +342,4 @@ src/Solhigson.Framework.Tests/Tests
 src/Solhigson.Framework.Tests/BaseTest.cs
 src/Solhigson.Framework.Tests/BaseTest.generated.cs
 *.development.json
+/src/Solhigson.Framework.Playground/Views/

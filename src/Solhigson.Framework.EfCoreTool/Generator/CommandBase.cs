@@ -32,6 +32,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
 
         protected string DtoProjectNamespace { get; set; }
+        protected string ContractsProjectNamespace { get; set; }
 
         protected CommandBase()
         {
@@ -260,6 +261,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                 .Replace("[AbstractionsFolder]", AbstractionsFolderName)
                 .Replace("[RepositoriesFolder]", RepositoryNamespace)
                 .Replace("[DtoProjectNamespace]", DtoProjectNamespace)
+                .Replace("[ContractsProjectNamespace]", ContractsProjectNamespace)
                 .Replace("[Cached]", cachedRepositoryIndicator)
                 .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
                 .Replace("[CustomFileComment]", GetComment("This file is never overwritten, place custom code here"))
