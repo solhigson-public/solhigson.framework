@@ -11,7 +11,7 @@ namespace Solhigson.Framework.Web.Middleware
 {
     public class ExceptionHandlingMiddleware : IMiddleware
     {
-        private static LogWrapper _logger = LogManager.GetLogger(nameof(ExceptionHandlingMiddleware));
+        private static readonly LogWrapper Logger = LogManager.GetLogger(nameof(ExceptionHandlingMiddleware));
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try
@@ -24,7 +24,7 @@ namespace Solhigson.Framework.Web.Middleware
                 {
                     await HandleExceptionAsync(context, StatusCodes.Status401Unauthorized);
                 }
-                _logger.Error(e);
+                Logger.Error(e);
                 await HandleExceptionAsync(context);
             }
         }
@@ -51,7 +51,7 @@ namespace Solhigson.Framework.Web.Middleware
             }
             catch (Exception e)
             {
-                _logger.Error(e, $"Exception thrown in {nameof(ExceptionHandlingMiddleware)}");
+                Logger.Error(e, $"Exception thrown in {nameof(ExceptionHandlingMiddleware)}");
             }
         }
     }

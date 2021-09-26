@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities;
 using Solhigson.Framework.Web.Attributes;
 
@@ -18,6 +19,7 @@ namespace Solhigson.Framework.Web.Middleware
         where TRole : SolhigsonAspNetRole<TKey>
         where TKey : IEquatable<TKey>
     {
+        private static readonly LogWrapper Logger = LogManager.GetLogger(nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>));
         private readonly PermissionManager<TUser, TRole, TContext, TKey> _permissionManager;
         public PermissionsMiddleware(PermissionManager<TUser, TRole, TContext, TKey> permissionManager)
         {
@@ -62,26 +64,35 @@ namespace Solhigson.Framework.Web.Middleware
 
         private static async Task HandleForbidden(HttpContext httpContext, string message = null)
         {
-            var msg = "Access to resource is denied";
-            msg = !string.IsNullOrWhiteSpace(message) 
-                ? $"{msg} - {message}" 
-                : $"{msg}.";
-            
-            httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
-            if (!httpContext.Response.Body.CanWrite)
+            try
             {
-                return;
+                var msg = "Access to resource is denied";
+                msg = !string.IsNullOrWhiteSpace(message)
+                    ? $"{msg} - {message}"
+                    : $"{msg}.";
+
+                httpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
+                if (!httpContext.Response.Body.CanWrite)
+                {
+                    return;
+                }
+
+                if (httpContext.IsApiController())
+                {
+                    httpContext.Response.ContentType = "application/json";
+                    await httpContext.Response.WriteAsync(ResponseInfo.FailedResult(msg, StatusCode.UnAuthorised)
+                        .SerializeToJson());
+                }
+                else
+                {
+                    httpContext.Response.Redirect("~/_403");
+                }
             }
-            if (httpContext.IsApiController())
+            catch (Exception e)
             {
-                httpContext.Response.ContentType = "application/json";
-                await httpContext.Response.WriteAsync(ResponseInfo.FailedResult(msg, StatusCode.UnAuthorised)
-                    .SerializeToJson());
+                Logger.Error(e, $"Exception thrown in {nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>)}");
             }
-            else
-            {
-                httpContext.Response.Redirect("~/_403");
-            }
+
         }
     }
 }

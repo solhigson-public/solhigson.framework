@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
@@ -84,11 +85,17 @@ namespace Solhigson.Framework.Identity
                 roleGroupId = roleGroup.Id;
             }
 
-            return await RoleManager.CreateAsync(new TRole
+            var role = new TRole
             {
                 Name = roleName,
                 RoleGroupId = roleGroupId,
-            });
+            };
+            var idPropertyInfo = role.GetType().GetProperties().FirstOrDefault(t => t.Name == "Id");
+            if(idPropertyInfo?.PropertyType == typeof(string))
+            {
+                idPropertyInfo?.SetValue(role, Guid.NewGuid().ToString());
+            }
+            return await RoleManager.CreateAsync(role);
         }
 
         public async Task SignOut()
