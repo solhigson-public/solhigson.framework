@@ -18,7 +18,6 @@ using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
-using [ProjectRootNamespace].Web;
 
 
 namespace [ProjectRootNamespace].Tests
@@ -32,7 +31,7 @@ namespace [ProjectRootNamespace].Tests
             testOutputHelper.ConfigureNLogConsoleOutputTarget();
             var builder = new ContainerBuilder();
 
-            Startup.RegisterDependencies(builder);
+            RegisterStartUpDependencies(builder);
 
             /*
              * Override certain dependencies for mocking
