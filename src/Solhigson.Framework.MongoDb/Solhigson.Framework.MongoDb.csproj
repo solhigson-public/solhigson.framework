@@ -14,7 +14,7 @@
 
     <ItemGroup>
       <PackageReference Include="MongoDB.Driver" Version="2.13.1" />
-      <PackageReference Include="Solhigson.Framework" Version="1.6.33" />
+      <PackageReference Include="Solhigson.Framework" Version="1.6.39" />
     </ItemGroup>
 
 </Project>
