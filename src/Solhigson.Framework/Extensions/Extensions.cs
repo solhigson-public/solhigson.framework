@@ -93,7 +93,7 @@ namespace Solhigson.Framework.Extensions
                 app.UseMiddleware<ApiTraceMiddleware>();
             }
             ConfigurationItemFactory.Default.CreateInstance = type =>
-                type == typeof(CustomDataRenderer)
+                type == typeof(CustomDataRenderer) || type.Name == nameof(CustomDataRenderer)
                     ? new CustomDataRenderer(defaultNLogParameters.ProtectedFields)
                     : Activator.CreateInstance(type);
             
