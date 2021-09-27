@@ -1,5 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos;
-using Solhigson.Framework.Logging.Dto;
+using Solhigson.Framework.Logging.Nlog.Dto;
 
 namespace Solhigson.Framework.AzureCosmosDb.Dto
 {
