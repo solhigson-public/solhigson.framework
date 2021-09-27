@@ -19,7 +19,7 @@ namespace Solhigson.Framework.Web.Api
         public const string ContentTypeJson = "application/json";
         public const string ContentTypeXml = "application/xml";
         public const string ContentTypeXWwwFormUrlencoded = "application/x-www-form-urlencoded";
-        private readonly LogWrapper _logger = new LogWrapper("ApiRequestHelper");
+        private static readonly LogWrapper Logger = new (nameof(ApiRequestService));
         private readonly IHttpClientFactory _httpClientFactory;
 
         public ApiRequestService(IHttpClientFactory httpClientFactory)
@@ -207,7 +207,7 @@ namespace Solhigson.Framework.Web.Api
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                Logger.Error(e);
             }
 
             return new ApiRequestResponse<T>();
@@ -313,7 +313,7 @@ namespace Solhigson.Framework.Web.Api
                 var hResponse = (HttpWebResponse) we.Response;
                 if (hResponse == null)
                 {
-                    _logger.Error(we, $"While sending request to url: {url}");
+                    Logger.Error(we, $"While sending request to url: {url}");
                     GetStatusCode(we, apiRequestHelperResponse);
 
                     apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
@@ -343,7 +343,7 @@ namespace Solhigson.Framework.Web.Api
             catch (Exception e)
             {
                 apiRequestHelperResponse.Response = e.Message;
-                _logger.Error(e, $"While sending request to url: {url}");
+                Logger.Error(e, $"While sending request to url: {url}");
                 apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
                 if ((DateTime.UtcNow - traceData.RequestTime).TotalMilliseconds >= apiRequestDetails.TimeOut)
                 {
@@ -395,14 +395,14 @@ namespace Solhigson.Framework.Web.Api
                         ? "Outbound"
                         : apiRequestDetails.ServiceDescription;
 
-                    _logger.Log(desc, LogLevel.Info, traceData, null,
+                    Logger.Log(desc, LogLevel.Info, traceData, null,
                         serviceName, serviceType,
                         Constants.Group.ServiceStatus, status, traceData.Url,
                         traceData.GetUserIdentity());
                 }
                 catch (Exception e)
                 {
-                    _logger.Error(e);
+                    Logger.Error(e);
                 }
             }
 
@@ -447,7 +447,7 @@ namespace Solhigson.Framework.Web.Api
             }
             catch (Exception e)
             {
-                _logger.Error(e, $"While deserializing response: " +
+                Logger.Error(e, $"While deserializing response: " +
                                 $"{apiRequestResponse.Response} from: {format}");
             }
         }

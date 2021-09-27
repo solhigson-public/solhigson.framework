@@ -5,9 +5,8 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using NLog.Common;
-using Solhigson.Framework.Infrastructure;
 
-namespace Solhigson.Framework.Services
+namespace Solhigson.Framework.AzureLogAnalytics
 {
     public class AzureLogAnalyticsService
     {

@@ -6,7 +6,7 @@ using NLog.Common;
 using NLog.Targets;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
+namespace Solhigson.Framework.AzureCosmosDb.Nlog
 {
     public class CosmosDbTarget<T> : TargetWithLayout
     {

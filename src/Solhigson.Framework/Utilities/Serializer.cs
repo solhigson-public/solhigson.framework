@@ -10,7 +10,6 @@ using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using Solhigson.Framework.Logging.Dto;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Solhigson.Framework.Utilities

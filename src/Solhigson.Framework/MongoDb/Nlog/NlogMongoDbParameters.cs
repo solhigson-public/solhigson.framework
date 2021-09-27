@@ -1,6 +1,6 @@
-using Solhigson.Framework.Logging.Dto;
+using Solhigson.Framework.Logging.Nlog.Dto;
 
-namespace Solhigson.Framework.MongoDb.Dto
+namespace Solhigson.Framework.MongoDb.Nlog
 {
     public class NlogMongoDbParameters : DefaultNLogParameters
     {

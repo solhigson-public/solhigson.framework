@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Solhigson.Framework.Logging.Dto
+﻿namespace Solhigson.Framework.Logging.Nlog.Dto
 {
     public class DefaultNLogParameters
     {

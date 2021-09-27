@@ -3,9 +3,8 @@ using System.Net.Http;
 using NLog;
 using NLog.Common;
 using NLog.Targets;
-using Solhigson.Framework.Services;
 
-namespace Solhigson.Framework.Logging.Nlog.Targets
+namespace Solhigson.Framework.AzureLogAnalytics.Nlog
 {
     [Target("AzureLogAnalytics")]
     public class AzureLogAnalyticsTarget : TargetWithLayout

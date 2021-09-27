@@ -5,10 +5,9 @@ using NLog;
 using NLog.Common;
 using NLog.Targets;
 using Solhigson.Framework.MongoDb.Dto;
-using Solhigson.Framework.MongoDb.Services;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.MongoDb.Logging.NLog
+namespace Solhigson.Framework.MongoDb.Nlog
 {
     public class MongoDbTarget<T> : TargetWithLayout where T : MongoDbDocumentBase
     {

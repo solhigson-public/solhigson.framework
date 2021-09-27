@@ -5,10 +5,9 @@ using System.Threading.Tasks;
 using MongoDB.Driver;
 using NLog.Common;
 using Solhigson.Framework.Data;
-using Solhigson.Framework.Logging;
 using Solhigson.Framework.MongoDb.Dto;
 
-namespace Solhigson.Framework.MongoDb.Services
+namespace Solhigson.Framework.MongoDb
 {
     internal static class MongoDbServiceFactory
     {

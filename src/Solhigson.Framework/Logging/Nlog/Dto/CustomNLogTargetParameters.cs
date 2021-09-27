@@ -1,6 +1,6 @@
 ﻿using NLog.Targets;
 
-namespace Solhigson.Framework.Logging.Dto
+namespace Solhigson.Framework.Logging.Nlog.Dto
 {
     public class CustomNLogTargetParameters : DefaultNLogParameters
     {

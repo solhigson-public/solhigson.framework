@@ -1,17 +1,15 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using NLog.Common;
-using Solhigson.Framework.Logging;
-using Solhigson.Framework.Logging.Dto;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging.Nlog;
+using Solhigson.Framework.Logging.Nlog.Dto;
 using Solhigson.Framework.MongoDb.Dto;
-using Solhigson.Framework.MongoDb.Logging.NLog;
-using Solhigson.Framework.MongoDb.Services;
+using Solhigson.Framework.MongoDb.Nlog;
 
-namespace Solhigson.Framework.Extensions
+namespace Solhigson.Framework.MongoDb
 {
-    public static class Extensions
+    public static class MongoDbExtensions
     {
-        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
         public static MongoDbService<MongoDbLog> UseSolhigsonNLogMongoDbTarget(this IApplicationBuilder app,
             NlogMongoDbParameters parameters = null)
         {
@@ -32,14 +30,16 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
 
+            app.ConfigureSolhigsonNLogDefaults();
             var customTarget = new MongoDbTarget<MongoDbLog>(service)
             {
                 Name = "custom document",
-                Layout = NLogDefaults.GetDefaultJsonLayout(),
+                Layout = NLogDefaults.GetDefaultNoSqlDbJsonLayout(),
             };
 
             app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
             return service;
         }
+
     }
 }

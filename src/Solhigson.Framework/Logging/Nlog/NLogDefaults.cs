@@ -1,4 +1,5 @@
 ﻿using System;
+using Mapster;
 using NLog.Layouts;
 using NLog.Targets;
 using Solhigson.Framework.Logging.Nlog.Targets;
@@ -17,6 +18,14 @@ namespace Solhigson.Framework.Logging.Nlog
                 ArchiveNumbering = ArchiveNumberingMode.Sequence,
                 Layout = GetDefaultJsonLayout(encodeChildJsonContent)
             };
+        }
+
+        public static JsonLayout GetDefaultNoSqlDbJsonLayout(bool encodeChildJsonContent = true)
+        {
+            var layout = GetDefaultJsonLayout(encodeChildJsonContent);
+            layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
+            layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
+            return layout;
         }
 
         public static JsonLayout GetDefaultJsonLayout(bool encodeChildJsonContent = true)

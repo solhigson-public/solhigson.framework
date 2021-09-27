@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.Azure.Cosmos;
 using NLog.Common;
-using Solhigson.Framework.AzureCosmosDb;
 using Solhigson.Framework.AzureCosmosDb.Dto;
-using Solhigson.Framework.AzureCosmosDb.Logging.Nlog;
+using Solhigson.Framework.AzureCosmosDb.Nlog;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
+using Solhigson.Framework.Logging.Nlog.Dto;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.Extensions
+namespace Solhigson.Framework.AzureCosmosDb
 {
-    public static class Extensions
+    public static class AzureCosmosDbExtensions
     {
         private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
         public static CosmosDbService UseSolhigsonNLogCosmosDbTarget(this IApplicationBuilder app,
@@ -36,6 +35,7 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
            
+            app.ConfigureSolhigsonNLogDefaults();
             var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container)
             {
                 Name = "custom document",
