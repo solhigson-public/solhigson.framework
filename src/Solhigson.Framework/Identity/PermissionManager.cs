@@ -41,6 +41,11 @@ namespace Solhigson.Framework.Identity
 
         }
         
+        public ResponseInfo VerifyPermission(string permissionName, string role)
+        {
+            return VerifyPermission(permissionName, new [] { role});
+        }
+
         public ResponseInfo VerifyPermission(string permissionName, IReadOnlyCollection<string> roles)
         {
             if (roles == null || !roles.Any())
