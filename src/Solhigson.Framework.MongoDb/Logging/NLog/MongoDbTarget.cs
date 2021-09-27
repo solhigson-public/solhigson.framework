@@ -36,6 +36,7 @@ namespace Solhigson.Framework.MongoDb.Logging.NLog
             try
             {
                 var document = JsonConvert.DeserializeObject<T>(jsonString);
+                document.Id = Guid.NewGuid().ToString();
                 AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
                 return true;
             }
