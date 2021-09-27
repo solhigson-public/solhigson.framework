@@ -562,7 +562,7 @@ namespace Solhigson.Framework.Extensions
         public static IQueryable<T> DateRangeQuery<T>(this IQueryable<T> source, DateTime fromDate, DateTime toDate)
         where T: IDateSearchable
         {
-            return source.Where(t => t.GetDateField() >= fromDate && t.GetDateField() <= toDate);
+            return source.Where(t => t.Date >= fromDate && t.Date <= toDate);
         }
 
         #endregion

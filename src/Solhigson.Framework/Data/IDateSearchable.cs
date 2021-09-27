@@ -4,6 +4,6 @@ namespace Solhigson.Framework.Data
 {
     public interface IDateSearchable
     {
-        DateTime GetDateField();
+        DateTime Date { get; }
     }
 }
