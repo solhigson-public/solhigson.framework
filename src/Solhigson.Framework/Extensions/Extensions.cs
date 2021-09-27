@@ -36,8 +36,8 @@ using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
+using Solhigson.Framework.Logging.Nlog.Dto;
 using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
@@ -84,7 +84,7 @@ namespace Solhigson.Framework.Extensions
             return app;
         }
 
-        private static IApplicationBuilder ConfigureSolhigsonNLogDefaults(this IApplicationBuilder app,
+        public static IApplicationBuilder ConfigureSolhigsonNLogDefaults(this IApplicationBuilder app,
             DefaultNLogParameters defaultNLogParameters = null)
         {
             defaultNLogParameters ??= new DefaultNLogParameters();
@@ -126,8 +126,6 @@ namespace Solhigson.Framework.Extensions
                 return app;
             }
             
-            app.ConfigureSolhigsonNLogDefaults(customNLogTargetParameters);
-            
             var config = new LoggingConfiguration();
             var fallbackGroupTarget = new FallbackGroupTarget
             {
@@ -139,6 +137,7 @@ namespace Solhigson.Framework.Extensions
             config.AddRule(LogLevel.Info, LogLevel.Error, fallbackGroupTarget);
 
             NLog.LogManager.Configuration = config;
+            LogManager.SetLogLevel(customNLogTargetParameters.LogLevel);
 
             return app;
         }
@@ -175,6 +174,7 @@ namespace Solhigson.Framework.Extensions
                 return app;
             }
 
+            app.ConfigureSolhigsonNLogDefaults();
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
                 defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName,
                 app.ApplicationServices.GetRequiredService<IHttpClientFactory>())

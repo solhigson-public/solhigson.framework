@@ -36,6 +36,7 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
            
+            //app.ConfigureSolhigsonNLogDefaults();
             var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container)
             {
                 Name = "custom document",

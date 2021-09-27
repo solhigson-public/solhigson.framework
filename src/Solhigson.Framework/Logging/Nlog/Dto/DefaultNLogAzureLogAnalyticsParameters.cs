@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Logging.Dto
+﻿namespace Solhigson.Framework.Logging.Nlog.Dto
 {
     public class DefaultNLogAzureLogAnalyticsParameters : DefaultNLogParameters
     {

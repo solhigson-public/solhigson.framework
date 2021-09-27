@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using NLog.Common;
+using NLog.Layouts;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Dto;
 using Solhigson.Framework.Logging.Nlog;
@@ -32,14 +33,20 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
 
+            var layout = NLogDefaults.GetDefaultJsonLayout(parameters.EncodeChildJsonContent);
+            layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
+            layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
+            
+            //app.ConfigureSolhigsonNLogDefaults();
             var customTarget = new MongoDbTarget<MongoDbLog>(service)
             {
                 Name = "custom document",
-                Layout = NLogDefaults.GetDefaultJsonLayout(),
+                Layout = layout,
             };
 
             app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
             return service;
         }
+        
     }
 }
