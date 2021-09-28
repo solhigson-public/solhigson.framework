@@ -19,10 +19,10 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageTool: $[eq(variables['Build.SourceBranchName'], 'efcore.tool.release')]
-  packageFramework: $[eq(variables['Build.SourceBranchName'], 'framework.release')]
-  packageAzureCosmosDb: $[eq(variables['Build.SourceBranchName'], 'cosmosdb.release')]
-  packageMongoDb: $[eq(variables['Build.SourceBranchName'], 'mongodb.release')]
+  packageTool: true
+  packageFramework: false
+  packageAzureCosmosDb: false
+  packageMongoDb: false
 
 stages:
   - stage: build
