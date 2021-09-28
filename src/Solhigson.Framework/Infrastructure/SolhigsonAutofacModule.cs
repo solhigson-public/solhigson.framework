@@ -24,6 +24,12 @@ namespace Solhigson.Framework.Infrastructure
 
             if (!string.IsNullOrWhiteSpace(_connectionString))
             {
+                builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
+                    .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+
+                builder.RegisterType<SolhigsonConfigurationService>().AsSelf().SingleInstance()
+                    .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+
                 builder.Register(c =>
                 {
                     var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
@@ -52,9 +58,6 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<ApiRequestService>().As<IApiRequestService>().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-            
             builder.RegisterType<NotificationService>().As<INotificationService>().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 

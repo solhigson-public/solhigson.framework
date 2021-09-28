@@ -15,9 +15,11 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
             ,Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel>
     {
 		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByIdAsync(int id);
+		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByNameAsync(string name);
 
 		//Cached Methods
 		Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByIdCached(int id);
+		Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByNameCached(string name);
     
     }
 }

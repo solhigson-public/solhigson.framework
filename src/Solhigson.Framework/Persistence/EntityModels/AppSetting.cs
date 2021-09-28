@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 
 namespace Solhigson.Framework.Persistence.EntityModels
 {
     [Table(ScriptsManager.AppSettingInfo.TableName)]
+    [Index(nameof(Name), IsUnique = true)]
     public record AppSetting : ICachedEntity
     {
         [Key]

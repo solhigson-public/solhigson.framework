@@ -30,6 +30,15 @@ namespace Solhigson.Framework.Persistence.Repositories
 			return await Get(query).FirstOrDefaultAsync();
 		}
 
+		public async Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByNameAsync(string name)
+		{
+			if (name is null) { return null; }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
+				t => t.Name == name;
+			return await Get(query).FirstOrDefaultAsync();
+		}
+
 
 		//Cached Methods
 		public Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByIdCached(int id)
@@ -37,6 +46,15 @@ namespace Solhigson.Framework.Persistence.Repositories
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
 				t => t.Id == id;
+			return GetSingleCached(query);
+		}
+
+		public Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByNameCached(string name)
+		{
+			if (name is null) { return null; }
+
+			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
+				t => t.Name == name;
 			return GetSingleCached(query);
 		}
 
