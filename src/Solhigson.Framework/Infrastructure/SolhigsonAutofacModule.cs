@@ -41,7 +41,7 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<ConfigurationWrapper>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<SolhigsonConfigurationCache>().AsSelf().SingleInstance()
+            builder.RegisterType<SolhigsonAppSettings>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             builder.RegisterType<SolhigsonServicesWrapper>().AsSelf().SingleInstance()

@@ -14,6 +14,6 @@ namespace Solhigson.Framework.Services
      */
     public abstract partial class ServiceBase
     {
-        public SolhigsonServicesWrapper SolhigsonServicesWrapper { get; set; }
+        
     }
 }

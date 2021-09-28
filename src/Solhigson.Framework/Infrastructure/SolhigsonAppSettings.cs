@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Solhigson.Framework.Infrastructure
 {
-    public class SolhigsonConfigurationCache
+    public class SolhigsonAppSettings
     {
         private readonly ConfigurationWrapper _configurationWrapper;
 
-        public SolhigsonConfigurationCache(ConfigurationWrapper configurationWrapper)
+        public SolhigsonAppSettings(ConfigurationWrapper configurationWrapper)
         {
             _configurationWrapper = configurationWrapper;
         }

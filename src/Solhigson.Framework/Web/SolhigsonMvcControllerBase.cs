@@ -13,8 +13,6 @@ namespace Solhigson.Framework.Web
     [ApiExplorerSettings(IgnoreApi = true)]
     public class SolhigsonMvcControllerBase : Controller
     {
-        public SolhigsonServicesWrapper SolhigsonServicesWrapper { get; set; }
-        
         protected bool IsChecked(string name)
         {
             if (!HttpMethods.IsPost(Request.Method))

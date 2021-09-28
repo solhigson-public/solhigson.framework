@@ -4,19 +4,19 @@ using Solhigson.Framework.Web.Api;
 
 namespace Solhigson.Framework.Infrastructure
 {
-    public class SolhigsonServicesWrapper
+    internal class SolhigsonServicesWrapper
     {
-        public SolhigsonServicesWrapper(SolhigsonConfigurationCache configurationCache,
+        public SolhigsonServicesWrapper(SolhigsonAppSettings appSettings,
             IHttpContextAccessor httpContextAccessor, IConfiguration configuration, IApiRequestService apiRequestService)
         {
-            ConfigurationCache = configurationCache;
+            AppSettings = appSettings;
             HttpContextAccessor = httpContextAccessor;
             Configuration = configuration;
             ApiRequestService = apiRequestService;
         }
 
 
-        public SolhigsonConfigurationCache ConfigurationCache { get; }
+        public SolhigsonAppSettings AppSettings { get; }
         public IHttpContextAccessor HttpContextAccessor { get; }
         public IConfiguration Configuration { get; set; }
         public IApiRequestService ApiRequestService { get; set; }
