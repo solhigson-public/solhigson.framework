@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Identity;
 
 namespace Solhigson.Framework.Identity
@@ -17,6 +18,8 @@ namespace Solhigson.Framework.Identity
     {
         public bool IsEnabled { get; set; }
         public bool RequirePasswordChange { get; set; }
+        
+        [NotMapped]
         public List<SolhigsonAspNetRole<T>> Roles { get; set; }
     }
 }
