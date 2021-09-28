@@ -188,19 +188,32 @@ namespace Solhigson.Framework.Extensions
         }
 
         /// <summary>
-        /// Configuration entries:
         /// 
-        /// [Smtp:Server]
-        /// [Smtp:Port]
-        /// [Smtp:Username]
-        /// [Smtp:Password]
-        /// [Smtp:EnableSsl] - Optional - Default(true)
         /// </summary>
         /// <param name="services"></param>
+        /// <param name="smtpConfiguration"></param>
         /// <returns></returns>
-        public static IServiceCollection AddDefaultSmtpMailProvider(this IServiceCollection services)
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="Exception"></exception>
+        public static IServiceCollection AddSolhigsonSmtpMailProvider(this IServiceCollection services,
+            SmtpConfiguration smtpConfiguration)
         {
-            services.AddSingleton<IMailProvider, SmtpMailProvider>();
+            if (smtpConfiguration is null)
+            {
+                throw new ArgumentNullException(nameof(smtpConfiguration));
+            }
+
+            if (string.IsNullOrWhiteSpace(smtpConfiguration.Server))
+            {
+                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Server)} cannot be empty");
+            }
+            
+            if (smtpConfiguration.Port <= 0)
+            {
+                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Password)} cannot be 0");
+            }
+            
+            services.AddSingleton<IMailProvider>(new SmtpMailProvider(smtpConfiguration));
             return services;
         }
 

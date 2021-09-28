@@ -11,10 +11,10 @@ namespace Solhigson.Framework.Notification
 {
     public class SmtpMailProvider : IMailProvider
     {
-        private readonly SolhigsonAppSettings _appSettings;
-        public SmtpMailProvider(SolhigsonAppSettings appSettings)
+        private readonly SmtpConfiguration _smtpConfiguration;
+        public SmtpMailProvider(SmtpConfiguration smtpConfiguration)
         {
-            _appSettings = appSettings;
+            _smtpConfiguration = smtpConfiguration;
         }
         
         public void SendMail(EmailNotificationDetail emailNotificationDetail)
@@ -77,19 +77,18 @@ namespace Solhigson.Framework.Notification
             {
                 var client = new SmtpClient
                 {
-                    Host = _appSettings.SmtpServer,
-                    Port = _appSettings.SmtpPort,
+                    Host = _smtpConfiguration.Server,
+                    Port = _smtpConfiguration.Port,
                 };
 
-                var username = _appSettings.SmtpUsername;
-                var password = _appSettings.SmtpPassword;
-                if (!string.IsNullOrWhiteSpace(username)
-                    && !string.IsNullOrWhiteSpace(password))
+                if (!string.IsNullOrWhiteSpace(_smtpConfiguration.Username)
+                    && !string.IsNullOrWhiteSpace(_smtpConfiguration.Password))
                 {
-                    client.Credentials = new NetworkCredential(username, password);
+                    client.Credentials = new NetworkCredential(_smtpConfiguration.Username,
+                        _smtpConfiguration.Password);
                 }
 
-                client.EnableSsl = _appSettings.SmtpEnableSsl;
+                client.EnableSsl = _smtpConfiguration.EnableSsl;
                 client.Send(mail);
                 this.ELogDebug("Mail has been sent.");
             }
