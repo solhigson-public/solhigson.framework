@@ -28,32 +28,19 @@ namespace Solhigson.Framework.Infrastructure
 
         public T GetFromAppSettingFileOnly<T>(string group, string key = null, string defaultValue = null)
         {
-            var setting = GetConfig(group, key, defaultValue, true);
+            var setting = GetConfigInternal(group, key, defaultValue, true);
             return VerifySetting<T>(setting, key, group, defaultValue);
         }
         
-        public string GetFromAppSettingFileOnly(string group, string key = null, string defaultValue = null)
-        {
-            return GetConfig(group, key, defaultValue, true);
-        }
-
-        public T GetConfig<T>(string groupName, string key = null, object defaultValue = null,
+        public T GetConfig<T>(string groupName, string key = null, string defaultValue = null,
             bool useAppSettingsFileOnly = false)
         {
             string val = null;
-            if (defaultValue != null) val = defaultValue.ToString();
-            var setting = GetConfig(groupName, key, val);
+            var setting = GetConfigInternal(groupName, key, val);
             return VerifySetting<T>(setting, key, groupName, defaultValue);
         }
         
-        public string GetConfig(string groupName, string key = null, object defaultValue = null)
-        {
-            string val = null;
-            if (defaultValue != null) val = defaultValue.ToString();
-            return GetConfig(groupName, key, val);
-        }
-
-        private string GetConfig(string group, string key = null, string defaultValue = null,
+        private string GetConfigInternal(string group, string key = null, string defaultValue = null,
             bool useAppSettingsFileOnly = false)
         {
             var configKey = group;
@@ -75,7 +62,7 @@ namespace Solhigson.Framework.Infrastructure
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(defaultValue))
+            if (defaultValue is null)
             {
                 throw new Exception($"Configuration [{key}] for group [{group}] not found.");
             }

@@ -11,7 +11,7 @@ namespace Solhigson.Framework.Infrastructure
         {
             _configurationWrapper = configurationWrapper;
         }
-        public string ProtectedFields => _configurationWrapper.GetConfig("Solhigson.Framework", "ProtectedFields", "");
+        public string ProtectedFields => _configurationWrapper.GetConfig<string>("Solhigson.Framework", "ProtectedFields", "");
         
         #region Smtp
 
