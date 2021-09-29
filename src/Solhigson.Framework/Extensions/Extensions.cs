@@ -195,25 +195,9 @@ namespace Solhigson.Framework.Extensions
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
         /// <exception cref="Exception"></exception>
-        public static IServiceCollection AddSolhigsonSmtpMailProvider(this IServiceCollection services,
-            SmtpConfiguration smtpConfiguration)
+        public static IServiceCollection AddSolhigsonSmtpMailProvider(this IServiceCollection services)
         {
-            if (smtpConfiguration is null)
-            {
-                throw new ArgumentNullException(nameof(smtpConfiguration));
-            }
-
-            if (string.IsNullOrWhiteSpace(smtpConfiguration.Server))
-            {
-                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Server)} cannot be empty");
-            }
-            
-            if (smtpConfiguration.Port <= 0)
-            {
-                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Password)} cannot be 0");
-            }
-            
-            services.AddSingleton<IMailProvider>(new SmtpMailProvider(smtpConfiguration));
+            services.AddSingleton<IMailProvider, SolhigsonSmtpMailProvider>();
             return services;
         }
 
@@ -284,6 +268,37 @@ namespace Solhigson.Framework.Extensions
             app.UseMiddleware<IPermissionMiddleware>();
             return app;
         }
+
+        public static IApplicationBuilder UseSolhigsonSmtpProvider(this IApplicationBuilder app,
+            SmtpConfiguration smtpConfiguration)
+        {
+            if (app.ApplicationServices.GetRequiredService<IMailProvider>() is not SolhigsonSmtpMailProvider provider)
+            {
+                throw new Exception(
+                    $"{nameof(SolhigsonSmtpMailProvider)} service has not been registered, kindly include " +
+                    $"services.AddSolhigsonSmtpMailProvider() under ConfigureServices in Startup.");
+            }
+
+            if (smtpConfiguration is null)
+            {
+                throw new ArgumentNullException(nameof(smtpConfiguration));
+            }
+
+            if (string.IsNullOrWhiteSpace(smtpConfiguration.Server))
+            {
+                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Server)} cannot be empty");
+            }
+
+            if (smtpConfiguration.Port <= 0)
+            {
+                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Password)} cannot be 0");
+            }
+
+            provider.UseConfiguration(smtpConfiguration);
+
+            return app;
+        }
+
 
 
 

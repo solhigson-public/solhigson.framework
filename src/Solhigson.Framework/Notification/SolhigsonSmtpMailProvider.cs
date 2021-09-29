@@ -9,16 +9,41 @@ using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Notification
 {
-    public class SmtpMailProvider : IMailProvider
+    public class SolhigsonSmtpMailProvider : IMailProvider
     {
-        private readonly SmtpConfiguration _smtpConfiguration;
-        public SmtpMailProvider(SmtpConfiguration smtpConfiguration)
+        private SmtpConfiguration _smtpConfiguration;
+        public SolhigsonSmtpMailProvider()
         {
+            
+        }
+
+        public void UseConfiguration(SmtpConfiguration smtpConfiguration)
+        {
+            if (smtpConfiguration is null)
+            {
+                throw new ArgumentNullException(nameof(smtpConfiguration));
+            }
+
+            if (string.IsNullOrWhiteSpace(smtpConfiguration.Server))
+            {
+                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Server)} cannot be empty");
+            }
+            
+            if (smtpConfiguration.Port <= 0)
+            {
+                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Password)} cannot be 0");
+            }
             _smtpConfiguration = smtpConfiguration;
         }
         
         public void SendMail(EmailNotificationDetail emailNotificationDetail)
         {
+            if (_smtpConfiguration == null)
+            {
+                throw new Exception(
+                    $"{nameof(SolhigsonSmtpMailProvider)} has not been configured, " +
+                    $"use app.UseSolhigsonSmtpProvider({nameof(SmtpConfiguration)} in the Configure method in Startup");
+            }
             try
             {
                 this.ELogDebug("Sending mail - default");

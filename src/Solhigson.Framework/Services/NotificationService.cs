@@ -42,13 +42,12 @@ namespace Solhigson.Framework.Services
             {
                 if (_mailProvider == null)
                 {
-                    this.ELogWarn($"No {nameof(IMailProvider)} has been registered, mails will not be sent");
+                    this.ELogWarn($"No type of {nameof(IMailProvider)} has been registered, mail will not be sent");
                     return;
                 }
 
                 if (string.IsNullOrWhiteSpace(emailNotificationDetail.Body) &&
-                    !string.IsNullOrWhiteSpace(emailNotificationDetail.TemplateName)
-                    && emailNotificationDetail.TemplatePlaceholders.Any())
+                    !string.IsNullOrWhiteSpace(emailNotificationDetail.TemplateName))
                 {
                     var template =
                         RepositoryWrapper.NotificationTemplateRepository.GetByNameCached(emailNotificationDetail
@@ -108,7 +107,7 @@ namespace Solhigson.Framework.Services
             {
                 if (_smsProvider == null)
                 {
-                    this.ELogWarn($"No {nameof(ISmsProvider)} has been registered, mails will not be sent");
+                    this.ELogWarn($"No type of {nameof(ISmsProvider)} has been registered, SMS will not be sent");
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(parameters.From))
@@ -116,8 +115,7 @@ namespace Solhigson.Framework.Services
                     return;
                 }
                 if (string.IsNullOrWhiteSpace(parameters.Text) &&
-                    !string.IsNullOrWhiteSpace(parameters.TemplateName)
-                    && parameters.PlaceHolderValues.Any())
+                    !string.IsNullOrWhiteSpace(parameters.TemplateName))
                 {
                     var template =
                         RepositoryWrapper.NotificationTemplateRepository.GetByNameCached(parameters.TemplateName);
