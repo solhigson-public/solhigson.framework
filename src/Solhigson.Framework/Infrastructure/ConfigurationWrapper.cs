@@ -35,8 +35,7 @@ namespace Solhigson.Framework.Infrastructure
         public T GetConfig<T>(string groupName, string key = null, string defaultValue = null,
             bool useAppSettingsFileOnly = false)
         {
-            string val = null;
-            var setting = GetConfigInternal(groupName, key, val);
+            var setting = GetConfigInternal(groupName, key, defaultValue);
             return VerifySetting<T>(setting, key, groupName, defaultValue);
         }
         
