@@ -11,7 +11,6 @@ namespace Solhigson.Framework.Utilities
             return val;
         }
         
-
         public static int GetTimeZoneOffset()
         {
             var timeOffSet = HelperFunctions.SafeGetSessionData(Constants.TimeZoneCookieName,

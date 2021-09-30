@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Primitives;
+using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Utilities;
@@ -91,6 +92,18 @@ namespace Solhigson.Framework.Web
                     HttpContext.Request.Cookies[Constants.TimeZoneCookieName], HttpContext);
             }
             base.OnActionExecuting(filterContext);
+        }
+
+        protected int GetPage()
+        {
+            if (HttpMethods.IsPost(Request.Method)) return 1;
+            var page = Request.Query[Constants.PaginationPage];
+            return int.TryParse(page, out var pageVal) ? pageVal : 1;
+        }
+        
+        public void AddPaginationParameters(PagedSearchParameters parameters)
+        {
+            TempData[Constants.PaginationParameters] = parameters?.SerializeToJson();
         }
 
     }

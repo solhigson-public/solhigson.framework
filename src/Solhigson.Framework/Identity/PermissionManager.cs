@@ -23,6 +23,7 @@ namespace Solhigson.Framework.Identity
         where TKey : IEquatable<TKey>
     {
         private readonly TContext _dbContext;
+        public static readonly Dictionary<string, string> Permissions = new();
         public IActionDescriptorCollectionProvider ActionDescriptorCollectionProvider { get; set; }
         public PermissionManager(TContext dbContext)
         {
@@ -199,6 +200,7 @@ namespace Solhigson.Framework.Identity
             }
             var controllerTypes = from type in controllerAssembly.GetTypes() where type.IsSubclassOf(typeof(ControllerBase)) select type;
             var count = 0;
+            var permissionList = new Dictionary<string, SolhigsonPermission>();
             foreach (var controllerType in controllerTypes)
             {
                 var methodInfos = controllerType.GetMethods()
@@ -223,20 +225,37 @@ namespace Solhigson.Framework.Identity
 
                     var permission = new SolhigsonPermission();
                     permission = permissionAttribute.Adapt(permission);
-                    _dbContext.Permissions.Add(permission);
                     permission.Url = actionInfo?.AttributeRouteInfo?.Template;
-                    try
-                    {
-                        await _dbContext.SaveChangesAsync();
-                        count++;
-                        this.ELogInfo($"Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]");
-                    }
-                    catch (Exception e)
-                    {
-                        this.ELogError(e, "Saving permission protected endpoint", permission);
-                    }
+                    permissionList.Add(permission.Name, permission);
                 }
             }
+
+            foreach (var key in Permissions.Keys.Where(key => !permissionList.ContainsKey(key)
+            && !_dbContext.Permissions.Any(t => t.Name == key)))
+            {
+                permissionList.Add(key, new SolhigsonPermission
+                {
+                    Name = key,
+                    Description = Permissions[key]
+                });
+            }
+
+            foreach (var permission in from key in permissionList.Keys select permissionList[key])
+            {
+                _dbContext.Permissions.Add(permission);
+                try
+                {
+                    await _dbContext.SaveChangesAsync();
+                    count++;
+                    this.ELogInfo($"Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]");
+                }
+                catch (Exception e)
+                {
+                    this.ELogError(e, "Saving permission", permission);
+                }
+            }
+            
+
             return response.Success(count);
         }
 
