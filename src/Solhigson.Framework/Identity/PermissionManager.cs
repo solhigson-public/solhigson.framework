@@ -23,7 +23,6 @@ namespace Solhigson.Framework.Identity
         where TKey : IEquatable<TKey>
     {
         private readonly TContext _dbContext;
-        public static readonly Dictionary<string, string> Permissions = new();
         public IActionDescriptorCollectionProvider ActionDescriptorCollectionProvider { get; set; }
         public PermissionManager(TContext dbContext)
         {
@@ -191,7 +190,7 @@ namespace Solhigson.Framework.Identity
         }
 
 
-        public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly)
+        public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly, Dictionary<string, string> customPermissions = null)
         {
             var response = new ResponseInfo<int>();
             if (controllerAssembly is null)
@@ -230,14 +229,17 @@ namespace Solhigson.Framework.Identity
                 }
             }
 
-            foreach (var key in Permissions.Keys.Where(key => !permissionList.ContainsKey(key)
-            && !_dbContext.Permissions.Any(t => t.Name == key)))
+            if (customPermissions != null && customPermissions.Any())
             {
-                permissionList.Add(key, new SolhigsonPermission
+                foreach (var key in customPermissions.Keys.Where(key => !permissionList.ContainsKey(key)
+                                                                        && !_dbContext.Permissions.Any(t => t.Name == key)))
                 {
-                    Name = key,
-                    Description = Permissions[key]
-                });
+                    permissionList.Add(key, new SolhigsonPermission
+                    {
+                        Name = key,
+                        Description = customPermissions[key]
+                    });
+                }
             }
 
             foreach (var permission in from key in permissionList.Keys select permissionList[key])
