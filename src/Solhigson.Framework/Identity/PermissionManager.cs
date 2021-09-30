@@ -23,10 +23,11 @@ namespace Solhigson.Framework.Identity
         where TKey : IEquatable<TKey>
     {
         private readonly TContext _dbContext;
-        public IActionDescriptorCollectionProvider ActionDescriptorCollectionProvider { get; set; }
-        public PermissionManager(TContext dbContext)
+        private readonly IActionDescriptorCollectionProvider _actionDescriptorCollectionProvider;
+        public PermissionManager(TContext dbContext, IActionDescriptorCollectionProvider actionDescriptorCollectionProvider)
         {
             _dbContext = dbContext;
+            _actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
         }
 
         public ResponseInfo VerifyPermission(string permissionName, ClaimsPrincipal claimsPrincipal)
@@ -190,75 +191,91 @@ namespace Solhigson.Framework.Identity
         }
 
 
-        public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly, Dictionary<string, string> customPermissions = null)
+        public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly,
+            Dictionary<string, string> customPermissions = null)
         {
             var response = new ResponseInfo<int>();
-            if (controllerAssembly is null)
+            try
             {
-                return response.Fail("Controller assembly is null");
-            }
-            var controllerTypes = from type in controllerAssembly.GetTypes() where type.IsSubclassOf(typeof(ControllerBase)) select type;
-            var count = 0;
-            var permissionList = new Dictionary<string, SolhigsonPermission>();
-            foreach (var controllerType in controllerTypes)
-            {
-                var methodInfos = controllerType.GetMethods()
-                    .Where(t => t.ReturnType != typeof(void) && t.DeclaringType == controllerType && t.IsPublic);
-                foreach (var methodInfo in methodInfos)
+                if (controllerAssembly is null)
                 {
-                    var permissionAttribute = methodInfo.GetAttribute<PermissionAttribute>(false);
-                    if (permissionAttribute is null)
+                    return response.Fail("Controller assembly is null");
+                }
+
+                var controllerTypes = from type in controllerAssembly.GetTypes()
+                    where type.IsSubclassOf(typeof(ControllerBase))
+                    select type;
+                var count = 0;
+                var permissionList = new Dictionary<string, SolhigsonPermission>();
+                foreach (var controllerType in controllerTypes)
+                {
+                    var methodInfos = controllerType.GetMethods()
+                        .Where(t => t.ReturnType != typeof(void) && t.DeclaringType == controllerType && t.IsPublic);
+                    foreach (var methodInfo in methodInfos)
                     {
-                        continue;
+                        var permissionAttribute = methodInfo.GetAttribute<PermissionAttribute>(false);
+                        if (permissionAttribute is null)
+                        {
+                            continue;
+                        }
+
+                        if (_dbContext.Permissions.Any(t =>
+                            t.Name == permissionAttribute.Name))
+                        {
+                            continue;
+                        }
+
+                        var actionInfo = _actionDescriptorCollectionProvider.ActionDescriptors.Items.FirstOrDefault(x =>
+                            x is ControllerActionDescriptor controllerActionDescriptor
+                            && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
+                            && controllerActionDescriptor.ActionName == methodInfo.Name);
+
+                        var permission = new SolhigsonPermission();
+                        permission = permissionAttribute.Adapt(permission);
+                        permission.Url = actionInfo?.AttributeRouteInfo?.Template;
+                        permissionList.Add(permission.Name, permission);
                     }
+                }
 
-                    if (_dbContext.Permissions.Any(t =>
-                        t.Name == permissionAttribute.Name))
+                if (customPermissions != null && customPermissions.Any())
+                {
+                    foreach (var key in customPermissions.Keys.Where(key => !permissionList.ContainsKey(key)
+                                                                            && !_dbContext.Permissions.Any(t =>
+                                                                                t.Name == key)))
                     {
-                        continue;
+                        permissionList.Add(key, new SolhigsonPermission
+                        {
+                            Name = key,
+                            Description = customPermissions[key]
+                        });
                     }
-                    
-                    var actionInfo = ActionDescriptorCollectionProvider.ActionDescriptors.Items.FirstOrDefault(x => x is ControllerActionDescriptor controllerActionDescriptor
-                        && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
-                        && controllerActionDescriptor.ActionName == methodInfo.Name);
-
-                    var permission = new SolhigsonPermission();
-                    permission = permissionAttribute.Adapt(permission);
-                    permission.Url = actionInfo?.AttributeRouteInfo?.Template;
-                    permissionList.Add(permission.Name, permission);
                 }
-            }
 
-            if (customPermissions != null && customPermissions.Any())
-            {
-                foreach (var key in customPermissions.Keys.Where(key => !permissionList.ContainsKey(key)
-                                                                        && !_dbContext.Permissions.Any(t => t.Name == key)))
+                foreach (var permission in from key in permissionList.Keys select permissionList[key])
                 {
-                    permissionList.Add(key, new SolhigsonPermission
+                    _dbContext.Permissions.Add(permission);
+                    try
                     {
-                        Name = key,
-                        Description = customPermissions[key]
-                    });
+                        await _dbContext.SaveChangesAsync();
+                        count++;
+                        this.ELogInfo(
+                            $"Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]");
+                    }
+                    catch (Exception e)
+                    {
+                        this.ELogError(e, "Saving permission", permission);
+                    }
                 }
-            }
 
-            foreach (var permission in from key in permissionList.Keys select permissionList[key])
+
+                return response.Success(count);
+            }
+            catch (Exception e)
             {
-                _dbContext.Permissions.Add(permission);
-                try
-                {
-                    await _dbContext.SaveChangesAsync();
-                    count++;
-                    this.ELogInfo($"Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]");
-                }
-                catch (Exception e)
-                {
-                    this.ELogError(e, "Saving permission", permission);
-                }
+                this.ELogError(e);
             }
-            
 
-            return response.Success(count);
+            return response.Fail();
         }
 
 
