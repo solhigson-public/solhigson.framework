@@ -154,14 +154,14 @@ namespace Solhigson.Framework.Identity
             {
                 return new List<SolhigsonPermission>();
             }
-            var query = (from rolePerm in _dbContext.RolePermissions
+            
+            var query = from rolePerm in _dbContext.RolePermissions
                 join role in _dbContext.Roles
                     on rolePerm.RoleId equals role.Id
-                join perm in _dbContext.Permissions.Include(t => t.Children.Where(child => child.IsMenu && child.Enabled))
+                join perm in _dbContext.Permissions
                     on rolePerm.PermissionId equals perm.Id
-                where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName &&
-                      perm.Children.Any(t => t.IsMenu && t.Enabled)
-                select perm);
+                where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName
+                select perm;
 
             var result = query.GetCustomResultFromCache<IList<SolhigsonPermission>>();
             if (result != null)
@@ -169,23 +169,31 @@ namespace Solhigson.Framework.Identity
                 return result;
             }
             var topLevel = query.ToList();
-            var cachedRole = _dbContext.Roles.Where(t => t.Name == roleName).FromCacheSingle();
-            if (cachedRole != null)
+
+            foreach (var parent in topLevel)
             {
-                foreach (var perm in topLevel)
+                parent.Children = (from rolePerm in _dbContext.RolePermissions
+                    join role in _dbContext.Roles
+                        on rolePerm.RoleId equals role.Id
+                    join perm in _dbContext.Permissions
+                        on rolePerm.PermissionId equals perm.Id
+                    where perm.IsMenu && perm.Enabled && role.Name == roleName && perm.ParentId == parent.Id
+                          && !perm.IsMenuRoot
+                    select perm).FromCacheList();
+
+                /*
+                foreach (var child in parent.Children)
                 {
-                    foreach (var child in perm.Children)
+                    if (_dbContext.RolePermissions
+                        .Where(t => t.PermissionId == child.Id && t.RoleId.Equals(cachedRole.Id))
+                        .FromCacheSingle() == null)
                     {
-                        if (_dbContext.RolePermissions
-                            .Where(t => t.PermissionId == child.Id && t.RoleId.Equals(cachedRole.Id))
-                            .FromCacheSingle() == null)
-                        {
-                            perm.Children.Remove(child);
-                        }
+                        parent.Children.Remove(child);
                     }
                 }
+            */
             }
-            
+
             query.AddCustomResultToCache(topLevel, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
             return topLevel;
         }
