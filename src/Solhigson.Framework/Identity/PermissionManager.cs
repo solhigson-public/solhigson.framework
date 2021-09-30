@@ -179,19 +179,7 @@ namespace Solhigson.Framework.Identity
                         on rolePerm.PermissionId equals perm.Id
                     where perm.IsMenu && perm.Enabled && role.Name == roleName && perm.ParentId == parent.Id
                           && !perm.IsMenuRoot
-                    select perm).FromCacheList();
-
-                /*
-                foreach (var child in parent.Children)
-                {
-                    if (_dbContext.RolePermissions
-                        .Where(t => t.PermissionId == child.Id && t.RoleId.Equals(cachedRole.Id))
-                        .FromCacheSingle() == null)
-                    {
-                        parent.Children.Remove(child);
-                    }
-                }
-            */
+                    select perm).ToList();
             }
 
             query.AddCustomResultToCache(topLevel, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
