@@ -94,7 +94,7 @@ namespace Solhigson.Framework.Identity
 
             var existing = await _dbContext.RolePermissions.FirstOrDefaultAsync(
                 t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
-            if (existing is not null)
+            if (existing is null)
             {
                 await AddRolePermissionAsync(new SolhigsonRolePermission<TKey>
                 {
