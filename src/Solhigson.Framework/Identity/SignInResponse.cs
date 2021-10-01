@@ -12,7 +12,6 @@ namespace Solhigson.Framework.Identity
         public bool IsSuccessful { get; set; }
         public bool IsLockedOut { get; set; }
         public bool RequiresTwoFactor { get; set; }
-        public bool IsEnabled { get; set; }
     }
 
 }

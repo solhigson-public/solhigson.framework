@@ -79,6 +79,63 @@ namespace Solhigson.Framework.Identity
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task<ResponseInfo> GiveAccessToRole(string roleName, string permissionName)
+        {
+            var response = new ResponseInfo();
+            var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
+            if (role is null)
+            {
+                return response.Fail($"Role does not exist: {roleName}");
+            }
+            var permission = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permissionName);
+            if (permission is null)
+            {
+                return response.Fail($"Permission does not exist: {permissionName}");
+            }
+
+            var existing = await _dbContext.RolePermissions.FirstOrDefaultAsync(
+                t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
+            if (existing is not null)
+            {
+                await AddRolePermission(new SolhigsonRolePermission<TKey>
+                {
+                    RoleId = role.Id,
+                    PermissionId = permission.Id
+                });
+            }
+            return response.Success();
+        }
+        
+        public async Task<ResponseInfo> RemoveAccessFromRole(string roleName, string permissionName)
+        {
+            var response = new ResponseInfo();
+            var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
+            if (role is null)
+            {
+                return response.Fail($"Role does not exist: {roleName}");
+            }
+            var permission = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permissionName);
+            if (permission is null)
+            {
+                return response.Fail($"Permission does not exist: {permissionName}");
+            }
+
+            var existing = await _dbContext.RolePermissions.FirstOrDefaultAsync(
+                t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
+            if (existing is not null)
+            {
+                await RemoveRolePermission(existing);
+            }
+            return response.Success();
+        }
+
+
+        public async Task AddRolePermissions(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
+        {
+            _dbContext.RolePermissions.AddRange(rolePermissions);
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task AddRolePermission(SolhigsonRolePermission<TKey> rolePermission)
         {
             _dbContext.RolePermissions.Add(rolePermission);
@@ -90,6 +147,13 @@ namespace Solhigson.Framework.Identity
             _dbContext.RolePermissions.Remove(rolePermission);
             await _dbContext.SaveChangesAsync();
         }
+        
+        public async Task RemoveRolePermissions(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
+        {
+            _dbContext.RolePermissions.RemoveRange(rolePermissions);
+            await _dbContext.SaveChangesAsync();
+        }
+
 
         public async Task UpdatePermission(SolhigsonPermission permission)
         {
