@@ -168,7 +168,7 @@ namespace Solhigson.Framework.Identity
             {
                 return result;
             }
-            var topLevel = query.ToList();
+            var topLevel = query.OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
 
             foreach (var parent in topLevel)
             {
@@ -179,7 +179,7 @@ namespace Solhigson.Framework.Identity
                         on rolePerm.PermissionId equals perm.Id
                     where perm.IsMenu && perm.Enabled && role.Name == roleName && perm.ParentId == parent.Id
                           && !perm.IsMenuRoot
-                    select perm).ToList();
+                    select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
             }
 
             query.AddCustomResultToCache(topLevel, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
@@ -215,7 +215,7 @@ namespace Solhigson.Framework.Identity
                             continue;
                         }
 
-                        if (_dbContext.Permissions.Any(t =>
+                        if (permissionList.ContainsKey(permissionAttribute.Name) || _dbContext.Permissions.Any(t =>
                             t.Name == permissionAttribute.Name))
                         {
                             continue;
@@ -229,6 +229,10 @@ namespace Solhigson.Framework.Identity
                         var permission = new SolhigsonPermission();
                         permission = permissionAttribute.Adapt(permission);
                         permission.Url = actionInfo?.AttributeRouteInfo?.Template;
+                        if (permission.IsMenuRoot)
+                        {
+                            permission.IsMenu = true;
+                        }
                         if (!string.IsNullOrWhiteSpace(permission.Url))
                         {
                             permission.Url = $"~/{permission.Url}";
@@ -246,13 +250,14 @@ namespace Solhigson.Framework.Identity
                         permissionList.Add(key, new SolhigsonPermission
                         {
                             Name = key,
-                            Description = customPermissions[key]
+                            Description = customPermissions[key],
                         });
                     }
                 }
 
                 foreach (var permission in from key in permissionList.Keys select permissionList[key])
                 {
+                    permission.Enabled = true;
                     _dbContext.Permissions.Add(permission);
                     try
                     {

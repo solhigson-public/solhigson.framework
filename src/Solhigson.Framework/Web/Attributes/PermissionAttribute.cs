@@ -12,6 +12,8 @@ namespace Solhigson.Framework.Web.Attributes
 
         public string Name { get; }
         public string Description { get; set; }
+        public bool IsMenuRoot { get; set; }
+        public bool IsMenu { get; set; }
 
     }
 }
