@@ -3,11 +3,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Solhigson.Framework.Identity
 {
-    public class SignInResponse<T> : SignInResponse<T, string> where T :  SolhigsonUser<string>
-    {
-    }
-
-    public class SignInResponse<T, TKey> where T : SolhigsonUser<TKey> where TKey : IEquatable<TKey>
+    public class SignInResponse<T, TKey, TRole> 
+        where T : SolhigsonUser<TKey, TRole> 
+        where TRole : SolhigsonAspNetRole<TKey>
+        where TKey : IEquatable<TKey>
     {
         public T User { get; set; }
         public bool IsSuccessful { get; set; }
@@ -15,4 +14,5 @@ namespace Solhigson.Framework.Identity
         public bool RequiresTwoFactor { get; set; }
         public bool IsEnabled { get; set; }
     }
+
 }

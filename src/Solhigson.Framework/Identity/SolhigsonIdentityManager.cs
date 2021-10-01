@@ -15,7 +15,7 @@ namespace Solhigson.Framework.Identity
 {
     public class SolhigsonIdentityManager<TUser, TContext> 
         : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext, string>
-        where TUser : SolhigsonUser<string>
+        where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
         where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
     {
         public SolhigsonIdentityManager(UserManager<TUser> userManager,
@@ -31,7 +31,7 @@ namespace Solhigson.Framework.Identity
     
     public class SolhigsonIdentityManager<TUser, TKey, TContext> 
         : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TContext, TKey>
-        where TUser : SolhigsonUser<TKey>
+        where TUser : SolhigsonUser<TKey, SolhigsonAspNetRole<TKey>>
         where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
         where TKey : IEquatable<TKey>
     {
@@ -45,7 +45,7 @@ namespace Solhigson.Framework.Identity
 
 
     public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey> : IDisposable 
-        where TUser : SolhigsonUser<TKey>
+        where TUser : SolhigsonUser<TKey, TRole>
         where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey> 
         where TRoleGroup : SolhigsonRoleGroup, new() 
         where TRole : SolhigsonAspNetRole<TKey>, new()
@@ -103,9 +103,9 @@ namespace Solhigson.Framework.Identity
             await SignInManager.SignOutAsync();
         }
         
-        public async Task<SignInResponse<TUser, TKey>> SignIn(string userName, string password, bool lockOutOnFailure = false)
+        public async Task<SignInResponse<TUser, TKey, TRole>> SignIn(string userName, string password, bool lockOutOnFailure = false)
         {
-            var response = new SignInResponse<TUser, TKey>();
+            var response = new SignInResponse<TUser, TKey, TRole>();
             var signInResponse = await SignInManager.PasswordSignInAsync(userName, password, false, lockOutOnFailure);
             response.IsSuccessful = signInResponse.Succeeded;
             response.IsLockedOut = signInResponse.IsLockedOut;
@@ -121,7 +121,7 @@ namespace Solhigson.Framework.Identity
             
             if (userRoles.Any())
             {
-                response.User.Roles = new List<SolhigsonAspNetRole<TKey>>();
+                response.User.Roles = new List<TRole>();
                 foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingle()).Where(role => role != null))
                 {
                     role.RoleGroup = _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingle();

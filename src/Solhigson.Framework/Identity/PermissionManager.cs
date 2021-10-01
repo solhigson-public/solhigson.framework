@@ -17,7 +17,7 @@ using Solhigson.Framework.Web.Attributes;
 namespace Solhigson.Framework.Identity
 {
     public class PermissionManager<TUser, TRole, TContext, TKey> 
-        where TUser : SolhigsonUser<TKey> 
+        where TUser : SolhigsonUser<TKey, TRole> 
         where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
         where TRole : SolhigsonAspNetRole<TKey>
         where TKey : IEquatable<TKey>

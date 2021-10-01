@@ -22,7 +22,7 @@ namespace Solhigson.Framework.Identity
     }
     
     public class SolhigsonIdentityDbContext<TUser, TKey> : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey> 
-        where TUser : SolhigsonUser<TKey>
+        where TUser : SolhigsonUser<TKey, SolhigsonAspNetRole<TKey>>
         where TKey : IEquatable<TKey>
     {
         /// <summary>
@@ -40,7 +40,7 @@ namespace Solhigson.Framework.Identity
 
     
     public class SolhigsonIdentityDbContext<TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey> 
-        where TUser : SolhigsonUser<TKey> 
+        where TUser : SolhigsonUser<TKey, TRole> 
         where TRole : SolhigsonAspNetRole<TKey>
         where TKey : IEquatable<TKey>
     {

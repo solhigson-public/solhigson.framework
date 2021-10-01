@@ -14,7 +14,7 @@ using Solhigson.Framework.Web.Attributes;
 namespace Solhigson.Framework.Web.Middleware
 {
     public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMiddleware 
-        where TUser : SolhigsonUser<TKey> 
+        where TUser : SolhigsonUser<TKey, TRole> 
         where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
         where TRole : SolhigsonAspNetRole<TKey>
         where TKey : IEquatable<TKey>
