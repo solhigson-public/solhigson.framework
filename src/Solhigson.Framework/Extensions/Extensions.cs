@@ -245,9 +245,9 @@ namespace Solhigson.Framework.Extensions
         public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
             Action<IdentityOptions> setupAction = null) 
             where TUser : SolhigsonUser<string>
-            where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<string>, string>
+            where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
         {
-            services.AddSolhigsonIdentityManager<TUser, string, TContext>(setupAction);
+            services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole, SolhigsonRoleGroup, string, TContext>(setupAction);
             services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
             return services;
         }

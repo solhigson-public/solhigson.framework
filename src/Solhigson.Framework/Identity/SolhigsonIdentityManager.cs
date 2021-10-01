@@ -14,15 +14,15 @@ using Solhigson.Framework.Infrastructure;
 namespace Solhigson.Framework.Identity
 {
     public class SolhigsonIdentityManager<TUser, TContext> 
-        : SolhigsonIdentityManager<TUser, string, TContext>
+        : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext, string>
         where TUser : SolhigsonUser<string>
-        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<string>, string>
+        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
     {
         public SolhigsonIdentityManager(UserManager<TUser> userManager,
-            RoleManager<SolhigsonAspNetRole<string>> roleManager,
-            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole<string>, TUser, TContext, string> roleGroupManager,//TRoleGroup, TRole, TUser, TContext, TKey
+            RoleManager<SolhigsonAspNetRole> roleManager,
+            RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext, string> roleGroupManager,//TRoleGroup, TRole, TUser, TContext, TKey
             SignInManager<TUser> signInManager,
-            PermissionManager<TUser, SolhigsonAspNetRole<string>, TContext, string> permissionManager, //TUser, TRole, TContext, TKey
+            PermissionManager<TUser, SolhigsonAspNetRole, TContext, string> permissionManager, //TUser, TRole, TContext, TKey
             TContext dbContext) : base(userManager, roleManager, roleGroupManager, signInManager, permissionManager,
             dbContext)
         {
