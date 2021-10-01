@@ -8,6 +8,10 @@ namespace Solhigson.Framework.Identity
 {
     public class SolhigsonAspNetRole : SolhigsonAspNetRole<string>
     {
+        public SolhigsonAspNetRole()
+        {
+            Id = Guid.NewGuid().ToString();
+        }
     }
 
     [Table("AspNetRoles")]
