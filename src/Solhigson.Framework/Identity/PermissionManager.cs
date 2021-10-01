@@ -72,14 +72,13 @@ namespace Solhigson.Framework.Identity
                 : ResponseInfo.FailedResult();
         }
 
-
-        public async Task AddPermission(SolhigsonPermission permission)
+        public async Task AddPermissionAsync(SolhigsonPermission permission)
         {
             _dbContext.Permissions.Add(permission);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<ResponseInfo> GiveAccessToRole(string roleName, string permissionName)
+        public async Task<ResponseInfo> GiveAccessToRoleAsync(string roleName, string permissionName)
         {
             var response = new ResponseInfo();
             var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
@@ -97,7 +96,7 @@ namespace Solhigson.Framework.Identity
                 t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
             if (existing is not null)
             {
-                await AddRolePermission(new SolhigsonRolePermission<TKey>
+                await AddRolePermissionAsync(new SolhigsonRolePermission<TKey>
                 {
                     RoleId = role.Id,
                     PermissionId = permission.Id
@@ -106,7 +105,7 @@ namespace Solhigson.Framework.Identity
             return response.Success();
         }
         
-        public async Task<ResponseInfo> RemoveAccessFromRole(string roleName, string permissionName)
+        public async Task<ResponseInfo> RemoveAccessFromRoleAsync(string roleName, string permissionName)
         {
             var response = new ResponseInfo();
             var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
@@ -124,38 +123,36 @@ namespace Solhigson.Framework.Identity
                 t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
             if (existing is not null)
             {
-                await RemoveRolePermission(existing);
+                await RemoveRolePermissionAsync(existing);
             }
             return response.Success();
         }
 
-
-        public async Task AddRolePermissions(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
+        public async Task AddRolePermissionsAsync(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
         {
             _dbContext.RolePermissions.AddRange(rolePermissions);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task AddRolePermission(SolhigsonRolePermission<TKey> rolePermission)
+        public async Task AddRolePermissionAsync(SolhigsonRolePermission<TKey> rolePermission)
         {
             _dbContext.RolePermissions.Add(rolePermission);
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveRolePermission(SolhigsonRolePermission<TKey> rolePermission)
+        public async Task RemoveRolePermissionAsync(SolhigsonRolePermission<TKey> rolePermission)
         {
             _dbContext.RolePermissions.Remove(rolePermission);
             await _dbContext.SaveChangesAsync();
         }
         
-        public async Task RemoveRolePermissions(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
+        public async Task RemoveRolePermissionsAsync(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
         {
             _dbContext.RolePermissions.RemoveRange(rolePermissions);
             await _dbContext.SaveChangesAsync();
         }
 
-
-        public async Task UpdatePermission(SolhigsonPermission permission)
+        public async Task UpdatePermissionAsync(SolhigsonPermission permission)
         {
             _dbContext.Permissions.Update(permission);
             await _dbContext.SaveChangesAsync();
@@ -211,7 +208,6 @@ namespace Solhigson.Framework.Identity
             return GetMenuPermissionsForRoleCached(role);
         }
 
-        
         public IList<SolhigsonPermission> GetMenuPermissionsForRoleCached(string roleName)
         {
             if (string.IsNullOrWhiteSpace(roleName))
@@ -250,8 +246,7 @@ namespace Solhigson.Framework.Identity
             return topLevel;
         }
 
-
-        public async Task<ResponseInfo<int>> DiscoverNewPermissions(Assembly controllerAssembly,
+        public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly controllerAssembly,
             Dictionary<string, string> customPermissions = null)
         {
             var response = new ResponseInfo<int>();
