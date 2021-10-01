@@ -229,6 +229,10 @@ namespace Solhigson.Framework.Identity
                         var permission = new SolhigsonPermission();
                         permission = permissionAttribute.Adapt(permission);
                         permission.Url = actionInfo?.AttributeRouteInfo?.Template;
+                        if (!string.IsNullOrWhiteSpace(permission.Url))
+                        {
+                            permission.Url = $"~/{permission.Url}";
+                        }
                         permissionList.Add(permission.Name, permission);
                     }
                 }
