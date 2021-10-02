@@ -271,12 +271,13 @@ namespace Solhigson.Framework.Identity
                                                             || !string.IsNullOrWhiteSpace(parent.Url)
                                                             || !string.IsNullOrWhiteSpace(parent.OnClickFunction)))
             {
-                var adapt = parent.Adapt<SolhigsonPermissionDto>();
-                adapt.Children = new List<SolhigsonPermissionDto>();
+                var permissionDto = parent.Adapt<SolhigsonPermissionDto>();
+                permissionDto.Children = new List<SolhigsonPermissionDto>();
                 foreach (var child in parent.Children)
                 {
-                    adapt.Children.Add(child.Adapt<SolhigsonPermissionDto>());
+                    permissionDto.Children.Add(child.Adapt<SolhigsonPermissionDto>());
                 }
+                result.Add(permissionDto);
             }
 
             query.AddCustomResultToCache(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
