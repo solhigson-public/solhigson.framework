@@ -260,7 +260,10 @@ namespace Solhigson.Framework.Identity
                     topLevel.Add(parent);
                 }
 
-                parent.Children.Add(child);
+                if (parent.Children.All(t => t.Name != child.Name))
+                {
+                    parent.Children.Add(child);
+                }
             }
 
             result = new List<SolhigsonPermissionDto>();
