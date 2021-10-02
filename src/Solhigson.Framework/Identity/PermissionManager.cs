@@ -239,6 +239,11 @@ namespace Solhigson.Framework.Identity
                 where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName && !string.IsNullOrWhiteSpace(perm.ParentId)
                 select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
             
+            foreach(var parent in topLevel)
+            {
+                parent.Children ??= new List<SolhigsonPermission>();
+            }
+            
             foreach (var child in children)
             {
                 var parent = topLevel.FirstOrDefault(t => t.Id == child.ParentId);
@@ -249,9 +254,9 @@ namespace Solhigson.Framework.Identity
                     {
                         continue;
                     }
+                    parent.Children ??= new List<SolhigsonPermission>();
                     topLevel.Add(parent);
                 }
-                parent.Children ??= new List<SolhigsonPermission>();
                 parent.Children.Add(child);
             }
 
