@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data.Caching;
+using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Web.Attributes;
@@ -196,11 +197,11 @@ namespace Solhigson.Framework.Identity
                 select perm).FromCacheList(typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
         }
 
-        public IList<SolhigsonPermission> GetMenuPermissionsForRoleCached(ClaimsPrincipal claimsPrincipal)
+        public IList<SolhigsonPermissionDto> GetMenuPermissionsForRoleCached(ClaimsPrincipal claimsPrincipal)
         {
             if (claimsPrincipal?.Identity?.IsAuthenticated == false)
             {
-                return new List<SolhigsonPermission>();
+                return new List<SolhigsonPermissionDto>();
             }
 
             var role = claimsPrincipal?.FindFirstValue(ClaimTypes.Role);
@@ -208,11 +209,11 @@ namespace Solhigson.Framework.Identity
             return GetMenuPermissionsForRoleCached(role);
         }
 
-        public IList<SolhigsonPermission> GetMenuPermissionsForRoleCached(string roleName)
+        public IList<SolhigsonPermissionDto> GetMenuPermissionsForRoleCached(string roleName)
         {
             if (string.IsNullOrWhiteSpace(roleName))
             {
-                return new List<SolhigsonPermission>();
+                return new List<SolhigsonPermissionDto>();
             }
             
             var query = from rolePerm in _dbContext.RolePermissions
@@ -223,13 +224,14 @@ namespace Solhigson.Framework.Identity
                 where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
                 select perm;
 
-            var result = query.GetCustomResultFromCache<List<SolhigsonPermission>>();
+            var result = query.GetCustomResultFromCache<List<SolhigsonPermissionDto>>();
             if (result != null)
             {
                 return result;
             }
 
-            var topLevel = query.OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
+            var topLevel = query.OrderBy(t => t.MenuIndex)
+                .ThenBy(t => t.Name).AsNoTracking().ToList();
 
             var children = (from rolePerm in _dbContext.RolePermissions
                 join role in _dbContext.Roles
@@ -237,7 +239,7 @@ namespace Solhigson.Framework.Identity
                 join perm in _dbContext.Permissions
                     on rolePerm.PermissionId equals perm.Id
                 where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName && !string.IsNullOrWhiteSpace(perm.ParentId)
-                select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
+                select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking().ToList();
             
             foreach(var parent in topLevel)
             {
@@ -257,16 +259,25 @@ namespace Solhigson.Framework.Identity
                     parent.Children ??= new List<SolhigsonPermission>();
                     topLevel.Add(parent);
                 }
+
                 parent.Children.Add(child);
             }
 
-            result = topLevel.Where(parent => parent.Children?.Any() == true 
-                                                   || !string.IsNullOrWhiteSpace(parent.Url) 
-                                                   || !string.IsNullOrWhiteSpace(parent.OnClickFunction)).ToList();
-
+            result = new List<SolhigsonPermissionDto>();
+            foreach (var parent in topLevel.Where(parent => parent.Children?.Any() == true
+                                                            || !string.IsNullOrWhiteSpace(parent.Url)
+                                                            || !string.IsNullOrWhiteSpace(parent.OnClickFunction)))
+            {
+                var adapt = parent.Adapt<SolhigsonPermissionDto>();
+                adapt.Children = new List<SolhigsonPermissionDto>();
+                foreach (var child in parent.Children)
+                {
+                    adapt.Children.Add(child.Adapt<SolhigsonPermissionDto>());
+                }
+            }
 
             query.AddCustomResultToCache(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
-            return topLevel;
+            return result;
         }
 
         public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly controllerAssembly,
