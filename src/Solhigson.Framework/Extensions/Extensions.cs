@@ -270,8 +270,12 @@ namespace Solhigson.Framework.Extensions
         }
 
         public static IApplicationBuilder UseSolhigsonSmtpProvider(this IApplicationBuilder app,
-            SmtpConfiguration smtpConfiguration)
+            Action<SmtpConfiguration> configuration)
         {
+            if (configuration is null)
+            {
+                return app;
+            }
             if (app.ApplicationServices.GetRequiredService<IMailProvider>() is not SolhigsonSmtpMailProvider provider)
             {
                 throw new Exception(
@@ -279,22 +283,7 @@ namespace Solhigson.Framework.Extensions
                     $"services.AddSolhigsonSmtpMailProvider() under ConfigureServices in Startup.");
             }
 
-            if (smtpConfiguration is null)
-            {
-                throw new ArgumentNullException(nameof(smtpConfiguration));
-            }
-
-            if (string.IsNullOrWhiteSpace(smtpConfiguration.Server))
-            {
-                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Server)} cannot be empty");
-            }
-
-            if (smtpConfiguration.Port <= 0)
-            {
-                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Password)} cannot be 0");
-            }
-
-            provider.UseConfiguration(smtpConfiguration);
+            provider.UseConfiguration(configuration);
 
             return app;
         }

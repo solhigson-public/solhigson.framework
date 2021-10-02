@@ -11,39 +11,40 @@ namespace Solhigson.Framework.Notification
 {
     public class SolhigsonSmtpMailProvider : IMailProvider
     {
-        private SmtpConfiguration _smtpConfiguration;
+        private readonly SmtpConfiguration _smtpConfiguration;
+        private Action<SmtpConfiguration> _configuration;
         public SolhigsonSmtpMailProvider()
         {
-            
+            _smtpConfiguration = new SmtpConfiguration();
         }
 
-        public void UseConfiguration(SmtpConfiguration smtpConfiguration)
+        public void UseConfiguration(Action<SmtpConfiguration> configuration)
         {
-            if (smtpConfiguration is null)
-            {
-                throw new ArgumentNullException(nameof(smtpConfiguration));
-            }
-
-            if (string.IsNullOrWhiteSpace(smtpConfiguration.Server))
-            {
-                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Server)} cannot be empty");
-            }
-            
-            if (smtpConfiguration.Port <= 0)
-            {
-                throw new Exception($"{nameof(SmtpConfiguration)}.{nameof(smtpConfiguration.Password)} cannot be 0");
-            }
-            _smtpConfiguration = smtpConfiguration;
+            _configuration = configuration;
         }
         
         public void SendMail(EmailNotificationDetail emailNotificationDetail)
         {
-            if (_smtpConfiguration == null)
+            if (_configuration is null)
             {
-                throw new Exception(
-                    $"{nameof(SolhigsonSmtpMailProvider)} has not been configured, " +
-                    $"use app.UseSolhigsonSmtpProvider({nameof(SmtpConfiguration)} in the Configure method in Startup");
+                this.ELogWarn($"{nameof(SolhigsonSmtpMailProvider)} has not been configured, " +
+                              $"use app.UseSolhigsonSmtpProvider({nameof(SmtpConfiguration)} in the Configure method in Startup");
+                return;
             }
+            
+            _configuration.Invoke(_smtpConfiguration);
+            if (string.IsNullOrWhiteSpace(_smtpConfiguration.Server))
+            {
+                this.ELogWarn($"{nameof(SmtpConfiguration)}.{nameof(_smtpConfiguration.Server)} cannot be empty");
+                return;
+            }
+            
+            if (_smtpConfiguration.Port <= 0)
+            {
+                this.ELogWarn($"{nameof(SmtpConfiguration)}.{nameof(_smtpConfiguration.Password)} cannot be 0");
+                return;
+            }
+
             try
             {
                 this.ELogDebug("Sending mail - default");
