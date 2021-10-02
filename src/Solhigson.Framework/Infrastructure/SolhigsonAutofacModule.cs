@@ -38,13 +38,10 @@ namespace Solhigson.Framework.Infrastructure
                 }).AsSelf().InstancePerLifetimeScope();
             }
 
-            builder.RegisterType<ConfigurationWrapper>().AsSelf().SingleInstance()
+            builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<SolhigsonAppSettings>().AsSelf().SingleInstance()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-
-            builder.RegisterType<SolhigsonServicesWrapper>().AsSelf().SingleInstance()
+            builder.RegisterType<SolhigsonAppSettings>().AsSelf().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
             builder.RegisterType<ApiTraceMiddleware>().AsSelf().SingleInstance()

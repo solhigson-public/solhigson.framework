@@ -220,7 +220,7 @@ namespace Solhigson.Framework.Identity
                     on rolePerm.RoleId equals role.Id
                 join perm in _dbContext.Permissions
                     on rolePerm.PermissionId equals perm.Id
-                where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName
+                where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
                 select perm;
 
             var result = query.GetCustomResultFromCache<IList<SolhigsonPermission>>();
@@ -228,19 +228,39 @@ namespace Solhigson.Framework.Identity
             {
                 return result;
             }
+
             var topLevel = query.OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
 
-            foreach (var parent in topLevel)
+            var children = (from rolePerm in _dbContext.RolePermissions
+                join role in _dbContext.Roles
+                    on rolePerm.RoleId equals role.Id
+                join perm in _dbContext.Permissions
+                    on rolePerm.PermissionId equals perm.Id
+                where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName && !string.IsNullOrWhiteSpace(perm.ParentId)
+                select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
+            
+            foreach (var child in children)
             {
-                parent.Children = (from rolePerm in _dbContext.RolePermissions
-                    join role in _dbContext.Roles
-                        on rolePerm.RoleId equals role.Id
-                    join perm in _dbContext.Permissions
-                        on rolePerm.PermissionId equals perm.Id
-                    where perm.IsMenu && perm.Enabled && role.Name == roleName && perm.ParentId == parent.Id
-                          && !perm.IsMenuRoot
-                    select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).ToList();
+                var parent = topLevel.FirstOrDefault(t => t.Id == child.ParentId);
+                if (parent is null)
+                {
+                    parent = _dbContext.Permissions.FirstOrDefault(t => t.Id == child.ParentId);
+                    if (parent is null)
+                    {
+                        continue;
+                    }
+                    topLevel.Add(parent);
+                }
+                parent.Children ??= new List<SolhigsonPermission>();
+                parent.Children.Add(child);
             }
+
+            foreach (var parent in topLevel.Where(parent => !parent.Children.Any() && string.IsNullOrWhiteSpace(parent.Url) &&
+                                                            string.IsNullOrWhiteSpace(parent.OnClickFunction)))
+            {
+                topLevel.Remove(parent);
+            }
+            
 
             query.AddCustomResultToCache(topLevel, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
             return topLevel;
