@@ -255,7 +255,7 @@ namespace Solhigson.Framework.Identity
                 parent.Children.Add(child);
             }
 
-            foreach (var parent in topLevel.Where(parent => !parent.Children.Any() && string.IsNullOrWhiteSpace(parent.Url) &&
+            foreach (var parent in topLevel.Where(parent => parent.Children?.Any() == false && string.IsNullOrWhiteSpace(parent.Url) &&
                                                             string.IsNullOrWhiteSpace(parent.OnClickFunction)))
             {
                 topLevel.Remove(parent);
