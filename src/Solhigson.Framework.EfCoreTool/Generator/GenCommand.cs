@@ -194,7 +194,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             foreach (var prop in properties)
             {
                 var type = prop.PropertyType;
-                if (!IsSystemType(type))
+                if (!IsSystemType(type) && !type.IsEnum)
                 {
                     continue;
                 }
