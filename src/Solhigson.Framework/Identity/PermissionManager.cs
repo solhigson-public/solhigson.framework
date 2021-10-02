@@ -223,7 +223,7 @@ namespace Solhigson.Framework.Identity
                 where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
                 select perm;
 
-            var result = query.GetCustomResultFromCache<IList<SolhigsonPermission>>();
+            var result = query.GetCustomResultFromCache<List<SolhigsonPermission>>();
             if (result != null)
             {
                 return result;
@@ -260,14 +260,12 @@ namespace Solhigson.Framework.Identity
                 parent.Children.Add(child);
             }
 
-            foreach (var parent in topLevel.Where(parent => parent.Children?.Any() == false && string.IsNullOrWhiteSpace(parent.Url) &&
-                                                            string.IsNullOrWhiteSpace(parent.OnClickFunction)))
-            {
-                topLevel.Remove(parent);
-            }
-            
+            result = topLevel.Where(parent => parent.Children?.Any() == true 
+                                                   || !string.IsNullOrWhiteSpace(parent.Url) 
+                                                   || !string.IsNullOrWhiteSpace(parent.OnClickFunction)).ToList();
 
-            query.AddCustomResultToCache(topLevel, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+
+            query.AddCustomResultToCache(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
             return topLevel;
         }
 
