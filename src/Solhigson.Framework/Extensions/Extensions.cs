@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
@@ -71,9 +72,9 @@ namespace Solhigson.Framework.Extensions
         #region Application Startup
 
       
-        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, string connectionString = null)
+        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration)
         {
-            builder.RegisterModule(new SolhigsonAutofacModule(connectionString));
+            builder.RegisterModule(new SolhigsonAutofacModule(configuration, configuration.GetConnectionString("DbConnection")));
             return builder;
         }
         

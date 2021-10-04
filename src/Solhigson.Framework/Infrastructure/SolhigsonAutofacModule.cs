@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.Repositories;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
@@ -13,10 +14,12 @@ namespace Solhigson.Framework.Infrastructure
     public class SolhigsonAutofacModule : Module
     {
         private readonly string _connectionString;
+        private readonly IConfiguration _configuration;
 
-        public SolhigsonAutofacModule(string connectionString)
+        public SolhigsonAutofacModule(IConfiguration configuration, string connectionString)
         {
             _connectionString = connectionString;
+            _configuration = configuration;
         }
         protected override void Load(ContainerBuilder builder)
         {
@@ -36,10 +39,16 @@ namespace Solhigson.Framework.Infrastructure
                     opt.UseSqlServer(_connectionString);
                     return new SolhigsonDbContext(opt.Options);
                 }).AsSelf().InstancePerDependency();
-            }
+                
 
+            }
+            builder.Register(c => new ConfigurationWrapper(_configuration, _connectionString))
+                .AsSelf().InstancePerLifetimeScope();
+
+            /*
             builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+                */
 
             builder.RegisterType<ApiTraceMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);

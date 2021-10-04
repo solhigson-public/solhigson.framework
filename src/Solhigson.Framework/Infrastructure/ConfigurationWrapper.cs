@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
@@ -20,10 +16,16 @@ namespace Solhigson.Framework.Infrastructure
         private readonly SolhigsonDbContext _dbContext;
         private static readonly object SyncHelper = new();
 
-        public ConfigurationWrapper(IConfiguration configuration, IServiceProvider serviceProvider)
+        public ConfigurationWrapper(IConfiguration configuration, string connectionString = null)
         {
             Configuration = configuration;
-            _dbContext = serviceProvider.GetService<SolhigsonDbContext>();
+            var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
+            //_dbContext = serviceProvider.GetService<SolhigsonDbContext>();
+            if (!string.IsNullOrWhiteSpace(connectionString))
+            {
+                opt.UseSqlServer(connectionString);
+                _dbContext = new SolhigsonDbContext(opt.Options);
+            }
         }
 
         public T GetFromAppSettingFileOnly<T>(string group, string key = null, string defaultValue = null)

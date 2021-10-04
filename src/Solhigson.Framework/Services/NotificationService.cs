@@ -16,12 +16,14 @@ using Solhigson.Framework.Utilities.Security;
 
 namespace Solhigson.Framework.Services
 {
-    public class NotificationService : ServiceBase, INotificationService
+    public class NotificationService : INotificationService
     {
         private readonly IMailProvider _mailProvider;
         private readonly ISmsProvider _smsProvider;
-        public NotificationService(IRepositoryWrapper repositoryWrapper, IServiceProvider serviceProvider) : base(repositoryWrapper)
+        private readonly IRepositoryWrapper _repositoryWrapper;
+        public NotificationService(IServiceProvider serviceProvider)// : base(repositoryWrapper)
         {
+            _repositoryWrapper = serviceProvider.GetService<IRepositoryWrapper>();
             _mailProvider = serviceProvider.GetService<IMailProvider>();
             _smsProvider = serviceProvider.GetService<ISmsProvider>();
         }
@@ -40,6 +42,11 @@ namespace Solhigson.Framework.Services
         {
             try
             {
+                if (_repositoryWrapper == null)
+                {
+                    this.ELogWarn("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string");
+                    return;
+                }
                 if (_mailProvider == null)
                 {
                     this.ELogWarn($"No type of {nameof(IMailProvider)} has been registered, mail will not be sent");
@@ -50,7 +57,7 @@ namespace Solhigson.Framework.Services
                     !string.IsNullOrWhiteSpace(emailNotificationDetail.TemplateName))
                 {
                     var template =
-                        RepositoryWrapper.NotificationTemplateRepository.GetByNameCached(emailNotificationDetail
+                        _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(emailNotificationDetail
                             .TemplateName);
                     if (template is null)
                     {
@@ -59,7 +66,7 @@ namespace Solhigson.Framework.Services
                     }
 
                     var contents = template.Template;
-                    var bodyTemplate = RepositoryWrapper.NotificationTemplateRepository.GetByNameCached("EmailBody");
+                    var bodyTemplate = _repositoryWrapper.NotificationTemplateRepository.GetByNameCached("EmailBody");
                     if (bodyTemplate != null)
                     {
                         contents = bodyTemplate.Template.Replace("[[body]]", contents);
@@ -105,6 +112,11 @@ namespace Solhigson.Framework.Services
         {
             try
             {
+                if (_repositoryWrapper == null)
+                {
+                    this.ELogWarn("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string");
+                    return;
+                }
                 if (_smsProvider == null)
                 {
                     this.ELogWarn($"No type of {nameof(ISmsProvider)} has been registered, SMS will not be sent");
@@ -118,7 +130,7 @@ namespace Solhigson.Framework.Services
                     !string.IsNullOrWhiteSpace(parameters.TemplateName))
                 {
                     var template =
-                        RepositoryWrapper.NotificationTemplateRepository.GetByNameCached(parameters.TemplateName);
+                        _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(parameters.TemplateName);
                     if (template == null)
                     {
                         return;
