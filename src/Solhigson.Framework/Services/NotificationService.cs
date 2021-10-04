@@ -54,7 +54,7 @@ namespace Solhigson.Framework.Services
                             .TemplateName);
                     if (template is null)
                     {
-                        this.ELogDebug("Template is null");
+                        this.ELogWarn($"Notification tTemplate: [{emailNotificationDetail.TemplateName} not found. Email will not be sent");
                         return;
                     }
 
@@ -72,13 +72,13 @@ namespace Solhigson.Framework.Services
                 if (string.IsNullOrWhiteSpace(emailNotificationDetail.Subject)
                     || string.IsNullOrWhiteSpace(emailNotificationDetail.Body))
                 {
-                    this.ELogDebug("Subject and body are empty");
+                    this.ELogWarn($"Subject and/or body are empty for notification template: {emailNotificationDetail.TemplateName}");
                     return;
                 }
 
                 if (emailNotificationDetail.ToAddresses == null || !emailNotificationDetail.ToAddresses.Any())
                 {
-                    this.ELogDebug("No ToAddresses");
+                    this.ELogWarn($"No recipients, email will not be sent for template: {emailNotificationDetail.TemplateName}");
                     return;
                 }
 

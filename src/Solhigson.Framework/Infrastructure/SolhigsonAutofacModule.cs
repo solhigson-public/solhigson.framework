@@ -27,7 +27,7 @@ namespace Solhigson.Framework.Infrastructure
                 builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
                     .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-                builder.RegisterType<SolhigsonConfigurationService>().AsSelf().SingleInstance()
+                builder.RegisterType<SolhigsonConfigurationService>().AsSelf().InstancePerLifetimeScope()
                     .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
                 builder.Register(c =>
