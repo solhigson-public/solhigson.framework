@@ -72,9 +72,9 @@ namespace Solhigson.Framework.Extensions
         #region Application Startup
 
       
-        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration)
+        public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration, string connectionString = null)
         {
-            builder.RegisterModule(new SolhigsonAutofacModule(configuration, configuration.GetConnectionString("DbConnection")));
+            builder.RegisterModule(new SolhigsonAutofacModule(configuration, connectionString));
             return builder;
         }
         
