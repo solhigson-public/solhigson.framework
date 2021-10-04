@@ -5,7 +5,14 @@ using Newtonsoft.Json;
 
 namespace Solhigson.Framework.Data
 {
-    public class PagedList<T>
+    public record PagedList
+    {
+        public static PagedList<TK> Create<TK>(List<TK> items, long count, int pageNumber, int pageSize)
+        {
+            return new PagedList<TK>(items, count, pageNumber, pageSize);
+        }
+    }
+    public record PagedList<T>
     {
         [JsonProperty]
         public int CurrentPage { get; }
@@ -45,7 +52,7 @@ namespace Solhigson.Framework.Data
             });
         }
 
-        public PagedList(List<T> items, long count, int pageNumber, int pageSize)
+        internal PagedList(List<T> items, long count, int pageNumber, int pageSize)
         {
             TotalCount = count;
             PageSize = pageSize;

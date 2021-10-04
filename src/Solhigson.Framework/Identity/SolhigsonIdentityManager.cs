@@ -139,7 +139,7 @@ namespace Solhigson.Framework.Identity
                 join role in _dbContext.Roles
                     on userRole.RoleId equals role.Id
                 where roles.Contains(role.Name)
-                && user.IsEnabled
+                && user.Enabled
                 select user).ProjectToType<T>().ToListAsync();
         }
 

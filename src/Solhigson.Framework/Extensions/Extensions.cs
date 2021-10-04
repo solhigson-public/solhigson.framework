@@ -573,7 +573,7 @@ namespace Solhigson.Framework.Extensions
         {
             var count = await source.CountAsync();
             var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            return new PagedList<T>(items, count, pageNumber, pageSize);
+            return PagedList.Create(items, count, pageNumber, pageSize);
         }
 
         public static IQueryable<T> DateRangeQuery<T>(this IQueryable<T> source, DateTime fromDate, DateTime toDate)

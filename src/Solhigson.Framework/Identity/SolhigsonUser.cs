@@ -20,7 +20,7 @@ namespace Solhigson.Framework.Identity
     public class SolhigsonUser<T, TRole> : IdentityUser<T> where T : IEquatable<T> 
         where TRole : SolhigsonAspNetRole<T>
     {
-        public bool IsEnabled { get; set; }
+        public bool Enabled { get; set; }
         public bool RequirePasswordChange { get; set; }
         
         [NotMapped]
