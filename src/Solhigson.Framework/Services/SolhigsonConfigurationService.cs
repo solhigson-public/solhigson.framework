@@ -44,22 +44,15 @@ namespace Solhigson.Framework.Services
             return ResponseInfo.SuccessResult();
         }
 
-        public async Task<ResponseInfo> CreateNotificationTemplateAsync(NotificationTemplate notificationTemplate)
+        public async Task<ResponseInfo> SaveNotificationTemplateAsync(NotificationTemplate notificationTemplate)
         {
             var existing =
                 await RepositoryWrapper.NotificationTemplateRepository.GetByNameAsync(notificationTemplate.Name);
-            if (existing != null)
+            if (existing is not null)
             {
-                return ResponseInfo.FailedResult($"Template with name already exists: {existing.Name}");
+                existing.Template = notificationTemplate.Template;
             }
             RepositoryWrapper.DbContext.Add(notificationTemplate);
-            await RepositoryWrapper.SaveChangesAsync();
-            return ResponseInfo.SuccessResult();
-        }
-        
-        public async Task<ResponseInfo> UpdateNotificationTemplateAsync(NotificationTemplate notificationTemplate)
-        {
-            RepositoryWrapper.DbContext.Update(notificationTemplate);
             await RepositoryWrapper.SaveChangesAsync();
             return ResponseInfo.SuccessResult();
         }

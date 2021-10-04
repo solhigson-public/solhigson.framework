@@ -41,9 +41,6 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-            builder.RegisterType<SolhigsonAppSettings>().AsSelf().InstancePerLifetimeScope()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-
             builder.RegisterType<ApiTraceMiddleware>().AsSelf().SingleInstance()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
