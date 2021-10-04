@@ -9,13 +9,14 @@ namespace Solhigson.Framework.Logging
 {
     public static class LogManager
     {
+        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(LogManager).FullName);
         private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
             new ();
 
         public static void SetLogLevel(string level)
         {
             level ??= "info";
-            GetCurrentClassLogger().Debug($"Setting log level to {level}");
+            Logger.Debug($"Setting log level to {level}");
 
             var logLevel = level.ToLower() switch
             {
@@ -32,10 +33,10 @@ namespace Solhigson.Framework.Logging
 
         private static void SetLoggingLevel(LogLevel level)
         {
-            if (NLog.LogManager.Configuration == null) return;
-            // Uncomment these to enable NLog logging. NLog exceptions are swallowed by default.
-            ////NLog.Common.InternalLogger.LogFile = @"C:\Temp\nlog.debug.log";
-            ////NLog.Common.InternalLogger.LogLevel = LogLevel.Debug;
+            if (NLog.LogManager.Configuration == null)
+            {
+                return;
+            }
 
             if (level == LogLevel.Off)
             {
@@ -54,21 +55,6 @@ namespace Solhigson.Framework.Logging
             }
 
             NLog.LogManager.ReconfigExistingLoggers();
-        }
-
-        public static LogWrapper GetCurrentClassLogger()
-        {
-            string name = null;
-            try
-            {
-                name = StackTraceUsageUtils.GetClassFullName();
-            }
-            catch (Exception e)
-            {
-                InternalLogger.Error(e, e.Message);
-            }
-
-            return GetLoggerInternal(name);
         }
 
         private static LogWrapper GetLoggerInternal(string name, object obj = null)

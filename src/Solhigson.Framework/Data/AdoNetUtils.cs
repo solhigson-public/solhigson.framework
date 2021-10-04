@@ -10,7 +10,7 @@ namespace Solhigson.Framework.Data
 {
     public static class AdoNetUtils
     {
-        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(AdoNetUtils).FullName);
 
         public static async Task<int> ExecuteNonQueryAsync(string connectionString, string spNameOrCommand,
             List<SqlParameter> parameters = null,

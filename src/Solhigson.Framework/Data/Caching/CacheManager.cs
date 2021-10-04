@@ -20,7 +20,7 @@ namespace Solhigson.Framework.Data.Caching
         private static Timer _timer;
 
         private static string _connectionString;
-        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(CacheManager).FullName);
         private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
         private static int _cacheExpirationPeriodMinutes;
         public static event EventHandler OnTableChangeTimerElapsed;

@@ -16,8 +16,8 @@ namespace Solhigson.Framework.Utilities
 {
     public static class HelperFunctions
     {
-        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
-        private static EnglishPluralizationService _pluralizationService = new ();
+        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(HelperFunctions).FullName);
+        private static readonly EnglishPluralizationService PluralizationService = new ();
         
         public const string MatchEmailPattern =
             @"\A(?:[a-z0-9A-Z!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9A-Z](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\Z";
@@ -44,7 +44,7 @@ namespace Solhigson.Framework.Utilities
 
         public static string Capitalize(string word)
         {
-            return _pluralizationService.Capitalize(word);
+            return PluralizationService.Capitalize(word);
         }
 
         public static string GetCallerIp(HttpContext httpContext)
