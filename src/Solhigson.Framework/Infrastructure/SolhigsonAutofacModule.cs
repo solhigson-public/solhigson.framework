@@ -35,7 +35,7 @@ namespace Solhigson.Framework.Infrastructure
                     var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
                     opt.UseSqlServer(_connectionString);
                     return new SolhigsonDbContext(opt.Options);
-                }).AsSelf().InstancePerLifetimeScope();
+                }).AsSelf().InstancePerDependency();
             }
 
             builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
