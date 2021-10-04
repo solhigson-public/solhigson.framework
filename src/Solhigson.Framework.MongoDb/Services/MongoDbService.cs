@@ -54,7 +54,7 @@ namespace Solhigson.Framework.MongoDb.Services
         {
             var count = await _collection.Find(filter).CountDocumentsAsync();
             var result = await _collection.Find(filter).Skip((pageNumber - 1) * pageSize).Limit(pageNumber).ToListAsync();
-            return new PagedList<T>(result, count, pageNumber, pageSize);
+            return PagedList.Create(result, count, pageNumber, pageSize);
         }
 
         public async Task UpdateAsync(T document) =>

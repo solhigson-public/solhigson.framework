@@ -31,13 +31,14 @@ namespace [ProjectRootNamespace].Tests
             testOutputHelper.ConfigureNLogConsoleOutputTarget();
             var builder = new ContainerBuilder();
 
-            RegisterStartUpDependencies(builder);
+            var configuration = new ConfigurationBuilder().Build();
+            RegisterStartUpDependencies(builder, configuration);
 
             /*
              * Override certain dependencies for mocking
              */
             //IConfiguration
-            builder.RegisterInstance(new ConfigurationBuilder().Build()).As<IConfiguration>().SingleInstance();
+            builder.RegisterInstance(configuration).As<IConfiguration>().SingleInstance();
             
             //IHttpContextAccessor
             var httpContext = Substitute.For<IHttpContextAccessor>();
