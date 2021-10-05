@@ -14,7 +14,7 @@ namespace Solhigson.Framework.Extensions
 {
     public static class Extensions
     {
-        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
         public static CosmosDbService UseSolhigsonNLogCosmosDbTarget(this IApplicationBuilder app,
             NLogCosmosDbParameters parameters = null)
         {

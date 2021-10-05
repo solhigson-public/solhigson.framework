@@ -1,4 +1,6 @@
+using System;
 using Microsoft.AspNetCore.Builder;
+using MongoDB.Driver;
 using NLog.Common;
 using NLog.Layouts;
 using Solhigson.Framework.Logging;
@@ -12,7 +14,7 @@ namespace Solhigson.Framework.Extensions
 {
     public static class Extensions
     {
-        private static readonly LogWrapper Logger = LogManager.GetCurrentClassLogger();
+        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
         public static MongoDbService<MongoDbLog> UseSolhigsonNLogMongoDbTarget(this IApplicationBuilder app,
             NlogMongoDbParameters parameters = null)
         {
@@ -32,6 +34,17 @@ namespace Solhigson.Framework.Extensions
                 InternalLogger.Error($"Unable to create Mongo Db service with supplied parameters, check log for errror.");
                 return null;
             }
+
+            var expireAfter = parameters.ExpireAfter ?? TimeSpan.FromDays(7);
+            var indexKeysDefinition = Builders<MongoDbLog>.IndexKeys.Descending(l => l.Ttl);
+            var indexOptions = new CreateIndexOptions 
+            { 
+                ExpireAfter = expireAfter,
+                Name = "LogsExpireIndex", 
+                Background = true 
+            };
+            var model = new CreateIndexModel<MongoDbLog>(indexKeysDefinition, indexOptions);
+            service.Collection.Indexes.CreateOne(model);
 
             app.ConfigureSolhigsonNLogDefaults();
 

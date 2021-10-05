@@ -29,38 +29,39 @@ namespace Solhigson.Framework.MongoDb.Services
     }
     public class MongoDbService<T> where T : MongoDbDocumentBase
     {
-        private readonly IMongoCollection<T> _collection;
+        public IMongoCollection<T> Collection { get; }
 
         public MongoDbService(string connectionString, string database, string collection)
         {
             var client = new MongoClient(connectionString);
             var db = client.GetDatabase(database);
-            _collection = db.GetCollection<T>(collection);
+            Collection = db.GetCollection<T>(collection);
+            
         }
         
         public async Task<T> AddDocumentAsync(T document)
         {
-            await _collection.InsertOneAsync(document);
+            await Collection.InsertOneAsync(document);
             return document;
         }
 
         public async Task<T> FindAsync(string id) =>
-            await _collection.Find(doc=>doc.Id == id).SingleOrDefaultAsync();
+            await Collection.Find(doc=>doc.Id == id).SingleOrDefaultAsync();
         
         public async Task<List<T>> FindAsync(Expression<Func<T, bool>> filter) =>
-            await _collection.Find(filter).ToListAsync();
+            await Collection.Find(filter).ToListAsync();
 
         public async Task<PagedList<T>> FindAsync(Expression<Func<T, bool>> filter, int pageNumber, int pageSize)
         {
-            var count = await _collection.Find(filter).CountDocumentsAsync();
-            var result = await _collection.Find(filter).Skip((pageNumber - 1) * pageSize).Limit(pageNumber).ToListAsync();
+            var count = await Collection.Find(filter).CountDocumentsAsync();
+            var result = await Collection.Find(filter).Skip((pageNumber - 1) * pageSize).Limit(pageNumber).ToListAsync();
             return PagedList.Create(result, count, pageNumber, pageSize);
         }
 
         public async Task UpdateAsync(T document) =>
-            await _collection.ReplaceOneAsync(sub => sub.Id == document.Id, document);
+            await Collection.ReplaceOneAsync(sub => sub.Id == document.Id, document);
 
         public async Task DeleteAsync(string id) =>
-           await _collection.DeleteOneAsync(sub => sub.Id == id);
+           await Collection.DeleteOneAsync(sub => sub.Id == id);
     }
 }
