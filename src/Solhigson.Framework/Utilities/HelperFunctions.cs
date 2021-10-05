@@ -16,7 +16,7 @@ namespace Solhigson.Framework.Utilities
 {
     public static class HelperFunctions
     {
-        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(HelperFunctions).FullName);
+        private static readonly LogWrapper Logger = new LogWrapper(typeof(HelperFunctions).FullName);
         private static readonly EnglishPluralizationService PluralizationService = new ();
         
         public const string MatchEmailPattern =

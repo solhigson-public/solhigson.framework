@@ -19,7 +19,7 @@ namespace Solhigson.Framework.Web.Middleware
         where TRole : SolhigsonAspNetRole<TKey>
         where TKey : IEquatable<TKey>
     {
-        private static readonly LogWrapper Logger = LogManager.GetLogger(nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>));
+        private static readonly LogWrapper Logger = new LogWrapper(nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>));
         private readonly PermissionManager<TUser, TRole, TContext, TKey> _permissionManager;
         public PermissionsMiddleware(PermissionManager<TUser, TRole, TContext, TKey> permissionManager)
         {

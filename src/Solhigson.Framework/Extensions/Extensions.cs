@@ -56,7 +56,7 @@ namespace Solhigson.Framework.Extensions
 {
     public static class Extensions
     {
-        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
+        private static readonly LogWrapper Logger = new LogWrapper(typeof(Extensions).FullName);
         
         #region Api Extensions
 

@@ -9,7 +9,7 @@ namespace Solhigson.Framework.Logging
 {
     public static class LogManager
     {
-        private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(LogManager).FullName);
+        private static readonly LogWrapper Logger = new LogWrapper(typeof(LogManager).FullName);
         private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
             new ();
 
