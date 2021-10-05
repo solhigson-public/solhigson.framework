@@ -30,6 +30,13 @@ namespace Solhigson.Framework.Services
             return ResponseInfo.SuccessResult();
         }
         
+        public async Task<ResponseInfo<AppSetting>> GetApplicationSettingAsync(string name)
+        {
+            var response = new ResponseInfo<AppSetting>();
+            var setting = await RepositoryWrapper.AppSettingRepository.GetByNameAsync(name);
+            return setting is not null ? response.Success(setting) : response.Fail();
+        }
+
         public async Task<ResponseInfo> UpdateApplicationSettingAsync(AppSetting appSetting)
         {
             RepositoryWrapper.DbContext.Update(appSetting);
@@ -57,6 +64,13 @@ namespace Solhigson.Framework.Services
             return ResponseInfo.SuccessResult();
         }
         
+        public async Task<ResponseInfo<NotificationTemplate>> GetNotificationTemplateAsync(string name)
+        {
+            var response = new ResponseInfo<NotificationTemplate>();
+            var template = await RepositoryWrapper.NotificationTemplateRepository.GetByNameAsync(name);
+            return template is not null ? response.Success(template) : response.Fail();
+        }
+
         public async Task<ResponseInfo> DeleteNotificationTemplateAsync(NotificationTemplate notificationTemplate)
         {
             RepositoryWrapper.DbContext.Remove(notificationTemplate);
