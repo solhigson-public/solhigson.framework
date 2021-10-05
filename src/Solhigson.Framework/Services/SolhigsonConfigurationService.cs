@@ -59,7 +59,10 @@ namespace Solhigson.Framework.Services
             {
                 existing.Template = notificationTemplate.Template;
             }
-            RepositoryWrapper.DbContext.Add(notificationTemplate);
+            else
+            {
+                RepositoryWrapper.DbContext.Add(notificationTemplate);
+            }
             await RepositoryWrapper.SaveChangesAsync();
             return ResponseInfo.SuccessResult();
         }
