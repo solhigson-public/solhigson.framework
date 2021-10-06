@@ -308,7 +308,7 @@ namespace Solhigson.Framework.Utilities
 
         public static string FormatCurrency(decimal? amount, string symbol = "₦")
         {
-            return FormatAmountInternal(amount, symbol, false);
+            return FormatAmountInternal(amount, symbol + " ", false);
         }
 
         private static string FormatAmountInternal(decimal? amount, string symbol = "₦", bool divideBy100 = true,
