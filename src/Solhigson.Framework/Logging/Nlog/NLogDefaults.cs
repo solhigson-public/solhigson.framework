@@ -47,6 +47,36 @@ namespace Solhigson.Framework.Logging.Nlog
 
             };
         }
+        
+        public static JsonLayout GetDefaultJsonLayout2(bool encodeChildJsonContent = true)
+        {
+            return new JsonLayout
+            {
+                Attributes =
+                {
+
+                    new JsonAttribute("Date", "${longdate}", true),
+                    new JsonAttribute("LogLevel", "${level}", true),
+                    new JsonAttribute("Description", "${message}", true),
+                    new JsonAttribute("Source", "${logger}", true),
+                    new JsonAttribute("ServiceName", "${event-properties:item=serviceName}", true),
+                    new JsonAttribute("ServiceType", "${event-properties:item=serviceType}", true),
+                    new JsonAttribute("ServiceUrl", "${event-properties:item=url}", true),
+                    new JsonAttribute("Status", "${event-properties:item=status}", true),
+                    new JsonAttribute("ChainId", "${event-properties:item=chainId}", true),
+
+                    new JsonAttribute("Group", "${solhigson-group}", true),
+                    new JsonAttribute("Exception", "${solhigson-exception}", encodeChildJsonContent),
+                    new JsonAttribute("Data", "${solhigson-data2}", encodeChildJsonContent),
+                    new JsonAttribute("User", "${solhigson-user}", true),
+
+
+                    new JsonAttribute("MachineName", "${machineName}", true)
+                },
+
+            };
+        }
+
 
         public static JsonLayout TestsLayout =>
             new JsonLayout

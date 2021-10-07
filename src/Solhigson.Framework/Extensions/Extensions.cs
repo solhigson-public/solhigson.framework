@@ -93,13 +93,24 @@ namespace Solhigson.Framework.Extensions
             {
                 app.UseMiddleware<ApiTraceMiddleware>();
             }
-            ConfigurationItemFactory.Default.CreateInstance = type =>
-                type == typeof(CustomDataRenderer) || type.Name == nameof(CustomDataRenderer)
-                    ? new CustomDataRenderer(defaultNLogParameters.ProtectedFields)
-                    : Activator.CreateInstance(type);
+            ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, defaultNLogParameters.ProtectedFields);
             
             Constants.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
             return app;
+        }
+
+        private static object CreateInstance(Type type, string protectedFields)
+        {
+            if (type == typeof(CustomDataRenderer) || type.Name == nameof(CustomDataRenderer))
+            {
+                return new CustomDataRenderer(protectedFields);
+            }
+            if (type == typeof(CustomDataRenderer2) || type.Name == nameof(CustomDataRenderer2))
+            {
+                return new CustomDataRenderer2(protectedFields);
+            }
+
+            return Activator.CreateInstance(type);
         }
 
         public static IApplicationBuilder UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
