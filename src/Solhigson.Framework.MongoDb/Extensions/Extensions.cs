@@ -36,15 +36,34 @@ namespace Solhigson.Framework.Extensions
             }
 
             var expireAfter = parameters.ExpireAfter ?? TimeSpan.FromDays(7);
-            var indexKeysDefinition = Builders<MongoDbLog>.IndexKeys.Descending(l => l.Ttl);
-            var indexOptions = new CreateIndexOptions 
-            { 
-                ExpireAfter = expireAfter,
-                Name = "LogsExpireIndex", 
-                Background = true 
+            var ttlIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Ttl);
+            var dateIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Timestamp);
+            var groupIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Group);
+            var chainIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.ChainId);
+            var composite = Builders<MongoDbLog>.IndexKeys.Descending(l => l.Timestamp)
+                .Descending(t => t.Data)
+                .Descending(t => t.User)
+                .Descending(t => t.ServiceUrl)
+                .Descending(t => t.Exception)
+                .Descending(t => t.Description);
+
+            var generalCreateIndexOptions = new CreateIndexOptions
+            {
+                Sparse = true,
+                Background = true
             };
-            var model = new CreateIndexModel<MongoDbLog>(indexKeysDefinition, indexOptions);
-            service.Collection.Indexes.CreateOne(model);
+            service.Collection.Indexes.CreateMany(new[]
+            {
+                new CreateIndexModel<MongoDbLog>(ttlIndex, new CreateIndexOptions { 
+                    ExpireAfter = expireAfter,
+                    Name = "LogsExpireIndex", 
+                    Background = true 
+                }),
+                new CreateIndexModel<MongoDbLog>(dateIndex, generalCreateIndexOptions),
+                new CreateIndexModel<MongoDbLog>(groupIndex, generalCreateIndexOptions),
+                new CreateIndexModel<MongoDbLog>(chainIndex, generalCreateIndexOptions),
+                new CreateIndexModel<MongoDbLog>(composite, generalCreateIndexOptions),
+            });
 
             app.ConfigureSolhigsonNLogDefaults();
 

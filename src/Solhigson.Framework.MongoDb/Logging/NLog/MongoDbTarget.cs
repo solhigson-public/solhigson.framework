@@ -43,7 +43,7 @@ namespace Solhigson.Framework.MongoDb.Logging.NLog
             }
             catch (Exception e)
             {
-                InternalLogger.Error(e, "Error while sending log messages to Azure Cosmos Db");
+                InternalLogger.Error(e, "Error while sending log messages to Mongo Db");
                 return false;
             }
         }
