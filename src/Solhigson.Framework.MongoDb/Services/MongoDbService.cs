@@ -54,7 +54,7 @@ namespace Solhigson.Framework.MongoDb.Services
         public async Task<PagedList<T>> FindAsync(Expression<Func<T, bool>> filter, int pageNumber, int pageSize)
         {
             var count = await Collection.Find(filter).CountDocumentsAsync();
-            var result = await Collection.Find(filter).Skip((pageNumber - 1) * pageSize).Limit(pageNumber).ToListAsync();
+            var result = await Collection.Find(filter).Skip((pageNumber - 1) * pageSize).Limit(pageSize).ToListAsync();
             return PagedList.Create(result, count, pageNumber, pageSize);
         }
 
