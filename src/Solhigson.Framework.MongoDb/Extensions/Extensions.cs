@@ -35,16 +35,16 @@ namespace Solhigson.Framework.Extensions
                 return null;
             }
 
-            var expireAfter = parameters.ExpireAfter ?? TimeSpan.FromDays(7);
+            var expireAfter = parameters.ExpireAfter ?? TimeSpan.FromDays(1);
             var ttlIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Ttl);
-            var dateIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Timestamp);
-            var groupIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Group);
             var chainIndex = Builders<MongoDbLog>.IndexKeys.Descending(t => t.ChainId);
-            var composite = Builders<MongoDbLog>.IndexKeys.Descending(l => l.Timestamp)
+            var composite = Builders<MongoDbLog>.IndexKeys.Descending(t => t.Timestamp)
                 .Descending(t => t.Data)
                 .Descending(t => t.User)
                 .Descending(t => t.ServiceUrl)
                 .Descending(t => t.Exception)
+                .Descending(t => t.Source)
+                .Descending(t => t.Group)
                 .Descending(t => t.Description);
 
             var generalCreateIndexOptions = new CreateIndexOptions
@@ -59,8 +59,6 @@ namespace Solhigson.Framework.Extensions
                     Name = "LogsExpireIndex", 
                     Background = true 
                 }),
-                new CreateIndexModel<MongoDbLog>(dateIndex, generalCreateIndexOptions),
-                new CreateIndexModel<MongoDbLog>(groupIndex, generalCreateIndexOptions),
                 new CreateIndexModel<MongoDbLog>(chainIndex, generalCreateIndexOptions),
                 new CreateIndexModel<MongoDbLog>(composite, generalCreateIndexOptions),
             });
