@@ -33,7 +33,7 @@ namespace Solhigson.Framework.Data.Caching
                 if (ce.ChangeIds.TryGetValue(key, out var changeId) && _changeIds[key] != changeId)
                 {
                     _changeIds[key] = changeId;
-                    this.ELogDebug($"Change tracker changed for [{key}]");
+                    this.ELogTrace($"Change tracker changed for [{key}]");
                     OnChanged?.Invoke(null, EventArgs.Empty);
                 }
             }

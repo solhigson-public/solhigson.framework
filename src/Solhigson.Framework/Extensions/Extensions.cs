@@ -493,7 +493,7 @@ namespace Solhigson.Framework.Extensions
             {
                 return null;
             }
-            Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+            Logger.Trace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
             return result.Value as T;
         }
 
@@ -507,14 +507,14 @@ namespace Solhigson.Framework.Extensions
             {
                 if (Logger.IsDebugEnabled)
                 {
-                    Logger.Debug($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+                    Logger.Trace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
                 }
                 return customCacheEntry.Value as TK;
             }
 
             if (Logger.IsDebugEnabled)
             {
-                Logger.Debug($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
+                Logger.Trace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             }
             lock (key)
             {

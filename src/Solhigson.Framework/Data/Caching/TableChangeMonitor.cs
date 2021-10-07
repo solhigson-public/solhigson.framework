@@ -10,7 +10,7 @@ namespace Solhigson.Framework.Data.Caching
         public TableChangeMonitor(TableChangeTracker tableChangeTracker)
         {
             UniqueId = $"{tableChangeTracker.TableNames}_{Guid.NewGuid().ToString()}";
-            this.ELogDebug($"New Change monitor: {UniqueId}");
+            this.ELogTrace($"New Change monitor: {UniqueId}");
             _tableChangeTracker = tableChangeTracker;
             _tableChangeTracker.OnChanged += TableChangeTrackerOnChanged;
             InitializationComplete();
@@ -18,13 +18,13 @@ namespace Solhigson.Framework.Data.Caching
 
         private void TableChangeTrackerOnChanged(object sender, EventArgs e)
         {
-            this.ELogDebug($"Monitor changed for {UniqueId}");
+            this.ELogTrace($"Monitor changed for {UniqueId}");
             OnChanged(UniqueId);
         }
 
         protected override void Dispose(bool disposing)
         {
-            this.ELogDebug($"Dispose called for {UniqueId}");
+            this.ELogTrace($"Dispose called for {UniqueId}");
             _tableChangeTracker.OnChanged -= TableChangeTrackerOnChanged;
         }
 
