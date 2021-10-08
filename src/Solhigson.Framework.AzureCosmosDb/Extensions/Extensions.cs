@@ -39,7 +39,7 @@ namespace Solhigson.Framework.Extensions
             var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container)
             {
                 Name = "custom document",
-                Layout = NLogDefaults.GetDefaultJsonLayout(),
+                Layout = NLogDefaults.GetDefaultJsonLayout2(),
             };
 
             app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));

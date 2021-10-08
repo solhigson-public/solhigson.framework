@@ -65,7 +65,7 @@ namespace Solhigson.Framework.Extensions
 
             app.ConfigureSolhigsonNLogDefaults();
 
-            var layout = NLogDefaults.GetDefaultJsonLayout(parameters.EncodeChildJsonContent);
+            var layout = NLogDefaults.GetDefaultJsonLayout2(parameters.EncodeChildJsonContent);
             layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
             layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
             var customTarget = new MongoDbTarget<MongoDbLog>(service)
