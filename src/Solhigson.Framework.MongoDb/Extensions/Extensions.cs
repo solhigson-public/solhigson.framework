@@ -55,7 +55,7 @@ namespace Solhigson.Framework.Extensions
             service.Collection.Indexes.CreateMany(new[]
             {
                 new CreateIndexModel<MongoDbLog>(ttlIndex, new CreateIndexOptions { 
-                    ExpireAfter = expireAfter,
+                    ExpireAfter = TimeSpan.Zero,
                     Name = "LogsExpireIndex", 
                     Background = true 
                 }),
@@ -68,7 +68,7 @@ namespace Solhigson.Framework.Extensions
             var layout = NLogDefaults.GetDefaultJsonLayout2(parameters.EncodeChildJsonContent);
             layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
             layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
-            var customTarget = new MongoDbTarget<MongoDbLog>(service)
+            var customTarget = new MongoDbTarget<MongoDbLog>(service, expireAfter)
             {
                 Name = "custom document",
                 Layout = layout,

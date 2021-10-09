@@ -13,10 +13,12 @@ namespace Solhigson.Framework.MongoDb.Logging.NLog
     public class MongoDbTarget<T> : TargetWithLayout where T : MongoDbDocumentBase
     {
         private MongoDbService<T> _service;
+        private TimeSpan _expireAfter;
 
-        public MongoDbTarget([NotNull] MongoDbService<T> service)
+        public MongoDbTarget([NotNull] MongoDbService<T> service, TimeSpan expireAfter)
         {
             _service = service;
+            _expireAfter = expireAfter;
         }
 
         protected override void Write(LogEventInfo logEvent)
@@ -37,7 +39,7 @@ namespace Solhigson.Framework.MongoDb.Logging.NLog
             {
                 var document = JsonConvert.DeserializeObject<T>(jsonString);
                 document.Id = Guid.NewGuid().ToString();
-                document.Ttl = DateTime.UtcNow;
+                document.Ttl = DateTime.UtcNow.Add(_expireAfter);
                 AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
                 return true;
             }
