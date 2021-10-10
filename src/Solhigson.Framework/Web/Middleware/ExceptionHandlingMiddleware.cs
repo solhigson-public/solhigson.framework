@@ -46,7 +46,7 @@ namespace Solhigson.Framework.Web.Middleware
                 }
                 else
                 {
-                    httpContext.Response.Redirect($"~/_{statusCode}");
+                    httpContext.Response.Redirect($"{HttpUtils.UrlRoot(httpContext)}/{statusCode}");
                 }
             }
             catch (Exception e)

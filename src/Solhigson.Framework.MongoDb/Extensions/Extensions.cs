@@ -55,7 +55,6 @@ namespace Solhigson.Framework.Extensions
             service.Collection.Indexes.CreateMany(new[]
             {
                 new CreateIndexModel<MongoDbLog>(ttlIndex, new CreateIndexOptions { 
-                    ExpireAfter = TimeSpan.Zero,
                     Name = "LogsExpireIndex", 
                     Background = true 
                 }),
