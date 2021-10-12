@@ -32,7 +32,7 @@ namespace Solhigson.Framework.MongoDb.Dto
 
         [JsonPropertyName("Data")]
         [JsonProperty("Data")]
-        public object Data { get; set; }
+        public string Data { get; set; }
 
         [JsonPropertyName("User")]
         [JsonProperty("User")]
