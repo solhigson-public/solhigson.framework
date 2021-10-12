@@ -137,7 +137,6 @@ namespace Solhigson.Framework.Extensions
                     "[WorkspaceId, Sharedkey or LogName].");
                 return app;
             }
-            app.ConfigureSolhigsonNLogDefaults(customNLogTargetParameters);
 
             var config = new LoggingConfiguration();
             var fallbackGroupTarget = new FallbackGroupTarget
@@ -159,10 +158,8 @@ namespace Solhigson.Framework.Extensions
         public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
         {
             ConfigurationItemFactory.Default.RegisterItemsFromAssembly(typeof(CustomDataRenderer).Assembly);
-            ConfigurationItemFactory.Default.CreateInstance = type =>
-                type == typeof(CustomDataRenderer)
-                    ? new CustomDataRenderer(null)
-                    : Activator.CreateInstance(type);
+            ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, null);
+
             var config = new LoggingConfiguration();
             var testOutputHelperTarget = new XUnitTestOutputHelperTarget(outputHelper)
             {
@@ -186,6 +183,7 @@ namespace Solhigson.Framework.Extensions
                     "[WorkspaceId, Sharedkey or LogName].");
                 return app;
             }
+            app.ConfigureSolhigsonNLogDefaults(defaultNLogAzureLogAnalyticsParameters);
 
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
                 defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName,
