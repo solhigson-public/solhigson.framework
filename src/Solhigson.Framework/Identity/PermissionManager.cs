@@ -70,7 +70,7 @@ namespace Solhigson.Framework.Identity
             return roleIds.Any(roleId => _dbContext.RolePermissions.Where(t => t.RoleId.Equals(roleId) && t.PermissionId == permission.Id)
                 .FromCacheSingle() is not null) 
                 ? ResponseInfo.SuccessResult() 
-                : ResponseInfo.FailedResult("user does not have the required permission");
+                : ResponseInfo.FailedResult("User does not have the required permission");
         }
 
         public async Task AddPermissionAsync(SolhigsonPermission permission)
