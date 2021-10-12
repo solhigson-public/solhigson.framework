@@ -480,6 +480,13 @@ namespace Solhigson.Framework.Extensions
             return GetCacheData<T, List<T>>(query, ResolveToList, iCachedEntityTypesToMonitor) ?? new List<T>();
         }
         
+        public static PagedList<T> FromCacheListPaged<T>(this IQueryable<T> query, int page, int itemsPerPage, params Type [] iCachedEntityTypesToMonitor) where T : class
+        {
+            var data = GetCacheData<T, List<T>>(query, ResolveToList, iCachedEntityTypesToMonitor) ?? new List<T>();
+            return data.AsQueryable().ToPagedList(page, itemsPerPage);
+        }
+
+        
         /// <summary>
         /// 
         /// </summary>
