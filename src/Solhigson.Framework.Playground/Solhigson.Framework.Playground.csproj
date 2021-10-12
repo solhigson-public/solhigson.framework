@@ -22,7 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Solhigson.Framework.MongoDb\Solhigson.Framework.MongoDb.csproj" />
       <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
     </ItemGroup>
 
