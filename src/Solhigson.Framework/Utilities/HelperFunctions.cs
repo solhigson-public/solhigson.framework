@@ -248,7 +248,9 @@ namespace Solhigson.Framework.Utilities
                     var data = jProperty.Value.ToString();
                     if (IsValidJson(data))
                     {
-                        var njObject = JToken.Parse(data);
+                        var njObject = JObject.Parse(data);
+                        CheckForProtectedFields(njObject, protectedFields);
+                        /*
                         if (njObject is JArray)
                         {
                             foreach (var obj in njObject)
@@ -258,9 +260,10 @@ namespace Solhigson.Framework.Utilities
                                     continue;
                                 }
 
-                                CheckForProtectedFields((JObject) obj, protectedFields);
+                                CheckForProtectedFields(JObject.Parse(data), protectedFields);
                             }
                         }
+                        */
 
                         jProperty.Value = njObject;
                     }

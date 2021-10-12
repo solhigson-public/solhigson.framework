@@ -137,7 +137,8 @@ namespace Solhigson.Framework.Extensions
                     "[WorkspaceId, Sharedkey or LogName].");
                 return app;
             }
-            
+            app.ConfigureSolhigsonNLogDefaults(customNLogTargetParameters);
+
             var config = new LoggingConfiguration();
             var fallbackGroupTarget = new FallbackGroupTarget
             {
@@ -186,7 +187,6 @@ namespace Solhigson.Framework.Extensions
                 return app;
             }
 
-            app.ConfigureSolhigsonNLogDefaults();
             var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
                 defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName,
                 app.ApplicationServices.GetRequiredService<IHttpClientFactory>())

@@ -63,8 +63,6 @@ namespace Solhigson.Framework.Extensions
                 new CreateIndexModel<MongoDbLog>(composite, generalCreateIndexOptions),
             });
 
-            app.ConfigureSolhigsonNLogDefaults();
-
             var layout = NLogDefaults.GetDefaultJsonLayout2(parameters.EncodeChildJsonContent);
             layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
             layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
