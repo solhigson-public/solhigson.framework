@@ -27,7 +27,8 @@ namespace Solhigson.Framework.Extensions
                     "[ConnectionString, Database or Collection].");
                 return null;
             }
-            
+            app.ConfigureSolhigsonNLogDefaults(parameters);
+           
             var service = MongoDbServiceFactory.Create<MongoDbLog>(parameters.ConnectionString, parameters.Database, parameters.Collection);
             if (service == null)
             {

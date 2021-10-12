@@ -27,7 +27,8 @@ namespace Solhigson.Framework.Extensions
                     "[Database or Container].");
                 return null;
             }
-            
+            app.ConfigureSolhigsonNLogDefaults(parameters);
+           
             var service = CreateLogContainer(parameters);
             if (service == null)
             {
