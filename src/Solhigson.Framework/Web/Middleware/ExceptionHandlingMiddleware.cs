@@ -11,7 +11,7 @@ namespace Solhigson.Framework.Web.Middleware
 {
     public class ExceptionHandlingMiddleware : IMiddleware
     {
-        private static readonly LogWrapper Logger = new LogWrapper(nameof(ExceptionHandlingMiddleware));
+        private static readonly LogWrapper Logger = new LogWrapper(typeof(ExceptionHandlingMiddleware).FullName);
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
             try

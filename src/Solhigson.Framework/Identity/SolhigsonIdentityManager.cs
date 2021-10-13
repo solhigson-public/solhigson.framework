@@ -103,6 +103,45 @@ namespace Solhigson.Framework.Identity
             await SignInManager.SignOutAsync();
         }
         
+        public async Task<TUser> GetUserDetailsById(string id)
+        {
+            var user = await UserManager.FindByIdAsync(id);
+            GetRoles(user);
+            return user;
+        }
+
+
+        public async Task<TUser> GetUserDetailsByUsername(string userName)
+        {
+            var user = await UserManager.FindByNameAsync(userName);
+            GetRoles(user);
+            return user;
+        }
+
+        private void GetRoles(TUser user)
+        {
+            var userRoles = _dbContext.UserRoles.Where(t => t.UserId.Equals(user.Id))
+                .FromCacheList();
+            
+            if (userRoles.Any())
+            {
+                user.Roles = new List<TRole>();
+                foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingle()).Where(role => role != null))
+                {
+                    role.RoleGroup = _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingle();
+                    user.Roles.Add(role);
+                }
+            }
+        }
+        
+        public async Task<TUser> GetUserDetailsByEmail(string email)
+        {
+            var user = await UserManager.FindByEmailAsync(email);
+            GetRoles(user);
+            return user;
+        }
+
+        
         public async Task<SignInResponse<TUser, TKey, TRole>> SignIn(string userName, string password, bool lockOutOnFailure = false)
         {
             var response = new SignInResponse<TUser, TKey, TRole>();
@@ -115,19 +154,7 @@ namespace Solhigson.Framework.Identity
                 return response;
             }
             
-            response.User = await UserManager.FindByNameAsync(userName);
-            var userRoles = _dbContext.UserRoles.Where(t => t.UserId.Equals(response.User.Id))
-                .FromCacheList();
-            
-            if (userRoles.Any())
-            {
-                response.User.Roles = new List<TRole>();
-                foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingle()).Where(role => role != null))
-                {
-                    role.RoleGroup = _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingle();
-                    response.User.Roles.Add(role);
-                }
-            }
+            response.User = await GetUserDetailsByUsername(userName);
             return response;
         }
 
