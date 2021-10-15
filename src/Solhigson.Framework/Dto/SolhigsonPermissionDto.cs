@@ -13,6 +13,8 @@ namespace Solhigson.Framework.Dto
 
         public string OnClickFunction { get; set; }
         
+        public bool IsMenu { get; set; }
+
         public virtual List<SolhigsonPermissionDto> Children { get; set; }
 
     }
