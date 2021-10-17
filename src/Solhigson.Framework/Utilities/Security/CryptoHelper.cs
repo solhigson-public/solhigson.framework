@@ -251,8 +251,8 @@ namespace Solhigson.Framework.Utilities.Security
             await using (var cs = new CryptoStream
                 (ms, cryptoProvider, CryptoStreamMode.Write))
             {
-                await cs.WriteAsync(encodedText, 0, encodedText.Length);
-                cs.FlushFinalBlock();
+                await cs.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
+                await cs.FlushFinalBlockAsync();
             }
 
             return ms.ToArray();
@@ -277,6 +277,24 @@ namespace Solhigson.Framework.Utilities.Security
             }
             return output.ToString();
         }
+        
+        public static byte[] FromHexString(this string hexString)
+        {
+            if (hexString.Length % 2 != 0)
+            {
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
+            }
+
+            var hexAsBytes = new byte[hexString.Length / 2];
+            for (var index = 0; index < hexAsBytes.Length; index++)
+            {
+                var byteValue = hexString.Substring(index * 2, 2);
+                hexAsBytes[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            }
+
+            return hexAsBytes;
+        }
+
 
         private static string ToBase64String(this string data)
         {

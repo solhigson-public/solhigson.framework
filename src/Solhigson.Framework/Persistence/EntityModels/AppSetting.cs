@@ -20,5 +20,9 @@ namespace Solhigson.Framework.Persistence.EntityModels
         
         [Column(ScriptsManager.AppSettingInfo.ValueColumn, TypeName = "VARCHAR")]
         public string Value { get; set; }
+        
+        [Column(ScriptsManager.AppSettingInfo.IsSensitive)]
+        public bool IsSensitive { get; set; }
+
     }
 }

@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -8,25 +11,38 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
+using Solhigson.Framework.Utilities.Security;
 
 namespace Solhigson.Framework.Services
 {
     public class SolhigsonConfigurationService : ServiceBase
     {
+        private static readonly byte[] EncyptionKey = ("67566B59703373367639792F423F45284" +
+                                                       "82B4D6251655468576D5A7134743777").FromHexString();
+
+        private static readonly byte[] EncryptionIv = "73357638792F423F4528482B4D625065".FromHexString();
+
+        private const string EncryptDisplay = "@@@***Encrypted***@@@";
         public SolhigsonConfigurationService(IRepositoryWrapper repositoryWrapper) : base(repositoryWrapper)
         {
+            
         }
         
         public async Task<ResponseInfo> CreateApplicationSettingAsync(AppSetting appSetting)
         {
             var existing =
                 await RepositoryWrapper.AppSettingRepository.GetByNameAsync(appSetting.Name);
-            if (existing != null)
+            if (existing is not null)
             {
                 return ResponseInfo.FailedResult($"AppSetting with name already exists: {existing.Name}");
             }
-            RepositoryWrapper.DbContext.Add(appSetting);
-            await RepositoryWrapper.SaveChangesAsync();
+
+            if (MaskForSaveIfSensitive(appSetting))
+            {
+                RepositoryWrapper.DbContext.Add(appSetting);
+                await RepositoryWrapper.SaveChangesAsync();
+            }
+
             return ResponseInfo.SuccessResult();
         }
         
@@ -34,13 +50,18 @@ namespace Solhigson.Framework.Services
         {
             var response = new ResponseInfo<AppSetting>();
             var setting = await RepositoryWrapper.AppSettingRepository.GetByNameAsync(name);
+            MaskForDisplayIfSensitive(setting);
             return setting is not null ? response.Success(setting) : response.Fail();
         }
 
         public async Task<ResponseInfo> UpdateApplicationSettingAsync(AppSetting appSetting)
         {
-            RepositoryWrapper.DbContext.Update(appSetting);
-            await RepositoryWrapper.SaveChangesAsync();
+            if (MaskForSaveIfSensitive(appSetting))
+            {
+                RepositoryWrapper.DbContext.Update(appSetting);
+                await RepositoryWrapper.SaveChangesAsync();
+            }
+
             return ResponseInfo.SuccessResult();
         }
         
@@ -50,6 +71,26 @@ namespace Solhigson.Framework.Services
             await RepositoryWrapper.SaveChangesAsync();
             return ResponseInfo.SuccessResult();
         }
+        
+        public async Task<ResponseInfo<PagedList<AppSetting>>> SearchAppSettingsAsync(int page = 1, int pageSize = 20,
+            string name = null)
+        {
+            var response = new ResponseInfo<PagedList<AppSetting>>();
+            var query = RepositoryWrapper.DbContext.AppSettings.AsNoTracking().AsQueryable();
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                query = query.Where(t => t.Name.Contains(name));
+            }
+
+            var result = await query.ToPagedListAsync(page, pageSize);
+            foreach (var setting in result.Results)
+            {
+                MaskForDisplayIfSensitive(setting);
+            }
+            return response.Success(result);
+        }
+
+
 
         public async Task<ResponseInfo> SaveNotificationTemplateAsync(NotificationTemplate notificationTemplate)
         {
@@ -81,20 +122,6 @@ namespace Solhigson.Framework.Services
             return ResponseInfo.SuccessResult();
         }
 
-        public async Task<ResponseInfo<PagedList<AppSetting>>> SearchAppSettingsAsync(int page = 1, int pageSize = 20,
-            string name = null)
-        {
-            var response = new ResponseInfo<PagedList<AppSetting>>();
-            var query = RepositoryWrapper.DbContext.AppSettings.AsNoTracking().AsQueryable();
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                query = query.Where(t => t.Name.Contains(name));
-            }
-
-            var result = await query.ToPagedListAsync(page, pageSize);
-            return response.Success(result);
-        }
-
         public async Task<ResponseInfo<PagedList<NotificationTemplate>>> SearchNotificationTemplatesAsync(int page = 1, int pageSize = 20,
             string name = null)
         {
@@ -107,6 +134,49 @@ namespace Solhigson.Framework.Services
 
             var result = await query.ToPagedListAsync(page, pageSize);
             return response.Success(result);
+        }
+
+        internal static bool MaskForSaveIfSensitive(AppSetting setting)
+        {
+            if (setting is null)
+            {
+                return false;
+            }
+            if (!setting.IsSensitive)
+            {
+                return true;
+            }
+            if (setting.Value == EncryptDisplay)
+            {
+                return false;
+            }
+            setting.Value = EncryptSetting(setting.Value);
+            return true;
+        }
+
+        internal static void MaskForDisplayIfSensitive(AppSetting setting)
+        {
+            if (setting is null)
+            {
+                return;
+            }
+            if (setting.IsSensitive)
+            {
+                setting.Value = EncryptDisplay;
+            }
+        }
+
+        
+        public static string EncryptSetting(string data)
+        {
+            return Convert.ToBase64String(CryptoHelper.SymmetricEncryptAsync(Encoding.UTF8.GetBytes(data),
+                EncyptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
+        }
+        
+        public static string DecryptSetting(string data)
+        {
+            return Encoding.UTF8.GetString(CryptoHelper.SymmetricDecryptAsync(Convert.FromBase64String(data),
+                EncyptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
         }
 
     }

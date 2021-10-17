@@ -47,7 +47,8 @@ namespace Solhigson.Framework.Data
             sBuilder.Append($"CREATE TABLE [{AppSettingInfo.TableName}] ( ");
             sBuilder.Append($"[{AppSettingInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
                             $"[{AppSettingInfo.NameColumn}] VARCHAR(255) NOT NULL, " +
-                            $"[{AppSettingInfo.ValueColumn}] VARCHAR(MAX) NOT NULL ");
+                            $"[{AppSettingInfo.ValueColumn}] VARCHAR(MAX) NOT NULL, " +
+                            $"[{AppSettingInfo.IsSensitive}] BIT NOT NULL ");
             sBuilder.Append($"CONSTRAINT [PK__{AppSettingInfo.TableName}] PRIMARY KEY ([{AppSettingInfo.IdColumn}])); ");//END;");
 
             sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [UIX_{AppSettingInfo.TableName}_ON_{AppSettingInfo.NameColumn}] ");
@@ -274,6 +275,7 @@ namespace Solhigson.Framework.Data
             public const string TableName = "SolhigsonAppSettings";
             public const string NameColumn = "Name";
             public const string ValueColumn = "Value";
+            public const string IsSensitive = "IsSensitive";
             public const string IdColumn = "Id";
         }
         

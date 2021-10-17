@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.EntityModels;
+using Solhigson.Framework.Services;
+using Solhigson.Framework.Utilities.Security;
 
 namespace Solhigson.Framework.Infrastructure
 {
@@ -53,10 +57,22 @@ namespace Solhigson.Framework.Infrastructure
             if (!useAppSettingsFileOnly && _dbContext != null)
             {
                 var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
-                    .Select(t => t.Value);
-                
-                value = query.FromCacheSingle();
-                if (value != null) return value;
+                    .Select(t => t);
+
+                value = query.GetCustomResultFromCache<string>();
+                if (value is not null)
+                {
+                    return value;
+                }
+                var appSetting = query.FirstOrDefault();
+                if (appSetting is not null)
+                {
+                    value = appSetting.IsSensitive
+                        ? SolhigsonConfigurationService.DecryptSetting(appSetting.Value)
+                        : appSetting.Value;
+                    query.AddCustomResultToCache(value);
+                    return value;
+                }
                 if (!string.IsNullOrWhiteSpace(defaultValue))
                 {
                     AddSettingToDb(query, configKey, defaultValue);
@@ -89,7 +105,7 @@ namespace Solhigson.Framework.Infrastructure
                     };
                     _dbContext.AppSettings.Add(setting);
                     _dbContext.SaveChanges();
-                    CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
+                    //CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
                 }
             }
             catch (Exception e)
@@ -126,5 +142,9 @@ namespace Solhigson.Framework.Infrastructure
                     e);
             }
         }
+        
+
+        
+
     }
 }
