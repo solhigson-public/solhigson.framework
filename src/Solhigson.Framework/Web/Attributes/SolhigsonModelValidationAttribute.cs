@@ -9,10 +9,8 @@ using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Web.Attributes
 {
-    public class SolhigsonModelValidationAttribute : Attribute, IActionFilter, IOrderedFilter
+    public class SolhigsonModelValidationAttribute : Attribute, IActionFilter
     {
-        public int Order { get; } = int.MaxValue - 99;
-
         public void OnActionExecuting(ActionExecutingContext context)
         {
             if (context.Controller is not ControllerBase cont)
