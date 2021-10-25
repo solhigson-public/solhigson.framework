@@ -375,7 +375,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 for (var i = 1; i < indexAttr.PropertyNames.Count; i++)
                 {
-                    propertyNames.Add(indexAttr.PropertyNames[1]);
+                    propertyNames.Add(indexAttr.PropertyNames[i]);
                 }
             }
 
