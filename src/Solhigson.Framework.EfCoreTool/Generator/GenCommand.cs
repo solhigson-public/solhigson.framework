@@ -470,7 +470,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 for (var i = 1; i < indexAttr.PropertyNames.Count; i++)
                 {
-                    propertyName += $"And{indexAttr.PropertyNames[1]}";
+                    propertyName += $"And{indexAttr.PropertyNames[i]}";
                     propertyInfo = props.FirstOrDefault(t => t.Name == indexAttr.PropertyNames[i]);
                     if (propertyInfo == null)
                     {

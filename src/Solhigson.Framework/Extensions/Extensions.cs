@@ -915,13 +915,10 @@ namespace Solhigson.Framework.Extensions
             }
         }
 
-        
-        /*
-        public static bool IsPermissionAllowed(this IRazorPage view, string permission)
+        public static bool IsValidDate(this DateTime dateTime)
         {
-            return GetController(view)?.IsPermissionAllowed(permission) == true;
+            return dateTime != DateTime.MinValue && dateTime != DateTime.MaxValue;
         }
 
-    */
     }
 }
