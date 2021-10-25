@@ -241,7 +241,7 @@ namespace Solhigson.Framework.Utilities
                 jObject.Property(jProperty.Name).Value = "******";
             }
 
-            if (jProperty.Name == "RequestMessage" || jProperty.Name == "ResponseMessage")
+            if (jProperty.Name is "RequestMessage" or "ResponseMessage")
             {
                 try
                 {
@@ -274,7 +274,19 @@ namespace Solhigson.Framework.Utilities
                 }
             }
 
-            if (!(jProperty.Value is JObject childObject))
+            if (jProperty.Value is JArray array)
+            {
+                foreach (var jChildObject in array)
+                {
+                    if (jChildObject is JObject obj)
+                    {
+                        CheckForProtectedFields(obj, protectedFields);
+                    }
+                }
+                return;
+            }
+
+            if (jProperty.Value is not JObject childObject)
             {
                 return;
             }
