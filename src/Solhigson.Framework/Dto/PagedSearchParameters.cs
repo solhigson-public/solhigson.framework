@@ -84,7 +84,7 @@ namespace Solhigson.Framework.Dto
         }
 
 
-        private Dictionary<string, string> OtherParameters { get; }
+        public Dictionary<string, string> OtherParameters { get; set; }
 
         public string this[string name] => OtherParameters.TryGetValue(name, out var value) ? value : null;
 
