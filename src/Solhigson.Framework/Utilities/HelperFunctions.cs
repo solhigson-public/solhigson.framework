@@ -323,11 +323,10 @@ namespace Solhigson.Framework.Utilities
 
         public static string FormatCurrency(decimal? amount, string symbol = "₦")
         {
-            return FormatAmountInternal(amount, symbol + " ", false);
+            return FormatAmountInternal(amount, symbol);
         }
 
-        private static string FormatAmountInternal(decimal? amount, string symbol = "₦", bool divideBy100 = true,
-            short decimalDigits = 2)
+        private static string FormatAmountInternal(decimal? amount, string symbol = "₦", short decimalDigits = 2)
         {
             var numberFormatInfo = new NumberFormatInfo
                 {CurrencySymbol = symbol, CurrencyDecimalDigits = decimalDigits};
@@ -336,21 +335,12 @@ namespace Solhigson.Framework.Utilities
                 return 0.ToString("c", numberFormatInfo);
             }
 
-            if (divideBy100)
-            {
-                amount = amount / 100m;
-            }
-
-            //if (amt == 0)
-            //    return "0";
             return (amount.Value).ToString("c", numberFormatInfo);
         }
 
-
-        public static string FormatAmount(decimal? amount, string symbol = "₦", bool divideBy100 = true,
-            short decimalDigits = 2)
+        public static string FormatAmount(decimal? amount, string symbol = "₦", short decimalDigits = 2)
         {
-            return FormatAmountInternal(amount, symbol + " ", divideBy100, decimalDigits);
+            return FormatAmountInternal(amount, symbol, decimalDigits);
         }
 
         public static string SeparatePascalCaseWords(string input)
