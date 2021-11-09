@@ -22,7 +22,7 @@ variables:
   packageFramework: false
   packageTool: false
   packageAzureCosmosDb: true
-  packageMongoDb: true
+  packageMongoDb: false
 
 stages:
   - stage: build

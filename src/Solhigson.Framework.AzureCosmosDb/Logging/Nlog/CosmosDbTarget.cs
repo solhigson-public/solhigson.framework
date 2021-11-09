@@ -37,6 +37,8 @@ namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
             {
                 var document = JsonConvert.DeserializeObject<T>(jsonString);
                 document.TimeToLive = (int)_ttl.TotalSeconds;
+                document.Id = Guid.NewGuid().ToString();
+                document.Timestamp = DateUtils.CurrentUnixTimestamp;
                 AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
                 return true;
             }
