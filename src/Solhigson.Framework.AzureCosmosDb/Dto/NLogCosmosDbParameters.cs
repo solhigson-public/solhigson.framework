@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Cosmos;
+﻿using System;
+using Microsoft.Azure.Cosmos;
 using Solhigson.Framework.Logging.Nlog.Dto;
 
 namespace Solhigson.Framework.AzureCosmosDb.Dto
@@ -7,5 +8,7 @@ namespace Solhigson.Framework.AzureCosmosDb.Dto
     {
         public Database Database { get; set; }
         public string Container { get; set; }
+        public TimeSpan? ExpireAfter { get; set; }
+
     }
 }

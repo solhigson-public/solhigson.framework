@@ -4,17 +4,20 @@ using Newtonsoft.Json;
 using NLog;
 using NLog.Common;
 using NLog.Targets;
+using Solhigson.Framework.AzureCosmosDb.Dto;
 using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
 {
-    public class CosmosDbTarget<T> : TargetWithLayout
+    public class CosmosDbTarget<T> : TargetWithLayout where T : CosmosDocumentBase
     {
         private CosmosDbService _service;
+        private readonly TimeSpan _ttl;
 
-        public CosmosDbTarget(Database database, string containerName)
+        public CosmosDbTarget(Database database, string containerName, TimeSpan ttl)
         {
             _service = new CosmosDbService(database.Client, database.Id, containerName);
+            _ttl = ttl;
         }
 
         protected override void Write(LogEventInfo logEvent)
@@ -33,6 +36,7 @@ namespace Solhigson.Framework.AzureCosmosDb.Logging.Nlog
             try
             {
                 var document = JsonConvert.DeserializeObject<T>(jsonString);
+                document.TimeToLive = (int)_ttl.TotalSeconds;
                 AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
                 return true;
             }

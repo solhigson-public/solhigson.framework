@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Azure.Cosmos;
 using NLog.Common;
 using Solhigson.Framework.AzureCosmosDb;
 using Solhigson.Framework.AzureCosmosDb.Dto;
@@ -29,14 +30,15 @@ namespace Solhigson.Framework.Extensions
             }
             app.ConfigureSolhigsonNLogDefaults(parameters);
            
-            var service = CreateLogContainer(parameters);
+            var ttl = parameters.ExpireAfter ?? TimeSpan.FromDays(1);
+            var service = CreateLogContainer(parameters, ttl);
             if (service == null)
             {
                 Logger.Warn($"CreateLogContainer for container: {parameters.Container} returned null, not initializing NLogCosmosDb Target");
                 return null;
             }
            
-            var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container)
+            var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container, ttl)
             {
                 Name = "custom document",
                 Layout = NLogDefaults.GetDefaultJsonLayout2(),
@@ -45,25 +47,47 @@ namespace Solhigson.Framework.Extensions
             app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
             return service;
         }
-        
-        private static CosmosDbService CreateLogContainer(NLogCosmosDbParameters parameters)
+
+        private static CosmosDbService CreateLogContainer(NLogCosmosDbParameters parameters, TimeSpan ttl)
         {
             try
             {
                 var containerResponse = parameters.Database
                     .CreateContainerIfNotExistsAsync(parameters.Container, "/id").Result;
 
-                Logger.Info($"{parameters.Container} on database {parameters.Database.Id} create status: {containerResponse.StatusCode}");
-            
+                Logger.Info(
+                    $"{parameters.Container} on database {parameters.Database.Id} create status: {containerResponse.StatusCode}");
+
                 if (containerResponse.StatusCode == HttpStatusCode.Created)
                 {
                     Logger.Info($"{parameters.Container} created, updating indexes");
+                    containerResponse.Resource.IndexingPolicy.IndexingMode = IndexingMode.Consistent;
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Clear();
 
-                    containerResponse.Resource.DefaultTimeToLive = (int)TimeSpan.FromDays(7).TotalSeconds;
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(
+                        new IncludedPath { Path = "/ChainId/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/Group/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/_ts/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/Data/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath
+                        { Path = "/ServiceUrl/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/User/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath
+                        { Path = "/Exception/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath
+                        { Path = "/Source/?" });
+                    containerResponse.Resource.IndexingPolicy.IncludedPaths.Add(new IncludedPath
+                        { Path = "/Description/?" });
 
-                    AsyncTools.RunSync(() => containerResponse.Container.ReplaceContainerAsync(containerResponse.Resource));
+                    containerResponse.Resource.IndexingPolicy.ExcludedPaths.Clear();
+                    containerResponse.Resource.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/*" });
+
+                    containerResponse.Resource.DefaultTimeToLive = (int)ttl.TotalSeconds;
+
+                    AsyncTools.RunSync(() =>
+                        containerResponse.Container.ReplaceContainerAsync(containerResponse.Resource));
                 }
-            
+
                 return new CosmosDbService(parameters.Database.Client, parameters.Database.Id, parameters.Container);
             }
             catch (Exception e)

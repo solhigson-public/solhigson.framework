@@ -10,7 +10,6 @@ namespace Solhigson.Framework.AzureCosmosDb.Dto
     {
         [Newtonsoft.Json.JsonIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
-        [JsonPropertyName("")]
         public override string PartitionKey => Id;
 
         [JsonProperty("Source")]
