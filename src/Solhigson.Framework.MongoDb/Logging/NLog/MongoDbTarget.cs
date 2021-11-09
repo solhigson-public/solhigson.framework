@@ -13,7 +13,7 @@ namespace Solhigson.Framework.MongoDb.Logging.NLog
     public class MongoDbTarget<T> : TargetWithLayout where T : MongoDbDocumentBase
     {
         private MongoDbService<T> _service;
-        private TimeSpan _expireAfter;
+        private readonly TimeSpan _expireAfter;
 
         public MongoDbTarget([NotNull] MongoDbService<T> service, TimeSpan expireAfter)
         {

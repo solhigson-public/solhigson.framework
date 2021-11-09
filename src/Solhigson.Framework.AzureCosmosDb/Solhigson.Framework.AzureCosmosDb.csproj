@@ -15,7 +15,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.21.0" />
-      <PackageReference Include="Solhigson.Framework" Version="2.0.17" />
+      <PackageReference Include="Solhigson.Framework" Version="2.0.25" />
     </ItemGroup>
 
 </Project>
