@@ -195,7 +195,7 @@ namespace Solhigson.Framework.Utilities
 
             try
             {
-                var fields = jObject.Properties().ToList();
+                var fields = jObject.Properties();
                 foreach (var prop in fields)
                 {
                     MaskProtectedProperties(jObject, prop, protectedFields);
@@ -217,7 +217,7 @@ namespace Solhigson.Framework.Utilities
             {
                 case null:
                     return null;
-                case string _:
+                case string:
                     return data;
                 default:
                     try
@@ -241,31 +241,16 @@ namespace Solhigson.Framework.Utilities
                 jObject.Property(jProperty.Name).Value = "******";
             }
 
-            if (jProperty.Name is "RequestMessage" or "ResponseMessage")
+            if (jProperty.Value is JValue)
             {
                 try
                 {
                     var data = jProperty.Value.ToString();
-                    if (IsValidJson(data))
+                    if (IsValidJson(data, out var isArray))
                     {
-                        var njObject = JObject.Parse(data);
-                        CheckForProtectedFields(njObject, protectedFields);
-                        /*
-                        if (njObject is JArray)
-                        {
-                            foreach (var obj in njObject)
-                            {
-                                if (obj is JValue)
-                                {
-                                    continue;
-                                }
-
-                                CheckForProtectedFields(JObject.Parse(data), protectedFields);
-                            }
-                        }
-                        */
-
-                        jProperty.Value = njObject;
+                        jProperty.Value = isArray
+                            ? JArray.Parse(data)
+                            : JObject.Parse(data);
                     }
                 }
                 catch (Exception e)
@@ -290,24 +275,37 @@ namespace Solhigson.Framework.Utilities
             {
                 return;
             }
-
-            var childProperties = childObject.Properties();
-            foreach (var cProp in childProperties)
-            {
-                MaskProtectedProperties(childObject, cProp, protectedFields);
-            }
+            
+            CheckForProtectedFields(childObject, protectedFields);
         }
 
         public static bool IsValidJson(string strInput)
         {
+            return IsValidJson(strInput, out _);
+        }
+
+
+        public static bool IsValidJson(string strInput, out bool isArray)
+        {
+            isArray = false;
             if (string.IsNullOrWhiteSpace(strInput))
             {
                 return false;
             }
 
             strInput = strInput.Trim();
-            return strInput.StartsWith("{") && strInput.EndsWith("}") || //For object
-                   strInput.StartsWith("[") && strInput.EndsWith("]");
+            if (strInput.StartsWith("{") && strInput.EndsWith("}"))
+            {
+                return true;
+            }
+
+            if (strInput.StartsWith("[") && strInput.EndsWith("]"))
+            {
+                isArray = true;
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsValidXml(string strInput)
