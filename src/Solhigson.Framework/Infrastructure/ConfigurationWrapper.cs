@@ -44,55 +44,70 @@ namespace Solhigson.Framework.Infrastructure
             var setting = GetConfigInternal(groupName, key, defaultValue);
             return VerifySetting<T>(setting, key, groupName, defaultValue);
         }
-        
+
         private string GetConfigInternal(string group, string key = null, string defaultValue = null,
             bool useAppSettingsFileOnly = false)
         {
             var configKey = group;
-            if (!string.IsNullOrWhiteSpace(key)) configKey += $":{key}";
-            var value = Configuration[configKey];
-
-            if (value != null) return value;
-
-            if (!useAppSettingsFileOnly && _dbContext != null)
+            if (!string.IsNullOrWhiteSpace(key))
             {
-                var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
-                    .Select(t => t);
+                configKey += $":{key}";
+            }
+            
+            var value = Configuration[configKey];
+            // ReSharper disable once InconsistentlySynchronizedField
+            if (useAppSettingsFileOnly || _dbContext is null)
+            {
+                return value ??
+                       throw new Exception(
+                           $"Configuration [{key}] for group [{group}] not found in appSettings file.");
+            }
 
-                value = query.GetCustomResultFromCache<string>();
-                if (value is not null)
-                {
-                    return value;
-                }
-                var appSetting = query.FirstOrDefault();
-                if (appSetting is not null)
-                {
-                    value = appSetting.IsSensitive
-                        ? SolhigsonConfigurationService.DecryptSetting(appSetting.Value)
-                        : appSetting.Value;
-                    query.AddCustomResultToCache(value);
-                    return value;
-                }
-                if (!string.IsNullOrWhiteSpace(defaultValue))
-                {
-                    AddSettingToDb(query, configKey, defaultValue);
-                }
+            // ReSharper disable once InconsistentlySynchronizedField
+            var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
+                .Select(t => t);
+
+            var cacheValue = query.GetCustomResultFromCache<string>();
+            if (cacheValue is not null)
+            {
+                return cacheValue;
+            }
+
+            if (value is not null) //give preference to value from appSettings
+            {
+                query.AddCustomResultToCache(value);
+                AddSettingToDb(configKey, value);
+                return value;
+            }
+            
+            var appSetting = query.FirstOrDefault();
+            if (appSetting is not null)
+            {
+                value = appSetting.IsSensitive
+                    ? SolhigsonConfigurationService.DecryptSetting(appSetting.Value)
+                    : appSetting.Value;
+                query.AddCustomResultToCache(value);
+                return value;
             }
 
             if (defaultValue is null)
             {
-                throw new Exception($"Configuration [{key}] for group [{group}] not found.");
+                throw new Exception($"Configuration [{key}] for group [{@group}] not found.");
             }
-            
+
+            AddSettingToDb(configKey, defaultValue);
             return defaultValue;
+
         }
 
-        private void AddSettingToDb(IQueryable query, string key, string value)
+        private void AddSettingToDb(string key, string value)
         {
             try
             {
+                /*
                 lock (SyncHelper)
                 {
+                    */
                     if (_dbContext.Set<AppSetting>().Any(t => t.Name == key))
                     {
                         return;
@@ -106,7 +121,9 @@ namespace Solhigson.Framework.Infrastructure
                     _dbContext.AppSettings.Add(setting);
                     _dbContext.SaveChanges();
                     //CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
+                /*
                 }
+            */
             }
             catch (Exception e)
             {
