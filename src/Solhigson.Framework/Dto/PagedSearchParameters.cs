@@ -60,7 +60,7 @@ namespace Solhigson.Framework.Dto
                 {
                     return _fromDate;
                 }
-                _fromDate = DateTime.UtcNow.Date.AddMinutes(LocaleUtil.GetTimeZoneOffset());
+                _fromDate = DateTime.UtcNow.Date.AddMinutes(LocaleUtil.GetTimeZoneOffset() * -1);
                 _convertedFromDateToUniversalTime = true;
                 return _fromDate;
             }
