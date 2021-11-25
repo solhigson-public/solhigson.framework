@@ -21,18 +21,24 @@ namespace Solhigson.Framework.Infrastructure
             _connectionString = connectionString;
             _configuration = configuration;
         }
+
+        public static void LoadDbSupport(ContainerBuilder builder)
+        {
+            builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+
+            builder.RegisterType<SolhigsonConfigurationService>().AsSelf().InstancePerLifetimeScope()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
+            builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
+                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+        }
         protected override void Load(ContainerBuilder builder)
         {
             #region Registed AsSelf(), no interface implementation
 
             if (!string.IsNullOrWhiteSpace(_connectionString))
             {
-                builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
-                    .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-
-                builder.RegisterType<SolhigsonConfigurationService>().AsSelf().InstancePerLifetimeScope()
-                    .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-
                 builder.Register(c =>
                 {
                     var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
@@ -40,12 +46,19 @@ namespace Solhigson.Framework.Infrastructure
                     return new SolhigsonDbContext(opt.Options);
                 }).AsSelf().InstancePerLifetimeScope();
                 
-
+                LoadDbSupport(builder);
             }
+            else
+            {
+                builder.Register(c => new ConfigurationWrapper(_configuration, null))
+                    .AsSelf().InstancePerLifetimeScope();
+            }
+            /*
+            /*
             builder.Register(c => new ConfigurationWrapper(_configuration, _connectionString))
                 .AsSelf().InstancePerLifetimeScope();
+                #1#
 
-            /*
             builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
                 */
