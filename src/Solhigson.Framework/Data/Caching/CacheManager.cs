@@ -27,7 +27,7 @@ namespace Solhigson.Framework.Data.Caching
         private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeTrackers = new();
 
         private static MemoryCache DefaultMemoryCache { get; } = new ("Solhigson::Data::Cache::Manager");
-        private static ConcurrentBag<string> CacheKeys { get; } = new ();
+        //private static ConcurrentBag<string> CacheKeys { get; } = new ();
 
         internal static void Initialize(string connectionString,
             int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
@@ -98,7 +98,7 @@ namespace Solhigson.Framework.Data.Caching
             return 0;
         }
 
-        internal static void AddToCache(string key, object value, IEnumerable<Type> types)
+        internal static void AddToCache(string key, object value, IList<Type> types)
         {
             if (string.IsNullOrWhiteSpace(key) || types == null || !types.Any())
             {
@@ -108,7 +108,7 @@ namespace Solhigson.Framework.Data.Caching
             InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
         }
 
-        internal static IEnumerable<Type> GetValidICacheEntityTypes(IEnumerable<Type> types)
+        internal static IList<Type> GetValidICacheEntityTypes(IEnumerable<Type> types)
         {
             var validTypes = new List<Type>();
             foreach (var type in types)
@@ -133,6 +133,7 @@ namespace Solhigson.Framework.Data.Caching
             }
 
             var entry = new CustomCacheEntry{ Value = value };
+            DefaultMemoryCache.Remove(key);
 
             try
             {
@@ -147,7 +148,6 @@ namespace Solhigson.Framework.Data.Caching
                 }
 
                 DefaultMemoryCache.Set(key, entry, policy);
-                CacheKeys.Add(key);
             }
             catch (Exception e)
             {

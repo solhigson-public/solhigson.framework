@@ -20,11 +20,9 @@ namespace Solhigson.Framework.Infrastructure
         private readonly SolhigsonDbContext _dbContext;
         private static readonly object SyncHelper = new();
 
-        public ConfigurationWrapper(IConfiguration configuration, SolhigsonDbContext dbContext)
+        public ConfigurationWrapper(IConfiguration configuration, string connectionString)
         {
             Configuration = configuration;
-            _dbContext = dbContext;
-            /*
             var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
             //_dbContext = serviceProvider.GetService<SolhigsonDbContext>();
             if (!string.IsNullOrWhiteSpace(connectionString))
@@ -32,7 +30,6 @@ namespace Solhigson.Framework.Infrastructure
                 opt.UseSqlServer(connectionString);
                 _dbContext = new SolhigsonDbContext(opt.Options);
             }
-        */
         }
 
         public T GetFromAppSettingFileOnly<T>(string group, string key = null, string defaultValue = null)

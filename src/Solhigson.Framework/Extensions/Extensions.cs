@@ -13,7 +13,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -548,7 +547,7 @@ namespace Solhigson.Framework.Extensions
             }
         }
 
-        private static IEnumerable<Type> GetQueryBaseType<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
+        private static IList<Type> GetQueryBaseType<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
         {
             var types = new List<Type>();
             if (iCachedEntityTypes != null && iCachedEntityTypes.Any())

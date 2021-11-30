@@ -15,10 +15,10 @@ namespace Solhigson.Framework.Persistence.EntityModels
         public int Id { get; set; }
         
         [StringLength(255)]
-        [Column(ScriptsManager.AppSettingInfo.NameColumn, TypeName = "VARCHAR")]
+        [Column(ScriptsManager.AppSettingInfo.NameColumn)]
         public string Name { get; set; }
         
-        [Column(ScriptsManager.AppSettingInfo.ValueColumn, TypeName = "VARCHAR")]
+        [Column(ScriptsManager.AppSettingInfo.ValueColumn)]
         public string Value { get; set; }
         
         [Column(ScriptsManager.AppSettingInfo.IsSensitive)]

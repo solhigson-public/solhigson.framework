@@ -41,79 +41,85 @@ namespace Solhigson.Framework.Data
             sBuilder.Append($"[{CacheChangeTrackerInfo.TableNameColumn}] VARCHAR(255) NOT NULL, [{CacheChangeTrackerInfo.ChangeIdColumn}] SMALLINT NOT NULL ");
             sBuilder.Append($"CONSTRAINT [PK__{CacheChangeTrackerInfo.TableName}] PRIMARY KEY ([{CacheChangeTrackerInfo.TableNameColumn}])); END;");
 
-            #region AppSettings Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{AppSettingInfo.TableName}]') IS NULL ");
-            sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{AppSettingInfo.TableName}] ( ");
-            sBuilder.Append($"[{AppSettingInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
-                            $"[{AppSettingInfo.NameColumn}] VARCHAR(255) NOT NULL, " +
-                            $"[{AppSettingInfo.ValueColumn}] VARCHAR(MAX) NOT NULL, " +
-                            $"[{AppSettingInfo.IsSensitive}] BIT NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{AppSettingInfo.TableName}] PRIMARY KEY ([{AppSettingInfo.IdColumn}])); ");//END;");
-
-            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [UIX_{AppSettingInfo.TableName}_ON_{AppSettingInfo.NameColumn}] ");
-            sBuilder.Append($"ON [{AppSettingInfo.TableName}] ");
-            sBuilder.Append($"( [{AppSettingInfo.NameColumn}] ASC ); END; ");
-            #endregion
-            
-            #region Notification Templates Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{NotificationTemplateInfo.TableName}]') IS NULL ");
-            sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{NotificationTemplateInfo.TableName}] ( ");
-            sBuilder.Append($"[{NotificationTemplateInfo.NameColumn}] NVARCHAR(255) NOT NULL, " +
-                            $"[{NotificationTemplateInfo.TemplateColumn}] NVARCHAR(MAX) NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{NotificationTemplateInfo.TableName}] PRIMARY KEY ([{NotificationTemplateInfo.NameColumn}])); END;");
-            
             /*
-            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{NotificationTemplateInfo.TableName}_ON_{NotificationTemplateInfo.NameColumn}] ");
-            sBuilder.Append($"ON [{NotificationTemplateInfo.TableName}] ");
-            sBuilder.Append($"( [{NotificationTemplateInfo.NameColumn}] ASC ); END; ");
-            */
-            #endregion
+          #region AppSettings Table
+           sBuilder.Append($"IF OBJECT_ID(N'[{AppSettingInfo.TableName}]') IS NULL ");
+           sBuilder.Append("BEGIN ");
+           sBuilder.Append($"CREATE TABLE [{AppSettingInfo.TableName}] ( ");
+           sBuilder.Append($"[{AppSettingInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
+                           $"[{AppSettingInfo.NameColumn}] VARCHAR(255) NOT NULL, " +
+                           $"[{AppSettingInfo.ValueColumn}] VARCHAR(MAX) NOT NULL, " +
+                           $"[{AppSettingInfo.IsSensitive}] BIT NOT NULL ");
+           sBuilder.Append($"CONSTRAINT [PK__{AppSettingInfo.TableName}] PRIMARY KEY ([{AppSettingInfo.IdColumn}])); ");//END;");
 
-            /*
-            #region Permission Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{PermissionInfo.TableName}]') IS NULL ");
-            sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{PermissionInfo.TableName}] ( ");
-            sBuilder.Append($"[{PermissionInfo.IdColumn}] VARCHAR(450) NOT NULL, " +
-                            $"[{PermissionInfo.NameColumn}] VARCHAR(256) NOT NULL, " +
-                            $"[{PermissionInfo.DescriptionColumn}] VARCHAR(256) NULL, " +
-                            $"[{PermissionInfo.UrlColumn}] VARCHAR(256) NULL, " +
-                            $"[{PermissionInfo.IsMenuColumn}] BIT NOT NULL, " +
-                            $"[{PermissionInfo.IsMenuRootColumn}] BIT NOT NULL, " +
-                            $"[{PermissionInfo.ParentIdColumn}] VARCHAR(450) NULL, " +
-                            $"[{PermissionInfo.MenuIndexColumn}] INT NOT NULL, " +
-                            $"[{PermissionInfo.IconColumn}] VARCHAR(256) NULL, " +
-                            $"[{PermissionInfo.OnClickFunctionColumn}] VARCHAR(256) NULL, " +
-                            $"[{PermissionInfo.EnabledColumn}] BIT NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{PermissionInfo.TableName}] PRIMARY KEY ([{PermissionInfo.IdColumn}])); ");//END;");
-            
-            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{PermissionInfo.TableName}_ON_{PermissionInfo.NameColumn}] ");
-            sBuilder.Append($"ON [{PermissionInfo.TableName}] ");
-            sBuilder.Append($"( [{PermissionInfo.NameColumn}] ASC ); END; ");
+           sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [UIX_{AppSettingInfo.TableName}_ON_{AppSettingInfo.NameColumn}] ");
+           sBuilder.Append($"ON [{AppSettingInfo.TableName}] ");
+           sBuilder.Append($"( [{AppSettingInfo.NameColumn}] ASC ); END; ");
+           #endregion
            
-            #endregion
-            
-            #region RolePermission Table
-            sBuilder.Append($"IF OBJECT_ID(N'[{RolePermissionInfo.TableName}]') IS NULL ");
-            sBuilder.Append("BEGIN ");
-            sBuilder.Append($"CREATE TABLE [{RolePermissionInfo.TableName}] ( ");
-            sBuilder.Append($"[{RolePermissionInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
-                            $"[{RolePermissionInfo.RoleIdColumn}] VARCHAR(450) NOT NULL, " +
-                            $"[{RolePermissionInfo.PermissionIdColumn}] VARCHAR(450) NOT NULL ");
-            sBuilder.Append($"CONSTRAINT [PK__{RolePermissionInfo.TableName}] PRIMARY KEY ([{RolePermissionInfo.IdColumn}])); ");//END;");
-            
-            sBuilder.Append($"CREATE NONCLUSTERED INDEX [IX_{RolePermissionInfo.TableName}_ON_{RolePermissionInfo.RoleIdColumn}] ");
-            sBuilder.Append($"ON [{RolePermissionInfo.TableName}] ");
-            sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC ); ");
+           #region Notification Templates Table
+           sBuilder.Append($"IF OBJECT_ID(N'[{NotificationTemplateInfo.TableName}]') IS NULL ");
+           sBuilder.Append("BEGIN ");
+           sBuilder.Append($"CREATE TABLE [{NotificationTemplateInfo.TableName}] ( ");
+           sBuilder.Append($"[{NotificationTemplateInfo.NameColumn}] NVARCHAR(255) NOT NULL, " +
+                           $"[{NotificationTemplateInfo.TemplateColumn}] NVARCHAR(MAX) NOT NULL ");
+           sBuilder.Append($"CONSTRAINT [PK__{NotificationTemplateInfo.TableName}] PRIMARY KEY ([{NotificationTemplateInfo.NameColumn}])); END;");
+           
+           #endregion
 
-            sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{RolePermissionInfo.TableName}_ON_{RolePermissionInfo.RoleIdColumn}_AND_{RolePermissionInfo.PermissionIdColumn}] ");
-            sBuilder.Append($"ON [{RolePermissionInfo.TableName}] ");
-            sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC, [{RolePermissionInfo.PermissionIdColumn}] ASC ); END; ");
-            #endregion
-            */
-            
+           /*
+           #region Permission Table
+           sBuilder.Append($"IF OBJECT_ID(N'[{PermissionInfo.TableName}]') IS NULL ");
+           sBuilder.Append("BEGIN ");
+           sBuilder.Append($"CREATE TABLE [{PermissionInfo.TableName}] ( ");
+           sBuilder.Append($"[{PermissionInfo.IdColumn}] VARCHAR(450) NOT NULL, " +
+                           $"[{PermissionInfo.NameColumn}] VARCHAR(256) NOT NULL, " +
+                           $"[{PermissionInfo.DescriptionColumn}] VARCHAR(256) NULL, " +
+                           $"[{PermissionInfo.UrlColumn}] VARCHAR(256) NULL, " +
+                           $"[{PermissionInfo.IsMenuColumn}] BIT NOT NULL, " +
+                           $"[{PermissionInfo.IsMenuRootColumn}] BIT NOT NULL, " +
+                           $"[{PermissionInfo.ParentIdColumn}] VARCHAR(450) NULL, " +
+                           $"[{PermissionInfo.MenuIndexColumn}] INT NOT NULL, " +
+                           $"[{PermissionInfo.IconColumn}] VARCHAR(256) NULL, " +
+                           $"[{PermissionInfo.OnClickFunctionColumn}] VARCHAR(256) NULL, " +
+                           $"[{PermissionInfo.EnabledColumn}] BIT NOT NULL ");
+           sBuilder.Append($"CONSTRAINT [PK__{PermissionInfo.TableName}] PRIMARY KEY ([{PermissionInfo.IdColumn}])); ");//END;");
+           
+           sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{PermissionInfo.TableName}_ON_{PermissionInfo.NameColumn}] ");
+           sBuilder.Append($"ON [{PermissionInfo.TableName}] ");
+           sBuilder.Append($"( [{PermissionInfo.NameColumn}] ASC ); END; ");
+          
+           #endregion
+           
+           #region RolePermission Table
+           sBuilder.Append($"IF OBJECT_ID(N'[{RolePermissionInfo.TableName}]') IS NULL ");
+           sBuilder.Append("BEGIN ");
+           sBuilder.Append($"CREATE TABLE [{RolePermissionInfo.TableName}] ( ");
+           sBuilder.Append($"[{RolePermissionInfo.IdColumn}] INT IDENTITY(1,1) NOT NULL, " +
+                           $"[{RolePermissionInfo.RoleIdColumn}] VARCHAR(450) NOT NULL, " +
+                           $"[{RolePermissionInfo.PermissionIdColumn}] VARCHAR(450) NOT NULL ");
+           sBuilder.Append($"CONSTRAINT [PK__{RolePermissionInfo.TableName}] PRIMARY KEY ([{RolePermissionInfo.IdColumn}])); ");//END;");
+           
+           sBuilder.Append($"CREATE NONCLUSTERED INDEX [IX_{RolePermissionInfo.TableName}_ON_{RolePermissionInfo.RoleIdColumn}] ");
+           sBuilder.Append($"ON [{RolePermissionInfo.TableName}] ");
+           sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC ); ");
+
+           sBuilder.Append($"CREATE UNIQUE NONCLUSTERED INDEX [IX_{RolePermissionInfo.TableName}_ON_{RolePermissionInfo.RoleIdColumn}_AND_{RolePermissionInfo.PermissionIdColumn}] ");
+           sBuilder.Append($"ON [{RolePermissionInfo.TableName}] ");
+           sBuilder.Append($"( [{RolePermissionInfo.RoleIdColumn}] ASC, [{RolePermissionInfo.PermissionIdColumn}] ASC ); END; ");
+           #endregion
+           */
+            //Temporary
+            sBuilder.Append($"IF OBJECT_ID(N'[SolhigsonNotificationTemplates]') IS NOT NULL ");
+            sBuilder.Append("BEGIN ");
+            sBuilder.Append($"DROP TABLE [SolhigsonNotificationTemplates] ");
+            sBuilder.Append("END;");
+            sBuilder.Append(Environment.NewLine);
+            sBuilder.Append($"IF OBJECT_ID(N'[SolhigsonAppSettings]') IS NOT NULL ");
+            sBuilder.Append("BEGIN ");
+            sBuilder.Append($"DROP TABLE [SolhigsonAppSettings] ");
+            sBuilder.Append("END;");
+
             sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}]') IS NOT NULL ");
             sBuilder.Append("BEGIN ");
             sBuilder.Append($"DROP PROCEDURE [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ");
@@ -158,8 +164,10 @@ namespace Solhigson.Framework.Data
                 $"UPDATE dbo.[{CacheChangeTrackerInfo.TableName}] SET [{CacheChangeTrackerInfo.ChangeIdColumn}] = {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} + 1 WHERE [{CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)}");
 
             var dbTriggerCommands = new List<StringBuilder>();
+            /*
             dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(AppSetting)));
             dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(NotificationTemplate)));
+            */
             /*
             dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(SolhigsonRolePermission)));
             dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(SolhigsonPermission)));
@@ -182,11 +190,13 @@ namespace Solhigson.Framework.Data
                     }
                 }
 
+                /*
                 foreach (var type in dbContextAssembly.GetTypes()
                     .Where(t => cachedEntityType.IsAssignableFrom(t) && !t.IsInterface))
                 {
                     dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(type));
                 }
+            */
             }
 
             using var conn = new SqlConnection(connectionString);
@@ -272,7 +282,7 @@ namespace Solhigson.Framework.Data
 
         public static class AppSettingInfo
         {
-            public const string TableName = "SolhigsonAppSettings";
+            public const string TableName = "SolhigsonApplicationSettings";
             public const string NameColumn = "Name";
             public const string ValueColumn = "Value";
             public const string IsSensitive = "IsSensitive";
@@ -300,13 +310,11 @@ namespace Solhigson.Framework.Data
             public const string TableName = "SolhigsonRolePermissions";
             public const string RoleIdColumn = "RoleId";
             public const string PermissionIdColumn = "PermissionId";
-            public const string IdColumn = "Id";
         }
 
         public static class NotificationTemplateInfo
         {
-            public const string TableName = "SolhigsonNotificationTemplates";
-            public const string IdColumn = "Id";
+            public const string TableName = "SolhigsonNotificationsTemplates";
             public const string NameColumn = "Name";
             public const string TemplateColumn = "Template";
         }

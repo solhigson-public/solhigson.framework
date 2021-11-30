@@ -30,8 +30,6 @@ namespace Solhigson.Framework.Infrastructure
             builder.RegisterType<SolhigsonConfigurationService>().AsSelf().InstancePerLifetimeScope()
                 .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
-            builder.RegisterType<ConfigurationWrapper>().AsSelf().InstancePerLifetimeScope()
-                .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
         }
         protected override void Load(ContainerBuilder builder)
         {
@@ -46,6 +44,8 @@ namespace Solhigson.Framework.Infrastructure
                     return new SolhigsonDbContext(opt.Options);
                 }).AsSelf().InstancePerLifetimeScope();
                 
+                builder.Register(c => new ConfigurationWrapper(_configuration, _connectionString))
+                    .AsSelf().InstancePerLifetimeScope();
                 LoadDbSupport(builder);
             }
             else

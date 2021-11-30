@@ -47,7 +47,6 @@ namespace Solhigson.Framework.Notification
 
             try
             {
-                this.ELogDebug("Sending mail - default");
                 var mail = new MailMessage();
                 mail.Subject = emailNotificationDetail.Subject;
                 mail.From = new MailAddress(emailNotificationDetail.FromAddress, emailNotificationDetail.FromDisplayAddress);
