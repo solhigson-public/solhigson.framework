@@ -18,13 +18,15 @@ using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
-
+using Microsoft.Extensions.DependencyInjection;
+using Autofac.Extensions.DependencyInjection;
 
 namespace [ProjectRootNamespace].Tests
 {
     [GeneratedFileComment]
     public partial class TestBase
     {
+        protected IServiceProvider ServiceProvider { get; private set; }
         private readonly DbConnection _connection;
         public TestBase(ITestOutputHelper testOutputHelper)
         {
@@ -32,7 +34,8 @@ namespace [ProjectRootNamespace].Tests
             var builder = new ContainerBuilder();
 
             var configuration = new ConfigurationBuilder().Build();
-            RegisterStartUpDependencies(builder, configuration);
+            var services = new ServiceCollection();
+            RegisterStartUpDependencies(builder, services, configuration);
 
             /*
              * Override certain dependencies for mocking
@@ -71,23 +74,45 @@ namespace [ProjectRootNamespace].Tests
 
             
             //Any other custom dependency overrides - implementation in BaseTest.cs
-            LoadCustomDependencyOverrides(builder);
+            LoadCustomDependencyOverrides(builder, services, configuration);
 
-            var autofacContainer = builder.Build();
+            builder.Populate(services);
+            ServiceProvider = new AutofacServiceProvider(builder.Build());
             
-            ServicesWrapper = autofacContainer.Resolve<[DtoProjectNamespace].[ServicesFolder].ServicesWrapper>();
+            ServicesWrapper = ServiceProvider.GetRequiredService<[DtoProjectNamespace].[ServicesFolder].ServicesWrapper>();
             
             // *** For Arrange and Assert only!!! ***
-            RepositoryWrapper = autofacContainer.Resolve<[PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper>();
+            RepositoryWrapper = ServiceProvider.GetRequiredService<[PersistenceProjectRootNamespace].[RepositoriesFolder].[AbstractionsFolder].IRepositoryWrapper>();
             
             //Ensure sqlite db is refreshed
-            var dbContext = autofacContainer.Resolve<[DbContextNamespace].[DbContextName]>();
+            var dbContext = ServiceProvider.GetRequiredService<[DbContextNamespace].[DbContextName]>();
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
+
+            var solhigsonDbContext = ServiceProvider.GetRequiredService<SolhigsonDbContext>();
+            solhigsonDbContext.Database.ExecuteSqlRaw(solhigsonDbContext.Database.GenerateCreateScript());
+
+            InitializeData();
         }
         
         //Use method implemention in BaseTest.cs to include other DI registrations
-        private partial void LoadCustomDependencyOverrides(ContainerBuilder builder);
+        protected virtual void LoadCustomDependencyOverrides(ContainerBuilder builder, IServiceCollection services,
+            IConfiguration configuration)
+        {
+                
+        }
+
+        protected virtual void RegisterStartUpDependencies(ContainerBuilder builder, IServiceCollection services,
+            IConfiguration configuration)
+        {
+                
+        }
+
+        protected virtual void InitializeData()
+        {
+                
+        }
+
 
         public [DtoProjectNamespace].[ServicesFolder].ServicesWrapper ServicesWrapper { get; }
     
