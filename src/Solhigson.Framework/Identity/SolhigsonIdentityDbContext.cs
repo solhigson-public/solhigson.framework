@@ -55,8 +55,6 @@ namespace Solhigson.Framework.Identity
         /// </summary>
         protected SolhigsonIdentityDbContext() { }
         
-        public DbSet<AppSetting> AppSettings { get; set; }
-        public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
         public DbSet<SolhigsonRoleGroup> RoleGroups { get; set; }
         public DbSet<SolhigsonPermission> Permissions { get; set; }
         public DbSet<SolhigsonRolePermission<TKey>> RolePermissions { get; set; }
