@@ -83,7 +83,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             }
 
 
-            Args.TryGetValue(TestsProjectPathOption, out var testsProjectPath);
+            //Args.TryGetValue(TestsProjectPathOption, out var testsProjectPath);
             Args.TryGetValue(RepositoryDirectoryOption, out var repositoryDirectoryPath);
             //RepositoriesFolder = "Repositories";
             if (!string.IsNullOrWhiteSpace(repositoryDirectoryPath))
@@ -148,13 +148,6 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
             GenerateFile(serviceProjectPath, ServicesFolder, "ServiceBase", "", "Service", false,
                 false); //Custom ServiceBase
-
-            if (!string.IsNullOrWhiteSpace(testsProjectPath))
-            {
-                GenerateFile(testsProjectPath, "", "BaseTest", "", "", false,
-                    true); //generated dto
-            }
-
 
             GenerateFile(persistenceProjectPath, RepositoryNamespace, "Wrapper", RepositoryClassType, "", true, true, GetIRepositoryWrapperProperties(Models)); //generated interface
             GenerateFile(persistenceProjectPath, RepositoryNamespace, "Wrapper", RepositoryClassType, "", true, false); //custom interface
