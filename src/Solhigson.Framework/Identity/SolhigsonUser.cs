@@ -28,6 +28,13 @@ namespace Solhigson.Framework.Identity
 
         private TRole _userRole;
         [NotMapped]
-        public TRole UserRole => _userRole ??= Roles?.Count > 0 ? Roles[0] : null;
+        public TRole UserRole
+        {
+            get
+            {
+                return _userRole ??= Roles?.Count > 0 ? Roles[0] : null;
+            }
+            set => _userRole = value;
+        }
     }
 }
