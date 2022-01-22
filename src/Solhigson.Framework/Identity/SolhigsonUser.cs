@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using Microsoft.AspNetCore.Identity;
 
 namespace Solhigson.Framework.Identity
@@ -30,10 +31,7 @@ namespace Solhigson.Framework.Identity
         [NotMapped]
         public TRole UserRole
         {
-            get
-            {
-                return _userRole ??= Roles?.Count > 0 ? Roles[0] : null;
-            }
+            get => _userRole ??= Roles?.FirstOrDefault();
             set => _userRole = value;
         }
     }
