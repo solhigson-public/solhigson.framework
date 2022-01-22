@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
@@ -610,17 +611,6 @@ namespace Solhigson.Framework.Extensions
 
         #region Misc
 
-        public static string ToSha256(this string s)
-        {
-            var bytes = Encoding.Unicode.GetBytes(s.ToCharArray());
-            var hash = new SHA256Managed().ComputeHash(bytes);
-
-            // concat the hash bytes into one long string
-            return hash.Aggregate(new StringBuilder(32),
-                    (sb, b) => sb.Append(b.ToString("X2")))
-                .ToString();
-        }
-
         public static string ToConcatenatedString<T>(this IEnumerable<T> source, Func<T, string> selector,
             string separator)
         {
@@ -918,6 +908,56 @@ namespace Solhigson.Framework.Extensions
         {
             return dateTime != DateTime.MinValue && dateTime != DateTime.MaxValue;
         }
+        
+        #region Crypto
+        
+        public static string ToHexString(this byte[] bytes)
+        {
+            if (bytes == null)
+            {
+                return null;
+            }
+            var output = new StringBuilder(bytes.Length);
+            foreach (var t in bytes)
+            {
+                output.Append(t.ToString("X2"));
+            }
+            return output.ToString();
+        }
+        
+        public static byte[] FromHexString(this string hexString)
+        {
+            if (hexString.Length % 2 != 0)
+            {
+                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
+            }
+
+            var hexAsBytes = new byte[hexString.Length / 2];
+            for (var index = 0; index < hexAsBytes.Length; index++)
+            {
+                var byteValue = hexString.Substring(index * 2, 2);
+                hexAsBytes[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            }
+
+            return hexAsBytes;
+        }
+
+        public static string ToBase64String(this string data)
+        {
+            return Convert.ToBase64String(Encoding.UTF8.GetBytes(data));
+        }
+        
+        public static string FromBase64String(this string data)
+        {
+            return Encoding.UTF8.GetString(Convert.FromBase64String(data));
+        }
+        
+        public static string ToSha256(this string s)
+        {
+            return CryptoHelper.HashData(s, HashAlgorithmType.Sha256);
+        }
+        
+        #endregion
 
     }
 }

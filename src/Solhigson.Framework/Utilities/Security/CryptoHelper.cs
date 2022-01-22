@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -9,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Utilities.Security
@@ -264,46 +264,6 @@ namespace Solhigson.Framework.Utilities.Security
         }
 
         
-        private static string ToHexString(this byte[] bytes)
-        {
-            if (bytes == null)
-            {
-                return null;
-            }
-            var output = new StringBuilder(bytes.Length);
-            for (var i = 0; i < bytes.Length; i++)
-            {
-                output.Append(bytes[i].ToString("X2"));
-            }
-            return output.ToString();
-        }
-        
-        public static byte[] FromHexString(this string hexString)
-        {
-            if (hexString.Length % 2 != 0)
-            {
-                throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
-            }
 
-            var hexAsBytes = new byte[hexString.Length / 2];
-            for (var index = 0; index < hexAsBytes.Length; index++)
-            {
-                var byteValue = hexString.Substring(index * 2, 2);
-                hexAsBytes[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-            }
-
-            return hexAsBytes;
-        }
-
-
-        private static string ToBase64String(this string data)
-        {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(data));
-        }
-        
-        private static string FromBase64String(this string data)
-        {
-            return Encoding.UTF8.GetString(Convert.FromBase64String(data));
-        }
     }
 }
