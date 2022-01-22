@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
@@ -17,28 +18,69 @@ namespace Solhigson.Framework.Utilities
     public static class HelperFunctions
     {
         private static readonly LogWrapper Logger = new LogWrapper(typeof(HelperFunctions).FullName);
-        private static readonly EnglishPluralizationService PluralizationService = new ();
-        
+        private static readonly EnglishPluralizationService PluralizationService = new();
+
+        private static readonly int[] MAnDeltas = { 0, 1, 2, 3, 4, -4, -3, -2, -1, 0 };
+
+        private static readonly bool[] MAbChecksumAnswers =
+        {
+            true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true,
+            false, false, false, false, false, false, false,
+            false, false, true
+        };
+
+
         public const string MatchEmailPattern =
             @"\A(?:[a-z0-9A-Z!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9A-Z](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\Z";
 
         public const string MatchPhoneNumberPattern =
             @"^\\+?[0-9 ]{11,15}$";
 
-        private static readonly Regex EmailMatchRegex = new Regex(MatchEmailPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-        private static readonly Regex PhoneNumberMatchRegex = new Regex(MatchEmailPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+        private static readonly Regex EmailMatchRegex = new Regex(MatchEmailPattern,
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        private static readonly Regex PhoneNumberMatchRegex = new Regex(MatchEmailPattern,
+            RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
         public static bool IsValidEmailAddress(string email, bool ignoreEmpty = false)
         {
-            return string.IsNullOrWhiteSpace(email) 
-                ? ignoreEmpty 
+            return string.IsNullOrWhiteSpace(email)
+                ? ignoreEmpty
                 : EmailMatchRegex.IsMatch(email);
         }
-        
+
         public static bool IsValidPhoneNumber(string phoneNumber, bool ignoreEmpty = false)
         {
-            return string.IsNullOrWhiteSpace(phoneNumber) 
-                ? ignoreEmpty 
+            return string.IsNullOrWhiteSpace(phoneNumber)
+                ? ignoreEmpty
                 : PhoneNumberMatchRegex.IsMatch(phoneNumber);
         }
 
@@ -53,6 +95,7 @@ namespace Solhigson.Framework.Utilities
             {
                 return string.Empty;
             }
+
             var caller = "";
             // if you are allowing these forward headers, please ensure you are restricting context.Connection.RemoteIpAddress
             // to cloud flare ips: https://www.cloudflare.com/ips/
@@ -104,7 +147,7 @@ namespace Solhigson.Framework.Utilities
 
         public static bool IsServiceUp(HttpStatusCode statusCode)
         {
-            return (int) statusCode < 500;
+            return (int)statusCode < 500;
         }
 
 
@@ -268,6 +311,7 @@ namespace Solhigson.Framework.Utilities
                         CheckForProtectedFields(obj, protectedFields);
                     }
                 }
+
                 return;
             }
 
@@ -275,7 +319,7 @@ namespace Solhigson.Framework.Utilities
             {
                 return;
             }
-            
+
             CheckForProtectedFields(childObject, protectedFields);
         }
 
@@ -327,7 +371,7 @@ namespace Solhigson.Framework.Utilities
         private static string FormatAmountInternal(decimal? amount, string symbol = "₦", short decimalDigits = 2)
         {
             var numberFormatInfo = new NumberFormatInfo
-                {CurrencySymbol = symbol, CurrencyDecimalDigits = decimalDigits};
+                { CurrencySymbol = symbol, CurrencyDecimalDigits = decimalDigits };
             if (amount == null)
             {
                 return 0.ToString("c", numberFormatInfo);
@@ -352,7 +396,7 @@ namespace Solhigson.Framework.Utilities
                 RegexOptions.Compiled).Trim();
             return result[..1].ToUpper() + result[1..];
         }
-        
+
         public static string ReplacePlaceHolders(string text, IDictionary<string, string> placeHolders)
         {
             if (!string.IsNullOrWhiteSpace(text) && placeHolders?.Count > 0)
@@ -361,9 +405,10 @@ namespace Solhigson.Framework.Utilities
                     (current, placeHolder) =>
                         current.Replace(placeHolder, placeHolders[placeHolder]));
             }
+
             return text;
         }
-        
+
         public static T SafeGetSessionData<T>(string key, HttpContext httpContext) where T : class
         {
             try
@@ -373,6 +418,7 @@ namespace Solhigson.Framework.Utilities
                 {
                     return obj.DeserializeFromJson<T>();
                 }
+
                 return obj as T;
             }
             catch (Exception e)
@@ -386,12 +432,12 @@ namespace Solhigson.Framework.Utilities
         {
             return SafeGetSessionData<T>(key, httpContextAccessor?.HttpContext);
         }
-        
+
         public static string SafeGetSessionData(string key, IHttpContextAccessor httpContextAccessor)
         {
             return SafeGetSessionData<string>(key, httpContextAccessor?.HttpContext);
         }
-        
+
         public static string SafeGetSessionData(string key, HttpContext httpContext)
         {
             return SafeGetSessionData<string>(key, httpContext);
@@ -401,6 +447,7 @@ namespace Solhigson.Framework.Utilities
         {
             SafeSetSessionData(key, value, httpContextAccessor?.HttpContext);
         }
+
         public static void SafeSetSessionData(string key, object value, HttpContext httpContext)
         {
             try
@@ -409,6 +456,7 @@ namespace Solhigson.Framework.Utilities
                 {
                     return;
                 }
+
                 var data = value is not string ? value.SerializeToJson() : value.ToString();
                 if (httpContext?.Session != null)
                 {
@@ -449,6 +497,102 @@ namespace Solhigson.Framework.Utilities
             SafeRemoveSessionData(key, httpContextAccessor?.HttpContext);
         }
 
+        public static bool IsLuhnNumberValid(string number)
+        {
+            double num;
+            if (!double.TryParse(number, out num))
+            {
+                return false;
+            }
+
+            var checksum = 0;
+            var doubleDigit = false;
+
+            var chars = number.ToCharArray();
+            for (var i = chars.Length - 1; i > -1; i--)
+            {
+                var j = chars[i] ^ 0x30;
+
+                checksum += j;
+
+                if (doubleDigit)
+                {
+                    checksum += MAnDeltas[j];
+                }
+
+                doubleDigit = !doubleDigit;
+            }
+
+            return MAbChecksumAnswers[checksum];
+        }
+
+        /// <summary>
+        ///   It obfuscates card data (ISO 8583 fields 2, 14, 35 and 45)
+        /// </summary>
+        /// <param name="data"> The card data. </param>
+        /// <param name="showFirstSixDigits"></param>
+        /// <returns> The obfuscated data. </returns>
+        /// <remarks>
+        ///   ObfuscateCardData( 4000000000000002 ) = ************0002
+        ///   ObfuscateCardData( 0805 ) = ****
+        ///   ObfuscateCardData( 4000000000000002=0805123456 ) = ************0002=**********
+        ///   ObfuscateCardData( B4000000000000002^JOHN DOE^0805123456 ) = B************0002^JOHN DOE^**********
+        /// </remarks>
+        public static string ObfuscateCardData(string data, bool showFirstSixDigits = true)
+        {
+            var b = new StringBuilder(data.Length);
+
+            var i = data.IndexOf('^');
+            var j = -1;
+            if (i == -1)
+            {
+                // Try track 2, determine the correct field separator (valids are 'D' o '=').
+                i = data.IndexOf('=');
+                if (i == -1)
+                {
+                    i = data.IndexOf('D');
+                }
+
+                if ((i == -1) && (data.Length > 11))
+                {
+                    i = data.Length;
+                }
+            }
+            else
+            {
+                // It's track 1
+                j = data.IndexOf('^', i + 1);
+            }
+
+            for (var k = 0; k < data.Length; k++)
+            {
+                if (((k <= i) && (k > (i - 5))) ||
+                    ((k <= j) && (k > i)))
+                {
+                    b.Append(data[k]);
+                }
+                else
+                {
+                    if (char.IsDigit(data[k]))
+                    {
+                        if (showFirstSixDigits && k <= 5)
+                        {
+                            b.Append(data[k]);
+                        }
+                        else
+                        {
+                            b.Append('*');
+                        }
+                    }
+                    else
+                    {
+                        b.Append(data[k]);
+                    }
+                }
+            }
+
+            return b.ToString();
+        }
 
     }
 }

@@ -942,9 +942,9 @@ namespace Solhigson.Framework.Extensions
             return hexAsBytes;
         }
 
-        public static string ToBase64String(this string data)
+        public static string ToBase64String(this byte[] data)
         {
-            return Convert.ToBase64String(Encoding.UTF8.GetBytes(data));
+            return Convert.ToBase64String(data);
         }
         
         public static string FromBase64String(this string data)
