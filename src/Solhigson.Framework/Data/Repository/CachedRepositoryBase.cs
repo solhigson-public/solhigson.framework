@@ -16,6 +16,11 @@ namespace Solhigson.Framework.Data.Repository
             DbContext = dbContext;
         }
 
+        public List<TCacheModel> GetAllCached()
+        {
+            return DbContext.Set<T>().ProjectToType<TCacheModel>().FromCacheList();
+        }
+
         public List<TCacheModel> GetListCached(Expression<Func<T, bool>> expression)
         {
             return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheList();
