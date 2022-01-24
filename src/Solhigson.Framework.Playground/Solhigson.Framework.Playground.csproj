@@ -5,6 +5,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Audit.EntityFramework.Core" Version="19.0.3" />
+        <PackageReference Include="Audit.NET.MongoDB" Version="19.0.3" />
         <PackageReference Include="AutoMapper" Version="10.1.1" />
         <PackageReference Include="AWSSDK.S3" Version="3.7.3.4" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />

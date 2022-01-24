@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Primitives;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
@@ -29,12 +31,6 @@ namespace Solhigson.Framework.Web
             return value ? "checked" : "";
         }
 
-        protected void SetMessage(string message, bool isError)
-        {
-            var messageType = isError ? PageMessageType.Error : PageMessageType.Info;
-            this.SetDisplayMessage(message, messageType);
-        }
-        
         protected void SetErrorMessage(string message, bool closeOnClick = true, bool encodeHtml = true)
         {
             this.SetDisplayMessage(message, PageMessageType.Error, closeOnClick, encodeHtml: encodeHtml);
@@ -104,6 +100,29 @@ namespace Solhigson.Framework.Web
         public void AddPaginationParameters(PagedSearchParameters parameters)
         {
             TempData[Constants.PaginationParameters] = parameters?.SerializeToJson();
+        }
+
+        protected void SetMessage(ResponseInfo response, string successMessage = null)
+        {
+            var message = response.Message;
+            if (response.IsSuccessful && !string.IsNullOrWhiteSpace(successMessage))
+            {
+                message = successMessage;
+            }
+            SetMessage(message, !response.IsSuccessful);
+        }
+        
+        protected void SetMessage(string message, bool isError)
+        {
+            var messageType = isError ? PageMessageType.Error : PageMessageType.Info;
+            this.SetDisplayMessage(message, messageType);
+        }
+
+
+        
+        protected IEnumerable<SelectListItem> GetCheckBoxItems(string namePrefix)
+        {
+            return (from string key in Request.Form.Keys where key.StartsWith(namePrefix) select new SelectListItem { Selected = true, Value = Request.Form[key] });
         }
 
     }
