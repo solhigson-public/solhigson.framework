@@ -52,33 +52,33 @@ namespace Solhigson.Framework.Dto
         public string OrderBy { get; set; }
 
         private DateTime? _fromDate;
-        public DateTime? FromDate 
+        public DateTime FromDate 
         {
             get
             {
-                if (_fromDate != null)
+                if (_fromDate.HasValue)
                 {
-                    return _fromDate;
+                    return _fromDate.Value;
                 }
                 _fromDate = DateTime.UtcNow.Date.AddMinutes(LocaleUtil.GetTimeZoneOffset() * -1);
                 _convertedFromDateToUniversalTime = true;
-                return _fromDate;
+                return _fromDate.Value;
             }
             set => _fromDate = value;
         }
 
         private DateTime? _toDate;
-        public DateTime? ToDate
+        public DateTime ToDate
         {
             get
             {
-                if (_toDate != null)
+                if (_toDate.HasValue)
                 {
-                    return _toDate;
+                    return _toDate.Value;
                 }
-                _toDate = FromDate.Value.AddDays(1).AddMilliseconds(-1);
+                _toDate = FromDate.AddDays(1).AddMilliseconds(-1);
                 _convertedToDateToUniversalTime = true;
-                return _toDate;
+                return _toDate.Value;
             }
             set => _toDate = value;
         }
