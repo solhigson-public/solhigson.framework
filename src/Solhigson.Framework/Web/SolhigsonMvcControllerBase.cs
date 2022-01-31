@@ -112,6 +112,14 @@ namespace Solhigson.Framework.Web
             SetMessage(message, !response.IsSuccessful);
         }
         
+        protected void SetMessage<T>(ResponseInfo<T> response, string successMessage = null)
+        {
+            var message = response.Message;
+            if (response.IsSuccessful && !string.IsNullOrWhiteSpace(successMessage))
+                message = successMessage;
+            SetMessage(message, !response.IsSuccessful);
+        }
+        
         protected void SetMessage(string message, bool isError)
         {
             var messageType = isError ? PageMessageType.Error : PageMessageType.Info;
