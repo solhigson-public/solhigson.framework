@@ -380,9 +380,9 @@ namespace Solhigson.Framework.Utilities
             return (amount.Value).ToString("c", numberFormatInfo);
         }
 
-        public static string FormatAmount(decimal? amount, string symbol = "₦", short decimalDigits = 2)
+        public static string FormatAmount(decimal? amount, short decimalDigits = 2)
         {
-            return FormatAmountInternal(amount, symbol, decimalDigits);
+            return FormatAmountInternal(amount, "", decimalDigits);
         }
 
         public static string SeparatePascalCaseWords(string input)
