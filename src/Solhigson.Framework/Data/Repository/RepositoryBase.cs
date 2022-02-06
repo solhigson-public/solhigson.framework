@@ -40,9 +40,9 @@ namespace Solhigson.Framework.Data.Repository
             return DbContext.Set<T>().Where(expression);
         }
         
-        public bool Exists(Expression<Func<T, bool>> expression)
+        public async Task<bool> ExistsAsync(Expression<Func<T, bool>> expression)
         {
-            return DbContext.Set<T>().Any(expression);
+            return await DbContext.Set<T>().AnyAsync(expression);
         }
 
         #region Add

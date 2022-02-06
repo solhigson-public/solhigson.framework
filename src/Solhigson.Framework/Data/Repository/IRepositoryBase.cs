@@ -12,7 +12,7 @@ namespace Solhigson.Framework.Data.Repository
         T New(object identifier = null);
         IQueryable<T> GetAll();
         IQueryable<T> Get(Expression<Func<T, bool>> expression);
-        bool Exists(Expression<Func<T, bool>> expression);
+        Task<bool> ExistsAsync(Expression<Func<T, bool>> expression);
         T Add(T entity);
         void AddRange(IEnumerable<T> entities);
         Task<T> AddAndSaveChanges(T entity);
