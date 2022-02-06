@@ -79,7 +79,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             
             if (!Args.TryGetValue(ContractsProjectPathOption, out var contractsProjectPath))
             {
-                contractsProjectPath = serviceProjectPath;
+                contractsProjectPath = persistenceProjectPath;
             }
 
 
@@ -133,10 +133,10 @@ namespace Solhigson.Framework.EfCoreTool.Generator
                     continue;
                 }
 
-                GenerateFile(persistenceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
+                GenerateFile(contractsProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, true, GetDtoProperties(entity, true)); //generated cached dto
 
-                GenerateFile(persistenceProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
+                GenerateFile(contractsProjectPath, CachedEntityNamespace, CacheEntityClassType, entity.Name,
                     entity.Namespace, false, false); //custom cached dto
             }
             
@@ -355,7 +355,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
 
         private string GetCachedDtoClassType(Type type)
         {
-            return $"{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{type.Name}{CacheEntityClassType}";
+            return $"{ContractsProjectNamespace}.{CachedEntityNamespace}.{type.Name}{CacheEntityClassType}";
         }
 
         private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)

@@ -221,7 +221,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
             {
                 cachedRepositoryIndicator = "Cached";
                 cachedRepositoryClassPrefix =
-                    $",{PersistenceProjectRootNamespace}.{CachedEntityNamespace}.{entityName}{CacheEntityClassType}";
+                    $",{ContractsProjectNamespace}.{CachedEntityNamespace}.{entityName}{CacheEntityClassType}";
             }
 
             var resourcePath =
