@@ -237,9 +237,13 @@ namespace Solhigson.Framework.Utilities.Security
         {
             SymmetricAlgorithm provider = encryptionMode switch
             {
-                EncryptionModes.Aes => new AesCryptoServiceProvider {Mode = cipherMode, Padding = paddingMode},
-                _ => new TripleDESCryptoServiceProvider {Mode = cipherMode, Padding = paddingMode}
+                EncryptionModes.Aes => Aes.Create(),
+                _ => TripleDES.Create()
             };
+
+            provider.Mode = cipherMode;
+            provider.Padding = paddingMode;
+
             return createAsEncryptor
                 ? provider.CreateEncryptor(encryptionKey, encryptionIv)
                 : provider.CreateDecryptor(encryptionKey, encryptionIv);

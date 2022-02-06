@@ -380,7 +380,7 @@ namespace Solhigson.Framework.Utilities
             return (amount.Value).ToString("c", numberFormatInfo);
         }
 
-        public static string FormatAmount(decimal? amount, short decimalDigits = 2)
+        public static string FormatAmount(decimal? amount, short decimalDigits = 0)
         {
             return FormatAmountInternal(amount, "", decimalDigits);
         }
