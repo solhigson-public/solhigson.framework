@@ -46,12 +46,6 @@ namespace Solhigson.Framework.Utilities.Security
             return (tokenHandler.WriteToken(token), DateUtils.ToUnixTimestamp(securityTokenDescription.Expires.Value));
         }
 
-        private static RNGCryptoServiceProvider _rngProvider;
-        private static RNGCryptoServiceProvider RngProvider
-        {
-            get { return _rngProvider ??= new RNGCryptoServiceProvider(); }
-        }
-
         public static string HashData(string ordinaryData,
             HashAlgorithmType hashAlgorithmType = HashAlgorithmType.Sha512,
             StringEncodingType stringEncodingType = StringEncodingType.Hex)
@@ -66,10 +60,10 @@ namespace Solhigson.Framework.Utilities.Security
         {
             HashAlgorithm hashAlgorithm = hashAlgorithmType switch
             {
-                HashAlgorithmType.Md5 => new MD5CryptoServiceProvider(),
-                HashAlgorithmType.Sha256 => new SHA256Managed(),
-                HashAlgorithmType.Sha1 => new SHA1Managed(),
-                _ => new SHA512Managed()
+                HashAlgorithmType.Md5 => MD5.Create(),
+                HashAlgorithmType.Sha256 => SHA256.Create(),
+                HashAlgorithmType.Sha1 => SHA1.Create(),
+                _ => SHA512.Create()
             };
 
             var tmpHash = hashAlgorithm.ComputeHash(encodingToUse.GetBytes(data));
@@ -131,7 +125,7 @@ namespace Solhigson.Framework.Utilities.Security
         public static byte[] GenerateRandomBytes(int length)
         {
             var bytes = new byte[length];
-            RngProvider.GetBytes(bytes);
+            RandomNumberGenerator.Fill(bytes);
             return bytes;
         }
         
@@ -174,7 +168,7 @@ namespace Solhigson.Framework.Utilities.Security
             var buf = new byte[128];
             while (result.Length < length)
             {
-                RngProvider.GetBytes(buf);
+                RandomNumberGenerator.Fill(buf);
                 for (var i = 0; i < buf.Length && result.Length < length; ++i)
                 {
                     // Divide the byte into allowedCharSet-sized groups. If the
