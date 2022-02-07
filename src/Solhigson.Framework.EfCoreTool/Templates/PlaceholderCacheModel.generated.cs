@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace [PersistenceProjectRootNamespace].[CacheEntityNamespace]
+namespace [ContractsProjectNamespace].[CacheEntityNamespace]
 {
     [GeneratedFileComment]
     public partial record [Placeholder]CacheModel
