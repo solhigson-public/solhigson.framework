@@ -963,9 +963,9 @@ namespace Solhigson.Framework.Extensions
             return Convert.ToBase64String(data);
         }
         
-        public static string FromBase64String(this string data)
+        public static byte[] FromBase64String(this string data)
         {
-            return Encoding.UTF8.GetString(Convert.FromBase64String(data));
+            return Convert.FromBase64String(data);
         }
         
         public static string ToSha256(this string s)
