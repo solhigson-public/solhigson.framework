@@ -55,12 +55,16 @@ namespace Solhigson.Framework.Infrastructure
             }
             
             var value = Configuration[configKey];
+            if (value is not null) //give preference to value from appSettings File
+            {
+                return value;
+            }
+
             // ReSharper disable once InconsistentlySynchronizedField
             if (useAppSettingsFileOnly || _dbContext is null)
             {
-                return value ??
-                       throw new Exception(
-                           $"Configuration [{key}] for group [{group}] not found in appSettings file.");
+                throw new Exception(
+                    $"Configuration [{key}] for group [{group}] not found in appSettings file.");
             }
 
             // ReSharper disable once InconsistentlySynchronizedField
@@ -73,12 +77,14 @@ namespace Solhigson.Framework.Infrastructure
                 return cacheValue;
             }
 
+            /*
             if (value is not null) //give preference to value from appSettings
             {
                 query.AddCustomResultToCache(value);
                 AddSettingToDb(configKey, value);
                 return value;
             }
+            */
             
             var appSetting = query.FirstOrDefault();
             if (appSetting is not null)
@@ -92,7 +98,7 @@ namespace Solhigson.Framework.Infrastructure
 
             if (defaultValue is null)
             {
-                throw new Exception($"Configuration [{key}] for group [{@group}] not found.");
+                throw new Exception($"Configuration [{key}] for group [{group}] not found.");
             }
 
             AddSettingToDb(configKey, defaultValue);

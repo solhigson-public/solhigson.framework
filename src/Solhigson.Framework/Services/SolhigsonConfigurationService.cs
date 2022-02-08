@@ -15,7 +15,7 @@ namespace Solhigson.Framework.Services
 {
     public class SolhigsonConfigurationService : ServiceBase
     {
-        private static readonly byte[] EncyptionKey = ("67566B59703373367639792F423F45284" +
+        private static readonly byte[] EncryptionKey = ("67566B59703373367639792F423F45284" +
                                                        "82B4D6251655468576D5A7134743777").FromHexString();
 
         private static readonly byte[] EncryptionIv = "73357638792F423F4528482B4D625065".FromHexString();
@@ -168,13 +168,13 @@ namespace Solhigson.Framework.Services
         public static string EncryptSetting(string data)
         {
             return Convert.ToBase64String(CryptoHelper.SymmetricEncryptAsync(Encoding.UTF8.GetBytes(data),
-                EncyptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
+                EncryptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
         }
         
         public static string DecryptSetting(string data)
         {
             return Encoding.UTF8.GetString(CryptoHelper.SymmetricDecryptAsync(Convert.FromBase64String(data),
-                EncyptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
+                EncryptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
         }
 
     }
