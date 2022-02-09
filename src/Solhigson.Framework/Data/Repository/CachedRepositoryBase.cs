@@ -18,17 +18,17 @@ namespace Solhigson.Framework.Data.Repository
 
         public List<TCacheModel> GetAllCached()
         {
-            return DbContext.Set<T>().ProjectToType<TCacheModel>().FromCacheList();
+            return DbContext.Set<T>().ProjectToType<TCacheModel>().FromCacheList(typeof(T));
         }
 
         public List<TCacheModel> GetListCached(Expression<Func<T, bool>> expression)
         {
-            return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheList();
+            return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheList(typeof(T));
         }
 
         public TCacheModel GetSingleCached(Expression<Func<T, bool>> expression)
         {
-            return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheSingle();
+            return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheSingle(typeof(T));
         }
     }
 }
