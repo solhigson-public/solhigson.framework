@@ -56,12 +56,9 @@ namespace Solhigson.Framework.Services
         {
             if (MaskForSaveIfSensitive(appSetting))
             {
-                RepositoryWrapper.DbContext.AppSettings.Update(new AppSetting
-                {
-                    Id = appSetting.Id,
-                    Value = appSetting.Value,
-                    IsSensitive = appSetting.IsSensitive
-                });
+                var setting = await RepositoryWrapper.AppSettingRepository.GetByIdAsync(appSetting.Id);
+                setting.Value = appSetting.Value;
+                setting.IsSensitive = appSetting.IsSensitive;
                 await RepositoryWrapper.SaveChangesAsync();
             }
 
