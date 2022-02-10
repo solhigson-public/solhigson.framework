@@ -16,7 +16,7 @@ namespace Solhigson.Framework.Logging
         public static void SetLogLevel(string level)
         {
             level ??= "info";
-            Logger.Debug($"Setting log level to {level}");
+            Logger.Info($"Setting log level to {level}");
 
             var logLevel = level.ToLower() switch
             {
