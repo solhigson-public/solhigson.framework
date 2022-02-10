@@ -370,6 +370,7 @@ namespace Solhigson.Framework.Utilities
 
         private static string FormatAmountInternal(decimal? amount, string symbol = "₦", short decimalDigits = 2)
         {
+            symbol ??= "";
             var numberFormatInfo = new NumberFormatInfo
                 { CurrencySymbol = symbol, CurrencyDecimalDigits = decimalDigits };
             if (amount == null)
