@@ -206,6 +206,14 @@ namespace Solhigson.Framework.Utilities
             return (fromDate, toDate);
         }
         
+        public static (DateTime FromDate, DateTime ToDate) DayDateRange(this DateTime dateTime)
+        {
+            var fromDate = dateTime.Date;
+            var toDate = fromDate.AddDays(1).AddMilliseconds(-1);
+            return (fromDate, toDate);
+        }
+
+        
         public static (DateTime FromDate, DateTime ToDate) ThisMonthDateRange(bool utc = true)
         {
             var anchor = DateTime.Now;
