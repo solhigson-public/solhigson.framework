@@ -212,7 +212,6 @@ namespace Solhigson.Framework.Utilities
             var toDate = fromDate.AddDays(1).AddMilliseconds(-1);
             return (fromDate, toDate);
         }
-
         
         public static (DateTime FromDate, DateTime ToDate) ThisMonthDateRange(bool utc = true)
         {
@@ -233,6 +232,118 @@ namespace Solhigson.Framework.Utilities
             var toDate = fromDate.AddDays(LastDayOfMonth(dateToUse)).AddMilliseconds(-1);
 
             return (fromDate, toDate);
+        }
+
+                /// <summary>
+        /// Checks if the current date is working day or not. Assuming 
+        /// </summary>
+        /// <param name="currentDate">
+        /// The current date.
+        /// </param>
+        /// <returns>
+        /// true if current date is a working day otherwise false
+        /// </returns>
+        public static bool IsWorkingDay(this DateTime currentDate)
+        {
+            return currentDate.DayOfWeek != DayOfWeek.Saturday && currentDate.DayOfWeek != DayOfWeek.Sunday;
+        }
+
+        /// <summary>
+        /// Gets the first day of the month
+        /// </summary>
+        /// <param name="current">
+        /// The current date
+        /// </param>
+        /// <returns>
+        /// date of the first day of the month
+        /// </returns>
+        public static DateTime First(this DateTime current)
+        {
+            return current.AddDays((double)(1 - current.Day));
+        }
+
+        /// <summary>
+        /// Gets the date of first certain day of the week of the month
+        /// </summary>
+        /// <param name="current">
+        /// The current date
+        /// </param>
+        /// <param name="dayOfWeek">day of the week</param>
+        /// <returns>
+        /// date of the first day of the month
+        /// </returns>
+        public static DateTime First(this DateTime current, DayOfWeek dayOfWeek)
+        {
+            DateTime dateTime = current.First();
+            if (dateTime.DayOfWeek != dayOfWeek)
+            {
+                dateTime = dateTime.Next(dayOfWeek);
+            }
+
+            return dateTime;
+        }
+
+        /// <summary>
+        /// Gets the last day of the month
+        /// </summary>
+        /// <param name="current">
+        /// The current date
+        /// </param>
+        /// <returns>
+        /// date of the last day of the month
+        /// </returns>
+        public static DateTime Last(this DateTime current)
+        {
+            int num = DateTime.DaysInMonth(current.Year, current.Month);
+            return current.First().AddDays((double)(num - 1));
+        }
+
+        /// <summary>
+        /// Gets the date of last certain day of the week of the month
+        /// </summary>
+        /// <param name="current">
+        /// The current date
+        /// </param>
+        /// <param name="dayOfWeek">day of the week</param>
+        /// <returns>
+        /// date of the last day of the month
+        /// </returns>
+        public static DateTime Last(this DateTime current, DayOfWeek dayOfWeek)
+        {
+            DateTime result = current.Last();
+            result = result.AddDays((double)(Math.Abs((int)(dayOfWeek - result.DayOfWeek)) * -1));
+            return result;
+        }
+
+        /// <summary>
+        /// Gets the date of next certain day of the week of the month
+        /// </summary>
+        /// <param name="current">
+        /// The current date
+        /// </param>
+        /// <param name="dayOfWeek">day of the week</param>
+        /// <returns>
+        /// date of the next day of the month
+        /// </returns>
+        public static DateTime Next(this DateTime current, DayOfWeek dayOfWeek)
+        {
+            int num = (int)(dayOfWeek - current.DayOfWeek);
+            if (num <= 0)
+            {
+                num += 7;
+            }
+
+            return current.AddDays((double)num);
+        }
+
+        public static bool IsFirstDayOfMonth(this DateTime dateTime)
+        {
+            return dateTime.Day == 1;
+        }
+
+        public static int NumberOfDaysInMonth(this DateTime dateTime)
+        {
+            return DateTime.DaysInMonth(dateTime.Year, dateTime.Month);
         }
 
         
