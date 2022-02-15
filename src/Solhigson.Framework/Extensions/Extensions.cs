@@ -36,6 +36,7 @@ using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.Infrastructure.Dependency;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Nlog;
 using Solhigson.Framework.Logging.Nlog.Dto;
@@ -75,6 +76,51 @@ namespace Solhigson.Framework.Extensions
         public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration, string connectionString = null)
         {
             builder.RegisterModule(new SolhigsonAutofacModule(configuration, connectionString));
+            return builder;
+        }
+        
+        /// <summary>
+        /// Registers types in specified assembly that implements <see cref="IDependencyInject"/> using
+        /// <see cref="DependencyInjectAttribute"/> attributes to detemine scope (optional - defaults to scoped or LifeTimescope)
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        public static ContainerBuilder RegisterIndicatedDependencies(this ContainerBuilder builder, [NotNull]Assembly assembly)
+        {
+            if (assembly is null)
+            {
+                 return builder;
+            }
+            var coreServicesAssemblyTypes = assembly.GetTypes()
+                .Where(t => t.IsClass && !t.IsAbstract);
+            var injectType = typeof(IDependencyInject);
+            foreach (var type in coreServicesAssemblyTypes)
+            {
+                if (injectType.IsAssignableFrom(type))
+                {
+                    var regBuilder = builder.RegisterType(type).AsSelf().PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+                    var attr = type.GetCustomAttribute<DependencyInjectAttribute>();
+                    var dType = DependencyType.Scoped.ToString();
+                    if (attr is not null)
+                    {
+                        dType = attr.DependencyType.ToString();
+                    }
+                    Logger.ELogDebug($"Registering Dependency: {type.FullName} as {dType}");
+                    switch (attr?.DependencyType)
+                    {
+                        case DependencyType.Singleton:
+                            regBuilder.SingleInstance();
+                            break;
+                        case DependencyType.NewInstance:
+                            regBuilder.InstancePerDependency();
+                            break;
+                        default:
+                            regBuilder.InstancePerLifetimeScope();
+                            break;
+                    }
+                }
+            }
             return builder;
         }
         
