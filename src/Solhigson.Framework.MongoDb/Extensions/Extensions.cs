@@ -75,7 +75,7 @@ namespace Solhigson.Framework.Extensions
             };
 
             var customTargetParameters = new CustomNLogTargetParameters(customTarget);
-            parameters.Adapt(customTarget);
+            parameters.Adapt(customTargetParameters);
             app.UseSolhigsonNLogCustomTarget(customTargetParameters);
             return service;
         }
