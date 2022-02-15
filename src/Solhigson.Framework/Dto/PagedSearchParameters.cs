@@ -30,16 +30,17 @@ namespace Solhigson.Framework.Dto
             _toDate = _toDate?.Date.AddDays(1).AddMilliseconds(-1);
         }
 
-        public void ConvertToUniversalTime(int offset)
+        public void ConvertToUniversalTime(int? offset)
         {
+            offset ??= LocaleUtil.GetTimeZoneOffset() * -1;
             if (_convertedFromDateToUniversalTime)
             {
                 return;
             }
-            _fromDate = _fromDate?.AddMinutes(offset);
+            _fromDate = _fromDate?.AddMinutes(offset.Value);
             _toDate = _toDate == null 
                 ? ToDate 
-                : _toDate?.AddMinutes(offset);
+                : _toDate?.AddMinutes(offset.Value);
             _convertedFromDateToUniversalTime = true;
         }
         
