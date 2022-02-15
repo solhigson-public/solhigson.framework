@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using Mapster;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Cosmos;
 using NLog.Common;
@@ -44,7 +45,9 @@ namespace Solhigson.Framework.Extensions
                 Layout = NLogDefaults.GetDefaultJsonLayout2(),
             };
 
-            app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
+            var customTargetParameters = new CustomNLogTargetParameters(customTarget);
+            parameters.Adapt(customTarget);
+            app.UseSolhigsonNLogCustomTarget(customTargetParameters);
             return service;
         }
 

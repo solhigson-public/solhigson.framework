@@ -19,10 +19,10 @@ variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageFramework: true
+  packageFramework: false
   packageTool: false
-  packageAzureCosmosDb: false
-  packageMongoDb: false
+  packageAzureCosmosDb: true
+  packageMongoDb: true
 
 stages:
   - stage: build

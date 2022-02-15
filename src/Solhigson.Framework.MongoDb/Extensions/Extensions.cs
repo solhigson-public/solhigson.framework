@@ -1,4 +1,5 @@
 using System;
+using Mapster;
 using Microsoft.AspNetCore.Builder;
 using MongoDB.Driver;
 using NLog.Common;
@@ -73,7 +74,9 @@ namespace Solhigson.Framework.Extensions
                 Layout = layout,
             };
 
-            app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
+            var customTargetParameters = new CustomNLogTargetParameters(customTarget);
+            parameters.Adapt(customTarget);
+            app.UseSolhigsonNLogCustomTarget(customTargetParameters);
             return service;
         }
         
