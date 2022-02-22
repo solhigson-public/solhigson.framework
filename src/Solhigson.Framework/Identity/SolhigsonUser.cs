@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 
 namespace Solhigson.Framework.Identity
@@ -10,7 +11,7 @@ namespace Solhigson.Framework.Identity
     {
         public SolhigsonUser()
         {
-            Id = Guid.NewGuid().ToString();
+            Id = NewId.NextSequentialGuid().ToString();
             SecurityStamp = Guid.NewGuid().ToString();
         }
     }
