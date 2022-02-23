@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
@@ -13,7 +14,7 @@ namespace Solhigson.Framework.Identity
     {
         public SolhigsonRoleGroup()
         {
-            Id = Guid.NewGuid().ToString();
+            Id = NewId.NextSequentialGuid().ToString();
         }
 
         [Key]

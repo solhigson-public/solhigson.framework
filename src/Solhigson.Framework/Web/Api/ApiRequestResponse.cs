@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 
@@ -28,6 +29,8 @@ namespace Solhigson.Framework.Web.Api
         {
             return statusCode >= 200 && statusCode < 300;
         }
+        
+        public TimeSpan TimeTaken { get; set; }
         
         
     }

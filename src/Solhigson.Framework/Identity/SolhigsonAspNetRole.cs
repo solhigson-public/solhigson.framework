@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Solhigson.Framework.Data.Caching;
 
@@ -10,7 +11,7 @@ namespace Solhigson.Framework.Identity
     {
         public SolhigsonAspNetRole()
         {
-            Id = Guid.NewGuid().ToString();
+            Id = NewId.NextSequentialGuid().ToString();
         }
     }
 

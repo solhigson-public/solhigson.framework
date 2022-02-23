@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
@@ -16,7 +17,7 @@ namespace Solhigson.Framework.Identity
     {
         public SolhigsonPermission()
         {
-            Id = Guid.NewGuid().ToString();
+            Id = NewId.NextSequentialGuid().ToString();
         }
         
         [Key]

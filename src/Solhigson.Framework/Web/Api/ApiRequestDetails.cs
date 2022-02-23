@@ -26,5 +26,7 @@ namespace Solhigson.Framework.Web.Api
         public string ServiceName { get; set; }
         public string ServiceType { get; set; }
         public string ServiceDescription { get; set; }
+        
+        public string NamedHttpClient { get; set; }
     }
 }

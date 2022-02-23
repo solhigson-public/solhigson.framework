@@ -14,7 +14,6 @@ namespace Solhigson.Framework.Web.Api
 {
     public sealed class ApiRequestService : IApiRequestService
     {
-        internal const string DefaultNamedHttpClient = "ApiRequestService";
         public const string ContentTypePlain = "text/plain";
         public const string ContentTypeJson = "application/json";
         public const string ContentTypeXml = "application/xml";
@@ -31,50 +30,48 @@ namespace Solhigson.Framework.Web.Api
 
         public async Task<ApiRequestResponse> GetDataJsonAsync(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
-            return await SendRequestAsync(uri, HttpMethod.Get, timeOut: timeOut, headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync(uri, HttpMethod.Get, null, ContentTypeJson, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse> GetDataXmlAsync(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
-            return await SendRequestAsync(uri, HttpMethod.Get, format: ContentTypeXml, timeOut: timeOut,
-                headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync(uri, HttpMethod.Get, null, ContentTypeXml, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse> GetDataPlainAsync(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
-            return await SendRequestAsync(uri, HttpMethod.Get, format: ContentTypePlain, timeOut: timeOut,
-                headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync(uri, HttpMethod.Get, null, ContentTypePlain, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse<T>> GetDataJsonAsync<T>(string uri,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0) where T : class
         {
-            return await SendRequestAsync<T>(uri, HttpMethod.Get, timeOut: timeOut, headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync<T>(uri, HttpMethod.Get, null, ContentTypeJson, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse<T>> GetDataXmlAsync<T>(string uri,
             Dictionary<string, string> headers = null,
-            string serviceName = null, string serviceDescription = null, string serviceType = null, int timeOut = 0)
+            string serviceName = null, string serviceDescription = null, string serviceType = null,  string namedHttpClient = null,
+            int timeOut = 0)
             where T : class
         {
-            return await SendRequestAsync<T>(uri, HttpMethod.Get, format: ContentTypeXml, timeOut: timeOut,
-                headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync<T>(uri, HttpMethod.Get, null, ContentTypeXml, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         #endregion
@@ -83,91 +80,91 @@ namespace Solhigson.Framework.Web.Api
 
         public async Task<ApiRequestResponse> PostDataJsonAsync(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
-            return await SendRequestAsync(uri, HttpMethod.Post, data, timeOut: timeOut, headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync(uri, HttpMethod.Post, data, ContentTypeJson, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse> PostDataXmlAsync(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
             return await SendRequestAsync(uri, HttpMethod.Post, data, ContentTypeXml, headers, serviceName,
-                serviceDescription, serviceType,
+                serviceDescription, serviceType, namedHttpClient,
                 timeOut);
         }
 
         public async Task<ApiRequestResponse> PostDataAsync(string uri, string data, string contentType,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
             return await SendRequestAsync(uri, HttpMethod.Post, data, contentType, headers, serviceName,
-                serviceDescription, serviceType,
+                serviceDescription, serviceType, namedHttpClient,
                 timeOut);
         }
 
         public async Task<ApiRequestResponse<T>> PostDataJsonAsync<T>(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0) where T : class
         {
-            return await SendRequestAsync<T>(uri, HttpMethod.Post, data, timeOut: timeOut, headers: headers,
-                serviceName: serviceName, serviceType: serviceType, serviceDescription: serviceDescription);
+            return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeJson, headers,
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
             string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0) where T : class
         {
             return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeXWwwFormUrlencoded, headers,
-                serviceName, serviceDescription, serviceType, timeOut);
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
             IDictionary<string, string> data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0) where T : class
         {
             return await PostDataXWwwFormUrlencodedAsync<T>(uri,
                 await new FormUrlEncodedContent(data).ReadAsStringAsync(),
-                headers, serviceName, serviceDescription, serviceType, timeOut);
+                headers, serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
         public async Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri,
             IDictionary<string, string> data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
             return await PostDataXWwwFormUrlencodedAsync(uri, await new FormUrlEncodedContent(data).ReadAsStringAsync(),
-                headers, serviceName, serviceDescription, serviceType, timeOut);
+                headers, serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
 
         public async Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
             return await SendRequestAsync(uri, HttpMethod.Post, data, ContentTypeXWwwFormUrlencoded, headers,
-                serviceName, serviceDescription, serviceType, timeOut);
+                serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
         }
 
 
         public async Task<ApiRequestResponse<T>> PostDataXmlAsync<T>(string uri, string data,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0) where T : class
         {
             return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeXml, headers, serviceName,
-                serviceDescription,
+                serviceDescription, namedHttpClient,
                 serviceType, timeOut);
         }
 
@@ -178,18 +175,18 @@ namespace Solhigson.Framework.Web.Api
         private async Task<ApiRequestResponse> SendRequestAsync(string uri, HttpMethod method,
             string data = "", string format = ContentTypeJson,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0)
         {
             return await SendRequestAsync<object>(uri, method, data, format, headers, serviceName, serviceDescription,
-                serviceType,
+                serviceType, namedHttpClient,
                 timeOut);
         }
 
         private async Task<ApiRequestResponse<T>> SendRequestAsync<T>(string uri, HttpMethod method,
             string data = "", string format = ContentTypeJson,
             Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-            string serviceType = null,
+            string serviceType = null, string namedHttpClient = null,
             int timeOut = 0) where T : class
         {
             try
@@ -201,7 +198,8 @@ namespace Solhigson.Framework.Web.Api
                     TimeOut = timeOut,
                     ServiceName = serviceName,
                     ServiceType = serviceType,
-                    ServiceDescription = serviceDescription
+                    ServiceDescription = serviceDescription,
+                    NamedHttpClient = namedHttpClient,
                 };
                 return await SendRequestAsync<T>(apiRequestDetails);
             }
@@ -248,7 +246,7 @@ namespace Solhigson.Framework.Web.Api
             }
 
             var apiRequestHelperResponse = new ApiRequestResponse<T>();
-            var client = _httpClientFactory.CreateClient(DefaultNamedHttpClient);
+            var client = _httpClientFactory.CreateClient(apiRequestDetails.NamedHttpClient ?? "");
             client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
             var request = new HttpRequestMessage();
             //HttpResponseMessage httpResponseMsg = null;
@@ -278,7 +276,7 @@ namespace Solhigson.Framework.Web.Api
                     client.Timeout = TimeSpan.FromMilliseconds(timeOut);
                 }
 
-                if (apiRequestDetails.Headers != null && apiRequestDetails.Headers.Count > 0)
+                if (apiRequestDetails.Headers is { Count: > 0 })
                 {
                     foreach (var key in apiRequestDetails.Headers.Keys)
                     {
@@ -357,7 +355,8 @@ namespace Solhigson.Framework.Web.Api
                 try
                 {
                     traceData.ResponseTime = DateTime.UtcNow;
-                    traceData.TimeTaken = HelperFunctions.Format(traceData.ResponseTime - traceData.RequestTime);
+                    apiRequestHelperResponse.TimeTaken = traceData.ResponseTime - traceData.RequestTime;
+                    traceData.TimeTaken = HelperFunctions.Format(apiRequestHelperResponse.TimeTaken);
                     /*
                     traceData.ResponseMessage =
                         HelperFunctions.CheckForProtectedFields(apiRequestHelperResponse.Response, _servicesWrapper);

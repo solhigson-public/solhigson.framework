@@ -272,9 +272,6 @@ namespace Solhigson.Framework.Extensions
                         .Warn($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
                 });
 
-            services.AddHttpClient(ApiRequestService.DefaultNamedHttpClient)
-                .AddTransientHttpErrorPolicy(ConfigurePolicy);
-
             services.AddHttpClient(AzureLogAnalyticsService.AzureLogAnalyticsNamedHttpClient)
                 .AddTransientHttpErrorPolicy(ConfigurePolicy);
 
