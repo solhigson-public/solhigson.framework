@@ -90,11 +90,6 @@ namespace Solhigson.Framework.Identity
                 Name = roleName,
                 RoleGroupId = roleGroupId,
             };
-            var idPropertyInfo = role.GetType().GetProperties().FirstOrDefault(t => t.Name == "Id");
-            if(idPropertyInfo?.PropertyType == typeof(string))
-            {
-                idPropertyInfo?.SetValue(role, Guid.NewGuid().ToString());
-            }
             return await RoleManager.CreateAsync(role);
         }
 
