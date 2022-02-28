@@ -170,7 +170,7 @@ namespace Solhigson.Framework.EfCoreTool.Generator
         private static string GetDtoProperties(Type entity, bool getPropertiesWithCachedPropertyAttributeOnly)
         {
             var sBuilder = new StringBuilder();
-            var properties = entity.GetProperties();
+            var properties = entity.GetProperties().Where(t => t.CanRead && t.CanWrite);
             if (getPropertiesWithCachedPropertyAttributeOnly)
             {
                 var propertiesWithCachedPropertyAttribute = properties
