@@ -645,18 +645,18 @@ namespace Solhigson.Framework.Extensions
             return query.AsNoTrackingWithIdentityResolution().FirstOrDefault();
         }
 
-        public static async Task<PagedList<T>> ToPagedListAsync<T>(this IQueryable<T> source, int pageNumber, int pageSize) where T : class
+        public static async Task<PagedList<T>> ToPagedListAsync<T>(this IQueryable<T> source, int pageNumber, int itemsPerPage) where T : class
         {
             var count = await source.CountAsync();
-            var items = await source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-            return PagedList.Create(items, count, pageNumber, pageSize);
+            var items = await source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * itemsPerPage).Take(itemsPerPage).ToListAsync();
+            return PagedList.Create(items, count, pageNumber, itemsPerPage);
         }
         
-        public static PagedList<T> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int pageSize) where T : class
+        public static PagedList<T> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int itemsPerPage) where T : class
         {
             var count = source.Count();
-            var items = source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-            return PagedList.Create(items, count, pageNumber, pageSize);
+            var items = source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+            return PagedList.Create(items, count, pageNumber, itemsPerPage);
         }
 
 
