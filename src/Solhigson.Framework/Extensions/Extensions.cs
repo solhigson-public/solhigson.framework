@@ -645,17 +645,17 @@ namespace Solhigson.Framework.Extensions
             return query.AsNoTrackingWithIdentityResolution().FirstOrDefault();
         }
 
-        public static async Task<PagedList<T>> ToPagedListAsync<T>(this IQueryable<T> source, int pageNumber, int pageSize)
+        public static async Task<PagedList<T>> ToPagedListAsync<T>(this IQueryable<T> source, int pageNumber, int pageSize) where T : class
         {
             var count = await source.CountAsync();
-            var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+            var items = await source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
             return PagedList.Create(items, count, pageNumber, pageSize);
         }
         
-        public static PagedList<T> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int pageSize)
+        public static PagedList<T> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int pageSize) where T : class
         {
             var count = source.Count();
-            var items = source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var items = source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
             return PagedList.Create(items, count, pageNumber, pageSize);
         }
 
