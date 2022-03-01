@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace Solhigson.Framework.Data.Attributes
+namespace Solhigson.Framework.Data.Attributes;
+
+[AttributeUsage(AttributeTargets.Property)]
+public class CachedPropertyAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public class CachedPropertyAttribute : Attribute
-    {
         
-    }
 }

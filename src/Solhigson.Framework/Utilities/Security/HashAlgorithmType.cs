@@ -1,11 +1,10 @@
-﻿namespace Solhigson.Framework.Utilities.Security
+﻿namespace Solhigson.Framework.Utilities.Security;
+
+public enum HashAlgorithmType
 {
-    public enum HashAlgorithmType
-    {
-        Md5,
-        Sha512,
-        Sha256,
-        Sha1,
+    Md5,
+    Sha512,
+    Sha256,
+    Sha1,
         
-    }
 }

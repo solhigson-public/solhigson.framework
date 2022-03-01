@@ -1,8 +1,7 @@
-﻿namespace Solhigson.Framework.Utilities.Security
+﻿namespace Solhigson.Framework.Utilities.Security;
+
+public enum StringEncodingType
 {
-    public enum StringEncodingType
-    {
-        Hex,
-        Base64
-    }
+    Hex,
+    Base64
 }

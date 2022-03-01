@@ -2,22 +2,21 @@
 using NLog;
 using NLog.LayoutRenderers;
 
-namespace Solhigson.Framework.Logging.Nlog.Renderers
+namespace Solhigson.Framework.Logging.Nlog.Renderers;
+
+[LayoutRenderer("solhigson-user")]
+public class UserRenderer : LayoutRenderer
 {
-    [LayoutRenderer("solhigson-user")]
-    public class UserRenderer : LayoutRenderer
+    public const string Name = "user";
+
+    protected override void Append(StringBuilder builder, LogEventInfo logEvent)
     {
-        public const string Name = "user";
+        object user = null;
+        logEvent?.Properties?.TryGetValue(Name, out user);
 
-        protected override void Append(StringBuilder builder, LogEventInfo logEvent)
+        if (user != null)
         {
-            object user = null;
-            logEvent?.Properties?.TryGetValue(Name, out user);
-
-            if (user != null)
-            {
-                builder.Append(user);
-            }
+            builder.Append(user);
         }
     }
 }

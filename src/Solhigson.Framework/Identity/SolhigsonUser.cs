@@ -5,35 +5,34 @@ using System.Linq;
 using MassTransit;
 using Microsoft.AspNetCore.Identity;
 
-namespace Solhigson.Framework.Identity
+namespace Solhigson.Framework.Identity;
+
+public class SolhigsonUser : SolhigsonUser<string, SolhigsonAspNetRole>
 {
-    public class SolhigsonUser : SolhigsonUser<string, SolhigsonAspNetRole>
+    public SolhigsonUser()
     {
-        public SolhigsonUser()
-        {
-            Id = NewId.NextSequentialGuid().ToString();
-            SecurityStamp = Guid.NewGuid().ToString();
-        }
+        Id = NewId.NextSequentialGuid().ToString();
+        SecurityStamp = Guid.NewGuid().ToString();
     }
-    public class SolhigsonUser<T> : SolhigsonUser<T, SolhigsonAspNetRole<T>> where T : IEquatable<T> 
-    {
-    }
+}
+public class SolhigsonUser<T> : SolhigsonUser<T, SolhigsonAspNetRole<T>> where T : IEquatable<T> 
+{
+}
 
-    public class SolhigsonUser<T, TRole> : IdentityUser<T> where T : IEquatable<T> 
-        where TRole : SolhigsonAspNetRole<T>
-    {
-        public bool Enabled { get; set; }
-        public bool RequirePasswordChange { get; set; }
+public class SolhigsonUser<T, TRole> : IdentityUser<T> where T : IEquatable<T> 
+    where TRole : SolhigsonAspNetRole<T>
+{
+    public bool Enabled { get; set; }
+    public bool RequirePasswordChange { get; set; }
         
-        [NotMapped]
-        public List<TRole> Roles { get; set; }
+    [NotMapped]
+    public List<TRole> Roles { get; set; }
 
-        private TRole _userRole;
-        [NotMapped]
-        public TRole UserRole
-        {
-            get => _userRole ??= Roles?.FirstOrDefault();
-            set => _userRole = value;
-        }
+    private TRole _userRole;
+    [NotMapped]
+    public TRole UserRole
+    {
+        get => _userRole ??= Roles?.FirstOrDefault();
+        set => _userRole = value;
     }
 }

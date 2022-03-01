@@ -5,84 +5,83 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Solhigson.Framework.AzureCosmosDb.Dto;
 
-namespace Solhigson.Framework.AzureCosmosDb
+namespace Solhigson.Framework.AzureCosmosDb;
+
+public class CosmosDbService
 {
-    public class CosmosDbService
+    private readonly Container _container;
+
+    public CosmosDbService(
+        CosmosClient dbClient,
+        string databaseName,
+        string containerName)
     {
-        private readonly Container _container;
+        _container = dbClient.GetContainer(databaseName, containerName);
+    }
 
-        public CosmosDbService(
-            CosmosClient dbClient,
-            string databaseName,
-            string containerName)
+    public async Task AddItemAsync<T>(T item) where T : CosmosDocumentBase
+    {
+        if (string.IsNullOrWhiteSpace(item.Id))
         {
-            _container = dbClient.GetContainer(databaseName, containerName);
+            item.Id = Guid.NewGuid().ToString();
         }
 
-        public async Task AddItemAsync<T>(T item) where T : CosmosDocumentBase
-        {
-            if (string.IsNullOrWhiteSpace(item.Id))
-            {
-                item.Id = Guid.NewGuid().ToString();
-            }
+        await _container.CreateItemAsync(item, new PartitionKey(item.PartitionKey));
+    }
 
-            await _container.CreateItemAsync(item, new PartitionKey(item.PartitionKey));
+    public async Task AddDocumentAsync(object item)
+    {
+        await _container.CreateItemAsync(item);
+    }
+
+
+    public async Task DeleteItemAsync<T>(string id, string partitionKey) where T : CosmosDocumentBase
+    {
+        await _container.DeleteItemAsync<T>(id, new PartitionKey(partitionKey));
+    }
+
+    public async Task<T> GetItemAsync<T>(string id, string partitionKey) where T : CosmosDocumentBase
+    {
+        try
+        {
+            var response = await _container.ReadItemAsync<T>(id, new PartitionKey(partitionKey));
+            return response.Resource;
         }
-
-        public async Task AddDocumentAsync(object item)
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
-            await _container.CreateItemAsync(item);
+            return null;
         }
+    }
 
-
-        public async Task DeleteItemAsync<T>(string id, string partitionKey) where T : CosmosDocumentBase
-        {
-            await _container.DeleteItemAsync<T>(id, new PartitionKey(partitionKey));
-        }
-
-        public async Task<T> GetItemAsync<T>(string id, string partitionKey) where T : CosmosDocumentBase
-        {
-            try
-            {
-                var response = await _container.ReadItemAsync<T>(id, new PartitionKey(partitionKey));
-                return response.Resource;
-            }
-            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                return null;
-            }
-        }
-
-        public async Task<CosmosDbResponse<T>> GetItemsAsync<T>(string queryString,
-            string continuationToken = null, int? maxItemCount = null) where T : CosmosDocumentBase
-        {
-            maxItemCount ??= 100;
+    public async Task<CosmosDbResponse<T>> GetItemsAsync<T>(string queryString,
+        string continuationToken = null, int? maxItemCount = null) where T : CosmosDocumentBase
+    {
+        maxItemCount ??= 100;
             
-            var query = _container.GetItemQueryIterator<T>(new QueryDefinition(queryString),
-                continuationToken, new QueryRequestOptions
-                {
-                    MaxItemCount = maxItemCount,
-                });
-            var results = new CosmosDbResponse<T>
+        var query = _container.GetItemQueryIterator<T>(new QueryDefinition(queryString),
+            continuationToken, new QueryRequestOptions
             {
-                Items = new List<T>()
-            };
-            
-            while (query.HasMoreResults)
-            {
-                var response = await query.ReadNextAsync();
-
-                results.Items.AddRange(response.ToList());
-                results.RequestCharge += response.RequestCharge;
-                results.ContinuationToken = response.ContinuationToken;
-            }
-
-            return results;
-        }
-
-        public async Task UpdateItemAsync<T>(T item) where T : CosmosDocumentBase
+                MaxItemCount = maxItemCount,
+            });
+        var results = new CosmosDbResponse<T>
         {
-            await _container.UpsertItemAsync(item, new PartitionKey(item.PartitionKey));
+            Items = new List<T>()
+        };
+            
+        while (query.HasMoreResults)
+        {
+            var response = await query.ReadNextAsync();
+
+            results.Items.AddRange(response.ToList());
+            results.RequestCharge += response.RequestCharge;
+            results.ContinuationToken = response.ContinuationToken;
         }
+
+        return results;
+    }
+
+    public async Task UpdateItemAsync<T>(T item) where T : CosmosDocumentBase
+    {
+        await _container.UpsertItemAsync(item, new PartitionKey(item.PartitionKey));
     }
 }

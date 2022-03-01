@@ -1,13 +1,12 @@
 ﻿using NLog.Targets;
 
-namespace Solhigson.Framework.Logging.Nlog.Dto
+namespace Solhigson.Framework.Logging.Nlog.Dto;
+
+public class CustomNLogTargetParameters : DefaultNLogParameters
 {
-    public class CustomNLogTargetParameters : DefaultNLogParameters
+    public CustomNLogTargetParameters(Target customTarget)
     {
-        public CustomNLogTargetParameters(Target customTarget)
-        {
-            Target = customTarget;
-        }
-        public Target Target { get; set; }
+        Target = customTarget;
     }
+    public Target Target { get; set; }
 }

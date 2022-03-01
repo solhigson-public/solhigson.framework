@@ -13,201 +13,200 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Persistence.EntityModels;
 
-namespace Solhigson.Framework.Data.Caching
+namespace Solhigson.Framework.Data.Caching;
+
+public static class CacheManager
 {
-    public static class CacheManager
+    private static Timer _timer;
+
+    private static string _connectionString;
+    private static readonly LogWrapper Logger = new LogWrapper(typeof(CacheManager).FullName);
+    private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
+    private static int _cacheExpirationPeriodMinutes;
+    public static event EventHandler OnTableChangeTimerElapsed;
+    private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeTrackers = new();
+
+    private static MemoryCache DefaultMemoryCache { get; } = new ("Solhigson::Data::Cache::Manager");
+    //private static ConcurrentBag<string> CacheKeys { get; } = new ();
+
+    internal static void Initialize(string connectionString,
+        int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
+        int cacheExpirationPeriodMinutes = 1440, Assembly dbContextAssembly = null)
     {
-        private static Timer _timer;
-
-        private static string _connectionString;
-        private static readonly LogWrapper Logger = new LogWrapper(typeof(CacheManager).FullName);
-        private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
-        private static int _cacheExpirationPeriodMinutes;
-        public static event EventHandler OnTableChangeTimerElapsed;
-        private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeTrackers = new();
-
-        private static MemoryCache DefaultMemoryCache { get; } = new ("Solhigson::Data::Cache::Manager");
-        //private static ConcurrentBag<string> CacheKeys { get; } = new ();
-
-        internal static void Initialize(string connectionString,
-            int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-            int cacheExpirationPeriodMinutes = 1440, Assembly dbContextAssembly = null)
+        try
         {
-            try
-            {
-                _connectionString = connectionString;
-                _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
-                _cacheDependencyChangeTrackerTimerIntervalMilliseconds =
-                    cacheDependencyChangeTrackerTimerIntervalMilliseconds;
-                ScriptsManager.SetUpDatabaseObjects(dbContextAssembly, connectionString);
-                StartCacheTimer();
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e);
-            }
+            _connectionString = connectionString;
+            _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
+            _cacheDependencyChangeTrackerTimerIntervalMilliseconds =
+                cacheDependencyChangeTrackerTimerIntervalMilliseconds;
+            ScriptsManager.SetUpDatabaseObjects(dbContextAssembly, connectionString);
+            StartCacheTimer();
         }
-
-        private static void StartCacheTimer()
+        catch (Exception e)
         {
-            _timer = new Timer(_cacheDependencyChangeTrackerTimerIntervalMilliseconds);
-            _timer.Elapsed += TimerOnElapsed;
-            _timer.Start();
+            Logger.Error(e);
         }
+    }
 
-        private static void TimerOnElapsed(object sender, ElapsedEventArgs e)
+    private static void StartCacheTimer()
+    {
+        _timer = new Timer(_cacheDependencyChangeTrackerTimerIntervalMilliseconds);
+        _timer.Elapsed += TimerOnElapsed;
+        _timer.Start();
+    }
+
+    private static void TimerOnElapsed(object sender, ElapsedEventArgs e)
+    {
+        var changes = GetAllChangeTrackerIds().Result;
+        if (changes != null)
         {
-            var changes = GetAllChangeTrackerIds().Result;
-            if (changes != null)
-            {
-                var changeTrackers = changes.ToDictionary(changeTracker => changeTracker.TableName,
-                    changeTracker => changeTracker.ChangeId);
-                OnTableChangeTimerElapsed?.Invoke(null, new ChangeTrackerEventArgs(changeTrackers));
-            }
+            var changeTrackers = changes.ToDictionary(changeTracker => changeTracker.TableName,
+                changeTracker => changeTracker.ChangeId);
+            OnTableChangeTimerElapsed?.Invoke(null, new ChangeTrackerEventArgs(changeTrackers));
         }
+    }
 
        
-        private static async Task<List<ChangeTrackerDto>> GetAllChangeTrackerIds()
+    private static async Task<List<ChangeTrackerDto>> GetAllChangeTrackerIds()
+    {
+        try
         {
-            try
-            {
-                return await AdoNetUtils.GetListAsync<ChangeTrackerDto>
-                    (_connectionString, $"[{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}]", isStoredProcedure: true);
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Unable to get Cache Change Tracker Id");
-            }
-
-            return null;
+            return await AdoNetUtils.GetListAsync<ChangeTrackerDto>
+                (_connectionString, $"[{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}]", isStoredProcedure: true);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Unable to get Cache Change Tracker Id");
         }
 
-        internal static async Task<short> GetTableChangeTrackerId(string tableName)
-        {
-            try
-            {
-                return await AdoNetUtils.GetSingleOrDefaultAsync<short>
-                (_connectionString,
-                    $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {ScriptsManager.GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'");
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Unable to get Cache Change Tracker Id");
-            }
+        return null;
+    }
 
-            return 0;
+    internal static async Task<short> GetTableChangeTrackerId(string tableName)
+    {
+        try
+        {
+            return await AdoNetUtils.GetSingleOrDefaultAsync<short>
+            (_connectionString,
+                $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {ScriptsManager.GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'");
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Unable to get Cache Change Tracker Id");
         }
 
-        internal static void AddToCache(string key, object value, IList<Type> types)
-        {
-            if (string.IsNullOrWhiteSpace(key) || types == null || !types.Any())
-            {
-                return;
-            }
+        return 0;
+    }
 
-            InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
+    internal static void AddToCache(string key, object value, IList<Type> types)
+    {
+        if (string.IsNullOrWhiteSpace(key) || types == null || !types.Any())
+        {
+            return;
         }
 
-        internal static IList<Type> GetValidICacheEntityTypes(IEnumerable<Type> types)
+        InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
+    }
+
+    internal static IList<Type> GetValidICacheEntityTypes(IEnumerable<Type> types)
+    {
+        var validTypes = new List<Type>();
+        foreach (var type in types)
         {
-            var validTypes = new List<Type>();
-            foreach (var type in types)
+            if (!typeof(ICachedEntity).IsAssignableFrom(type))
             {
-                if (!typeof(ICachedEntity).IsAssignableFrom(type))
-                {
-                    Logger.Warn(
-                        $"Data of type: [{type}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
-                    continue;
-                }
-                validTypes.Add(type);
+                Logger.Warn(
+                    $"Data of type: [{type}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
+                continue;
             }
-            return validTypes;
+            validTypes.Add(type);
+        }
+        return validTypes;
+    }
+
+    public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
+    {
+        if (string.IsNullOrWhiteSpace(key))// || value == null)
+        {
+            changeMonitor?.Dispose();
+            return;
         }
 
-        public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
+        var entry = new CustomCacheEntry{ Value = value };
+        DefaultMemoryCache.Remove(key);
+
+        try
         {
-            if (string.IsNullOrWhiteSpace(key))// || value == null)
+            var policy = new CacheItemPolicy();
+            if (changeMonitor != null)
             {
-                changeMonitor?.Dispose();
-                return;
+                policy.ChangeMonitors.Add(changeMonitor);
+            }
+            else
+            {
+                policy.AbsoluteExpiration = DateTime.UtcNow.AddMinutes(_cacheExpirationPeriodMinutes);
             }
 
-            var entry = new CustomCacheEntry{ Value = value };
-            DefaultMemoryCache.Remove(key);
-
-            try
-            {
-                var policy = new CacheItemPolicy();
-                if (changeMonitor != null)
-                {
-                    policy.ChangeMonitors.Add(changeMonitor);
-                }
-                else
-                {
-                    policy.AbsoluteExpiration = DateTime.UtcNow.AddMinutes(_cacheExpirationPeriodMinutes);
-                }
-
-                DefaultMemoryCache.Set(key, entry, policy);
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e, "Adding item to cache", value);
-            }
+            DefaultMemoryCache.Set(key, entry, policy);
         }
-
-        internal static CustomCacheEntry GetFromCache(string key)// where T : class
+        catch (Exception e)
         {
-            return DefaultMemoryCache.Get(key) as CustomCacheEntry;
+            Logger.Error(e, "Adding item to cache", value);
         }
+    }
 
-        private static TableChangeTracker GetTableChangeTracker(IEnumerable<Type> types)
+    internal static CustomCacheEntry GetFromCache(string key)// where T : class
+    {
+        return DefaultMemoryCache.Get(key) as CustomCacheEntry;
+    }
+
+    private static TableChangeTracker GetTableChangeTracker(IEnumerable<Type> types)
+    {
+        return GetTableChangeTracker(types.Select(t => ScriptsManager.GetTableName(t)).ToList());
+    }
+
+
+    private static TableChangeTracker GetTableChangeTracker(IReadOnlyCollection<string> tableNames)
+    {
+        var changeTrackerKey = Flatten(tableNames);
+        if (ChangeTrackers.TryGetValue(changeTrackerKey, out var tableChangeTracker))
         {
-            return GetTableChangeTracker(types.Select(t => ScriptsManager.GetTableName(t)).ToList());
-        }
-
-
-        private static TableChangeTracker GetTableChangeTracker(IReadOnlyCollection<string> tableNames)
-        {
-            var changeTrackerKey = Flatten(tableNames);
-            if (ChangeTrackers.TryGetValue(changeTrackerKey, out var tableChangeTracker))
-            {
-                return tableChangeTracker;
-            }
-
-            tableChangeTracker = new TableChangeTracker(tableNames);
-            try
-            {
-                ChangeTrackers.TryAdd(changeTrackerKey, tableChangeTracker);
-            }
-            catch (Exception e)
-            {
-                Logger.Error(e);
-            }
-
             return tableChangeTracker;
         }
 
-        internal static string Flatten(IEnumerable<string> tableNames)
+        tableChangeTracker = new TableChangeTracker(tableNames);
+        try
         {
-            var result = "";
-            foreach (var tableName in tableNames)
-            {
-                if (string.IsNullOrEmpty(result))
-                {
-                    result = tableName;
-                }
-                else
-                {
-                    result = $"{result}-{tableName}";
-                }
-            }
-            return result;
+            ChangeTrackers.TryAdd(changeTrackerKey, tableChangeTracker);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e);
         }
 
+        return tableChangeTracker;
     }
-    
-    internal class CustomCacheEntry
+
+    internal static string Flatten(IEnumerable<string> tableNames)
     {
-        public object Value { get; set; }
+        var result = "";
+        foreach (var tableName in tableNames)
+        {
+            if (string.IsNullOrEmpty(result))
+            {
+                result = tableName;
+            }
+            else
+            {
+                result = $"{result}-{tableName}";
+            }
+        }
+        return result;
     }
+
+}
+    
+internal class CustomCacheEntry
+{
+    public object Value { get; set; }
 }

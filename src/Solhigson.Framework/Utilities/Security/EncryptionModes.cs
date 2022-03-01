@@ -1,8 +1,7 @@
-﻿namespace Solhigson.Framework.Utilities.Security
+﻿namespace Solhigson.Framework.Utilities.Security;
+
+public enum EncryptionModes
 {
-    public enum EncryptionModes
-    {
-        TripleDes,
-        Aes
-    }
+    TripleDes,
+    Aes
 }

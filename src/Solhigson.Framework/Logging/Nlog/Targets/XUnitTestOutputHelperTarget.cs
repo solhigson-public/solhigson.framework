@@ -4,29 +4,28 @@ using NLog;
 using NLog.Targets;
 using Xunit.Abstractions;
 
-namespace Solhigson.Framework.Logging.Nlog.Targets
+namespace Solhigson.Framework.Logging.Nlog.Targets;
+
+public class XUnitTestOutputHelperTarget : TargetWithLayout
 {
-    public class XUnitTestOutputHelperTarget : TargetWithLayout
+    private readonly ITestOutputHelper _outputHelper;
+
+    public XUnitTestOutputHelperTarget(ITestOutputHelper outputHelper)
     {
-        private readonly ITestOutputHelper _outputHelper;
+        _outputHelper = outputHelper;
+    }
 
-        public XUnitTestOutputHelperTarget(ITestOutputHelper outputHelper)
+    protected override void Write(LogEventInfo logEvent)
+    {
+        var output = "";
+        try
         {
-            _outputHelper = outputHelper;
+            output = Layout.Render(logEvent);
+            _outputHelper.WriteLine(JToken.Parse(output).ToString());
         }
-
-        protected override void Write(LogEventInfo logEvent)
+        catch (Exception ex)
         {
-            var output = "";
-            try
-            {
-                output = Layout.Render(logEvent);
-                _outputHelper.WriteLine(JToken.Parse(output).ToString());
-            }
-            catch (Exception ex)
-            {
-                _outputHelper.WriteLine($"{output} Error Rendering: {ex.Message}");
-            }
+            _outputHelper.WriteLine($"{output} Error Rendering: {ex.Message}");
         }
     }
 }

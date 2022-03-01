@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Solhigson.Framework.Web.Middleware
+namespace Solhigson.Framework.Web.Middleware;
+
+internal interface IPermissionMiddleware : IMiddleware
 {
-    internal interface IPermissionMiddleware : IMiddleware
-    {
         
-    }
 }

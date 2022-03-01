@@ -5,18 +5,17 @@ using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
 using Solhigson.Framework.Data.Caching;
 
-namespace Solhigson.Framework.Persistence.EntityModels
+namespace Solhigson.Framework.Persistence.EntityModels;
+
+[Table(ScriptsManager.NotificationTemplateInfo.TableName)]
+public record NotificationTemplate : ICachedEntity
 {
-    [Table(ScriptsManager.NotificationTemplateInfo.TableName)]
-    public record NotificationTemplate : ICachedEntity
-    {
-        [Key]
-        [StringLength(255)]
-        [Column(ScriptsManager.NotificationTemplateInfo.NameColumn)]
-        public string Name { get; set; }
+    [Key]
+    [StringLength(255)]
+    [Column(ScriptsManager.NotificationTemplateInfo.NameColumn)]
+    public string Name { get; set; }
         
-        [Column(ScriptsManager.NotificationTemplateInfo.TemplateColumn)]
-        [CachedProperty]
-        public string Template { get; set; }
-    }
+    [Column(ScriptsManager.NotificationTemplateInfo.TemplateColumn)]
+    [CachedProperty]
+    public string Template { get; set; }
 }

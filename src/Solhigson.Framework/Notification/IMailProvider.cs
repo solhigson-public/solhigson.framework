@@ -1,7 +1,6 @@
-﻿namespace Solhigson.Framework.Notification
+﻿namespace Solhigson.Framework.Notification;
+
+public interface IMailProvider
 {
-    public interface IMailProvider
-    {
-        public void SendMail(EmailNotificationDetail emailNotificationDetail);
-    }
+    public void SendMail(EmailNotificationDetail emailNotificationDetail);
 }

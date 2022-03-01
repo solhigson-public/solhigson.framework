@@ -3,62 +3,61 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace Solhigson.Framework.Data
+namespace Solhigson.Framework.Data;
+
+public record PagedList
 {
-    public record PagedList
+    public static PagedList<TK> Create<TK>(List<TK> items, long count, int pageNumber, int pageSize)
     {
-        public static PagedList<TK> Create<TK>(List<TK> items, long count, int pageNumber, int pageSize)
-        {
-            return new PagedList<TK>(items, count, pageNumber, pageSize);
-        }
+        return new PagedList<TK>(items, count, pageNumber, pageSize);
     }
-    public record PagedList<T>
+}
+public record PagedList<T>
+{
+    [JsonProperty]
+    public int CurrentPage { get; }
+        
+    [JsonProperty]
+    public int TotalPages { get; }
+        
+    [JsonProperty]
+    public int PageSize { get;  }
+        
+    [JsonProperty]
+    public long TotalCount { get; }
+        
+    [JsonProperty]
+    public bool HasPrevious => CurrentPage > 1;
+    [JsonProperty]
+    public bool HasNext => CurrentPage < TotalPages;
+
+    [JsonProperty]
+    public List<T> Results { get; } = new ();
+
+    public bool Any()
     {
-        [JsonProperty]
-        public int CurrentPage { get; }
-        
-        [JsonProperty]
-        public int TotalPages { get; }
-        
-        [JsonProperty]
-        public int PageSize { get;  }
-        
-        [JsonProperty]
-        public long TotalCount { get; }
-        
-        [JsonProperty]
-        public bool HasPrevious => CurrentPage > 1;
-        [JsonProperty]
-        public bool HasNext => CurrentPage < TotalPages;
+        return Results.Any();
+    }
 
-        [JsonProperty]
-        public List<T> Results { get; } = new ();
-
-        public bool Any()
+    internal string GetMetaData()
+    {
+        return JsonConvert.SerializeObject(new
         {
-            return Results.Any();
-        }
+            TotalCount,
+            PageSize,
+            CurrentPage,
+            TotalPages,
+            HasNext,
+            HasPrevious
+        });
+    }
 
-        internal string GetMetaData()
-        {
-            return JsonConvert.SerializeObject(new
-            {
-                TotalCount,
-                PageSize,
-                CurrentPage,
-                TotalPages,
-                HasNext,
-                HasPrevious
-            });
-        }
-
-        internal PagedList(List<T> items, long count, int pageNumber, int pageSize)
-        {
-            TotalCount = count;
-            PageSize = pageSize;
-            CurrentPage = pageNumber;
-            TotalPages = (int)Math.Ceiling(count / (double)pageSize);
-            Results.AddRange(items);
-        }
+    internal PagedList(List<T> items, long count, int pageNumber, int pageSize)
+    {
+        TotalCount = count;
+        PageSize = pageSize;
+        CurrentPage = pageNumber;
+        TotalPages = (int)Math.Ceiling(count / (double)pageSize);
+        Results.AddRange(items);
     }
 }

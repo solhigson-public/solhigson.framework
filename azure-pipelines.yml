@@ -26,7 +26,7 @@ variables:
 
 stages:
   - stage: build
-    condition: eq(variables.isMaster, true)
+    condition: and(eq(variables.isMaster, true), eq(variables.packageFramework, false), eq(variables.packageAzureCosmosDb, false), eq(variables.packageTool, false), eq(variables.packageMongoDb, false))
     displayName: Validate Check-in
     jobs:
       - job:
@@ -52,7 +52,7 @@ stages:
 
 
   - stage: nuget_package_framework
-    condition: eq(variables.packageFramework, true)
+    condition:  and(eq(variables.isMaster, true), eq(variables.packageFramework, true))
     displayName: Deploy Solhigson Framework package to Nuget.Org
     jobs:
       - job:
@@ -93,7 +93,7 @@ stages:
 
 
   - stage: nuget_package_azureCosmos
-    condition: eq(variables.packageAzureCosmosDb, true)
+    condition:  and(eq(variables.isMaster, true), eq(variables.packageAzureCosmosDb, true))
     displayName: Deploy AzureCosmos Package to Nuget.Org
     jobs:
       - job:
@@ -134,7 +134,7 @@ stages:
 
 
   - stage: nuget_package_efCoreTool
-    condition: eq(variables.packageTool, true)
+    condition:  and(eq(variables.isMaster, true), eq(variables.packageTool, true))
     displayName: Deploy EfCoreTool to Nuget.Org
     jobs:
       - job:
@@ -176,8 +176,10 @@ stages:
             
             
             
+
+
   - stage: nuget_package_mongodb
-    condition: eq(variables.packageMongoDb, true)
+    condition:  and(eq(variables.isMaster, true), eq(variables.packageMongoDb, true))
     displayName: Deploy Solhigson MongoDb package to Nuget.Org
     jobs:
       - job:

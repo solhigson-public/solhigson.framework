@@ -3,14 +3,13 @@ using NLog;
 using NLog.LayoutRenderers;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.Logging.Nlog.Renderers
+namespace Solhigson.Framework.Logging.Nlog.Renderers;
+
+[LayoutRenderer("solhigson-timestamp")]
+public class TimestampRenderer : LayoutRenderer
 {
-    [LayoutRenderer("solhigson-timestamp")]
-    public class TimestampRenderer : LayoutRenderer
+    protected override void Append(StringBuilder builder, LogEventInfo logEvent)
     {
-        protected override void Append(StringBuilder builder, LogEventInfo logEvent)
-        {
-            builder.Append(DateUtils.CurrentUnixTimestamp);
-        }
+        builder.Append(DateUtils.CurrentUnixTimestamp);
     }
 }

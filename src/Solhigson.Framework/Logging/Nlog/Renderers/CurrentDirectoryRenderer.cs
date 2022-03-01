@@ -3,14 +3,13 @@ using System.Text;
 using NLog;
 using NLog.LayoutRenderers;
 
-namespace Solhigson.Framework.Logging.Nlog.Renderers
+namespace Solhigson.Framework.Logging.Nlog.Renderers;
+
+[LayoutRenderer("currentDirectory")]
+public class CurrentDirectoryRenderer : LayoutRenderer
 {
-    [LayoutRenderer("currentDirectory")]
-    public class CurrentDirectoryRenderer : LayoutRenderer
+    protected override void Append(StringBuilder builder, LogEventInfo logEvent)
     {
-        protected override void Append(StringBuilder builder, LogEventInfo logEvent)
-        {
-            builder.Append(Environment.CurrentDirectory);
-        }
+        builder.Append(Environment.CurrentDirectory);
     }
 }

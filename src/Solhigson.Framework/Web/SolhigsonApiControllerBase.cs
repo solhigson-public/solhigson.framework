@@ -2,11 +2,10 @@
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Web.Attributes;
 
-namespace Solhigson.Framework.Web
+namespace Solhigson.Framework.Web;
+
+[ApiController]
+public class SolhigsonApiControllerBase : ControllerBase
 {
-    [ApiController]
-    public class SolhigsonApiControllerBase : ControllerBase
-    {
         
-    }
 }

@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Solhigson.Framework.Data.Caching
+namespace Solhigson.Framework.Data.Caching;
+
+public class ChangeTrackerEventArgs : EventArgs
 {
-    public class ChangeTrackerEventArgs : EventArgs
+    public Dictionary<string, short> ChangeIds { get; }
+    public ChangeTrackerEventArgs(Dictionary<string, short> changeIds)
     {
-        public Dictionary<string, short> ChangeIds { get; }
-        public ChangeTrackerEventArgs(Dictionary<string, short> changeIds)
-        {
-            ChangeIds = changeIds;
-        }
+        ChangeIds = changeIds;
     }
 }

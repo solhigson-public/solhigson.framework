@@ -13,118 +13,117 @@ using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.Web.Middleware
+namespace Solhigson.Framework.Web.Middleware;
+
+public sealed class ApiTraceMiddleware : IMiddleware
 {
-    public sealed class ApiTraceMiddleware : IMiddleware
+    private static readonly LogWrapper Logger = new (nameof(ApiTraceMiddleware));
+    private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+
+    public ApiTraceMiddleware()
     {
-        private static readonly LogWrapper Logger = new (nameof(ApiTraceMiddleware));
-        private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+        _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+    }
 
-        public ApiTraceMiddleware()
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+    {
+        var url = context.Request.GetDisplayUrl();
+        if (!url.ToLower().Contains("api/")) //only log api calls [hack, should fix this later :)]
         {
-            _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
-        }
-
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
-        {
-            var url = context.Request.GetDisplayUrl();
-            if (!url.ToLower().Contains("api/")) //only log api calls [hack, should fix this later :)]
-            {
-                await next(context);
-                return;
-            }
-
-            var traceData = await GetRequestData(context.Request, url);
-
-            //Copy a pointer to the original response body stream
-            var originalBodyStream = context.Response.Body;
-
-            //Create a new memory stream...
-            await using var responseBody = _recyclableMemoryStreamManager.GetStream();
-            //...and use that for the temporary response body
-            context.Response.Body = responseBody;
-
-            //Continue down the Middleware pipeline, eventually returning to this class
             await next(context);
-
-            //Format the response from the server
-            await GetResponseData(context.Response, traceData);
-
-            var status = HelperFunctions.IsServiceUp(context.Response)
-                ? Constants.ServiceStatus.Up
-                : Constants.ServiceStatus.Down;
-
-            var action = context.GetRouteData().Values["action"]?.ToString();
-            var desc = string.IsNullOrWhiteSpace(action)
-                ? "Inbound"
-                : HelperFunctions.SeparatePascalCaseWords(action);
-
-            Logger.Log(desc, LogLevel.Info, traceData, null,
-                null, Constants.ServiceType.Self,
-                Constants.Group.ServiceStatus, status, traceData.Url, traceData.GetUserIdentity());
-
-            //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
-            await responseBody.CopyToAsync(originalBodyStream);
+            return;
         }
 
-        private async Task<ApiTraceData> GetRequestData(HttpRequest request, string url)
+        var traceData = await GetRequestData(context.Request, url);
+
+        //Copy a pointer to the original response body stream
+        var originalBodyStream = context.Response.Body;
+
+        //Create a new memory stream...
+        await using var responseBody = _recyclableMemoryStreamManager.GetStream();
+        //...and use that for the temporary response body
+        context.Response.Body = responseBody;
+
+        //Continue down the Middleware pipeline, eventually returning to this class
+        await next(context);
+
+        //Format the response from the server
+        await GetResponseData(context.Response, traceData);
+
+        var status = HelperFunctions.IsServiceUp(context.Response)
+            ? Constants.ServiceStatus.Up
+            : Constants.ServiceStatus.Down;
+
+        var action = context.GetRouteData().Values["action"]?.ToString();
+        var desc = string.IsNullOrWhiteSpace(action)
+            ? "Inbound"
+            : HelperFunctions.SeparatePascalCaseWords(action);
+
+        Logger.Log(desc, LogLevel.Info, traceData, null,
+            null, Constants.ServiceType.Self,
+            Constants.Group.ServiceStatus, status, traceData.Url, traceData.GetUserIdentity());
+
+        //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
+        await responseBody.CopyToAsync(originalBodyStream);
+    }
+
+    private async Task<ApiTraceData> GetRequestData(HttpRequest request, string url)
+    {
+        string requestContent;
+        await using (var bodyStream = _recyclableMemoryStreamManager.GetStream())
         {
-            string requestContent;
-            await using (var bodyStream = _recyclableMemoryStreamManager.GetStream())
-            {
-                //This line allows us to set the reader for the request back at the beginning of its stream.
-                request.EnableBuffering();
+            //This line allows us to set the reader for the request back at the beginning of its stream.
+            request.EnableBuffering();
 
-                //We now need to read the request stream.  First, we create a new byte[] with the same length as the request stream...
-                var buffer = new byte[Convert.ToInt32(request.ContentLength)];
+            //We now need to read the request stream.  First, we create a new byte[] with the same length as the request stream...
+            var buffer = new byte[Convert.ToInt32(request.ContentLength)];
 
-                await request.Body.CopyToAsync(bodyStream);
-                bodyStream.Position = 0;
+            await request.Body.CopyToAsync(bodyStream);
+            bodyStream.Position = 0;
 
-                await bodyStream.ReadAsync(buffer, 0, buffer.Length);
+            await bodyStream.ReadAsync(buffer, 0, buffer.Length);
 
-                requestContent = Encoding.UTF8.GetString(buffer);
+            requestContent = Encoding.UTF8.GetString(buffer);
 
-                request.Body.Position = 0;
-            }
-
-            var method = request.Method.ToUpper();
-
-            return new ApiTraceData
-            {
-                RequestTime = DateTime.UtcNow,
-                Url = url,
-                Method = method,
-                /*
-                RequestMessage = HelperFunctions.CheckForProtectedFields(requestContent, _servicesWrapper),
-                */
-                RequestMessage = requestContent,
-                Caller = HelperFunctions.GetCallerIp(request.HttpContext),
-                RequestHeaders = HelperFunctions.ToJsonObject(request.Headers)
-            };
+            request.Body.Position = 0;
         }
 
-        private static async Task GetResponseData(HttpResponse response, ApiTraceData traceData)
+        var method = request.Method.ToUpper();
+
+        return new ApiTraceData
         {
-            //We need to read the response stream from the beginning...
-            response.Body.Seek(0, SeekOrigin.Begin);
+            RequestTime = DateTime.UtcNow,
+            Url = url,
+            Method = method,
+            /*
+            RequestMessage = HelperFunctions.CheckForProtectedFields(requestContent, _servicesWrapper),
+            */
+            RequestMessage = requestContent,
+            Caller = HelperFunctions.GetCallerIp(request.HttpContext),
+            RequestHeaders = HelperFunctions.ToJsonObject(request.Headers)
+        };
+    }
 
-            //...and copy it into a string
-            var responseContent = await new StreamReader(response.Body).ReadToEndAsync();
+    private static async Task GetResponseData(HttpResponse response, ApiTraceData traceData)
+    {
+        //We need to read the response stream from the beginning...
+        response.Body.Seek(0, SeekOrigin.Begin);
 
-            //We need to reset the reader for the response so that the client can read it.
-            response.Body.Seek(0, SeekOrigin.Begin);
+        //...and copy it into a string
+        var responseContent = await new StreamReader(response.Body).ReadToEndAsync();
 
-            var statusCode = (HttpStatusCode) response.StatusCode;
+        //We need to reset the reader for the response so that the client can read it.
+        response.Body.Seek(0, SeekOrigin.Begin);
 
-            //traceData.ResponseMessage = HelperFunctions.CheckForProtectedFields(responseContent, _servicesWrapper);
-            traceData.ResponseMessage = responseContent;
-            traceData.ResponseTime = DateTime.UtcNow;
-            traceData.TimeTaken = HelperFunctions.Format(traceData.ResponseTime - traceData.RequestTime);
-            traceData.ResponseHeaders = HelperFunctions.ToJsonObject(response.Headers);
+        var statusCode = (HttpStatusCode) response.StatusCode;
 
-            traceData.StatusCode = response.StatusCode.ToString();
-            traceData.StatusCodeDescription = statusCode.ToString();
-        }
+        //traceData.ResponseMessage = HelperFunctions.CheckForProtectedFields(responseContent, _servicesWrapper);
+        traceData.ResponseMessage = responseContent;
+        traceData.ResponseTime = DateTime.UtcNow;
+        traceData.TimeTaken = HelperFunctions.Format(traceData.ResponseTime - traceData.RequestTime);
+        traceData.ResponseHeaders = HelperFunctions.ToJsonObject(response.Headers);
+
+        traceData.StatusCode = response.StatusCode.ToString();
+        traceData.StatusCodeDescription = statusCode.ToString();
     }
 }

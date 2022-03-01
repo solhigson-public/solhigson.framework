@@ -2,18 +2,17 @@
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace Solhigson.Framework.MongoDb.Dto
+namespace Solhigson.Framework.MongoDb.Dto;
+
+public record MongoDbDocumentBase
 {
-    public record MongoDbDocumentBase
+    public MongoDbDocumentBase()
     {
-        public MongoDbDocumentBase()
-        {
             
-        }
-        public string Id { get; set; }
-        
-        [JsonPropertyName("_ttl")]
-        [JsonProperty("_ttl")]
-        public DateTime Ttl { get; set; }
     }
+    public string Id { get; set; }
+        
+    [JsonPropertyName("_ttl")]
+    [JsonProperty("_ttl")]
+    public DateTime Ttl { get; set; }
 }

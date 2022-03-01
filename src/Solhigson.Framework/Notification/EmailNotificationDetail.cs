@@ -4,77 +4,76 @@ using System.Linq;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Utilities;
 
-namespace Solhigson.Framework.Notification
+namespace Solhigson.Framework.Notification;
+
+public class EmailNotificationDetail
 {
-    public class EmailNotificationDetail
+    public void AddToAddress(string address)
     {
-        public void AddToAddress(string address)
-        {
-            AddAddress(address, ToAddresses);
-        }
+        AddAddress(address, ToAddresses);
+    }
 
-        public void AddCcAddress(string address)
-        {
-            AddAddress(address, CcAddresses);
-        }
+    public void AddCcAddress(string address)
+    {
+        AddAddress(address, CcAddresses);
+    }
 
-        public void AddBccAddress(string address)
-        {
-            AddAddress(address, BccAddresses);
-        }
+    public void AddBccAddress(string address)
+    {
+        AddAddress(address, BccAddresses);
+    }
 
-        private static void AddAddress(string address, List<string> addressList)
+    private static void AddAddress(string address, List<string> addressList)
+    {
+        if (string.IsNullOrWhiteSpace(address))
         {
-            if (string.IsNullOrWhiteSpace(address))
+            return;
+        }
+        addressList ??= new List<string>();
+        var addresses = address.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var addr in addresses.Select(entry => entry.Trim()))
+        {
+            if (!addr.IsValidEmailAddress())
             {
-                return;
+                continue;
             }
-            addressList ??= new List<string>();
-            var addresses = address.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var addr in addresses.Select(entry => entry.Trim()))
+            if (!addressList.Contains(addr))
             {
-                if (!addr.IsValidEmailAddress())
-                {
-                    continue;
-                }
-                if (!addressList.Contains(addr))
-                {
-                    addressList.Add(addr);
-                }
+                addressList.Add(addr);
             }
         }
-        public string Subject { get; set; }
+    }
+    public string Subject { get; set; }
 
-        public string TemplateName { get; set; }
+    public string TemplateName { get; set; }
 
-        public string Body { get; set; }
+    public string Body { get; set; }
 
-        public IDictionary<string, string> TemplatePlaceholders { get; set; }
+    public IDictionary<string, string> TemplatePlaceholders { get; set; }
 
-        public IList<AttachmentHelper> Attachments { get; set; }
+    public IList<AttachmentHelper> Attachments { get; set; }
 
-        public string FromAddress { get; set; }
+    public string FromAddress { get; set; }
 
-        public string FromDisplayAddress { get; set; }
+    public string FromDisplayAddress { get; set; }
 
-        private List<string> _toAddresses;
+    private List<string> _toAddresses;
 
-        public List<string> ToAddresses
-        {
-            get { return _toAddresses ??= new List<string>(); }
-        }
+    public List<string> ToAddresses
+    {
+        get { return _toAddresses ??= new List<string>(); }
+    }
 
-        private List<string> _ccAddresses;
-        public List<string> CcAddresses
-        {
-            get { return _ccAddresses ??= new List<string>(); }
-        }
+    private List<string> _ccAddresses;
+    public List<string> CcAddresses
+    {
+        get { return _ccAddresses ??= new List<string>(); }
+    }
 
-        private List<string> _bccAddresses;
+    private List<string> _bccAddresses;
 
-        public List<string> BccAddresses
-        {
-            get { return _bccAddresses ??= new List<string>(); }
-        }
+    public List<string> BccAddresses
+    {
+        get { return _bccAddresses ??= new List<string>(); }
     }
 }

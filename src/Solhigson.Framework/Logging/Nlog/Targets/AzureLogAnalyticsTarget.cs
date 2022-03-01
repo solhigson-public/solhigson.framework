@@ -5,34 +5,33 @@ using NLog.Common;
 using NLog.Targets;
 using Solhigson.Framework.Services;
 
-namespace Solhigson.Framework.Logging.Nlog.Targets
+namespace Solhigson.Framework.Logging.Nlog.Targets;
+
+[Target("AzureLogAnalytics")]
+public class AzureLogAnalyticsTarget : TargetWithLayout
 {
-    [Target("AzureLogAnalytics")]
-    public class AzureLogAnalyticsTarget : TargetWithLayout
+    private static AzureLogAnalyticsService _analyticsService;
+
+    public AzureLogAnalyticsTarget(string workspaceId, string sharedKey, string logName, IHttpClientFactory httpClientFactory)
     {
-        private static AzureLogAnalyticsService _analyticsService;
+        _analyticsService = new AzureLogAnalyticsService(workspaceId, sharedKey, logName, httpClientFactory);
+    }
 
-        public AzureLogAnalyticsTarget(string workspaceId, string sharedKey, string logName, IHttpClientFactory httpClientFactory)
+    protected override void Write(LogEventInfo logEvent)
+    {
+        try
         {
-            _analyticsService = new AzureLogAnalyticsService(workspaceId, sharedKey, logName, httpClientFactory);
+            var log = Layout.Render(logEvent);
+            if (_analyticsService.PostLog(log))
+            {
+                return;
+            }
+
+            InternalLogger.Log(logEvent.Level, log);
         }
-
-        protected override void Write(LogEventInfo logEvent)
+        catch (Exception ex)
         {
-            try
-            {
-                var log = Layout.Render(logEvent);
-                if (_analyticsService.PostLog(log))
-                {
-                    return;
-                }
-
-                InternalLogger.Log(logEvent.Level, log);
-            }
-            catch (Exception ex)
-            {
-                InternalLogger.Error(ex, "Error while sending log messages to Azure Log Analytics");
-            }
+            InternalLogger.Error(ex, "Error while sending log messages to Azure Log Analytics");
         }
     }
 }

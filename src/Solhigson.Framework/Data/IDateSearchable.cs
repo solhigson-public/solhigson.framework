@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Solhigson.Framework.Data
+namespace Solhigson.Framework.Data;
+
+public interface IDateSearchable
 {
-    public interface IDateSearchable
-    {
-        DateTime Date { get; }
-    }
+    DateTime Date { get; }
 }

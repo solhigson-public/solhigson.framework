@@ -1,7 +1,6 @@
-﻿namespace Solhigson.Framework.Notification
+﻿namespace Solhigson.Framework.Notification;
+
+public interface ISmsProvider
 {
-    public interface ISmsProvider
-    {
-        public void SendSms(SmsParameters smsParameters);
-    }
+    public void SendSms(SmsParameters smsParameters);
 }

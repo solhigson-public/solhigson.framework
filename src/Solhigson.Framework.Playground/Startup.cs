@@ -1,7 +1,6 @@
-﻿namespace Solhigson.Framework.Web
+﻿namespace Solhigson.Framework.Web;
+
+public partial class Startup
 {
-    public partial class Startup
-    {
         
-    }
 }
