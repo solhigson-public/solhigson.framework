@@ -111,10 +111,11 @@ public static class HelperFunctions
         return caller;
     }
 
-    public static string Format(TimeSpan timeSpan)
+    public static string TimespanToWords(TimeSpan timeSpan)
     {
         double value;
         string postfix;
+        var determinePlural = true;
         if (timeSpan.TotalMinutes < 1)
         {
             value = Math.Round(timeSpan.TotalSeconds, 2, MidpointRounding.AwayFromZero);
@@ -130,13 +131,53 @@ public static class HelperFunctions
             value = Math.Round(timeSpan.TotalHours, 2, MidpointRounding.AwayFromZero);
             postfix = " hr";
         }
-        else
+        else if (timeSpan.TotalDays < 31)
         {
             value = Math.Round(timeSpan.TotalDays, 2, MidpointRounding.AwayFromZero);
             postfix = " day";
         }
+        else if (timeSpan.TotalDays < 365)
+        {
+            var months = Math.Truncate(timeSpan.TotalDays / 31);
+            var remainingDays = timeSpan.TotalDays - (months * 31);
+            value = months;
+            var monthPostfix = months > 1 ? "s" : "";
+            var dayPostfix = remainingDays > 1 ? "s" : "";
+            postfix = $" month{monthPostfix}";
+            if (remainingDays > 0)
+            {
+                postfix += $" {remainingDays} day{dayPostfix}";
+            }
+            determinePlural = false;
+        }
+        else
+        {
+            var years = Math.Truncate(timeSpan.TotalDays / 365);
+            var remainingDays = timeSpan.TotalDays - (years * 365);
+            var remainingMonths = 0d;
+            if (remainingDays > 31)
+            {
+                remainingMonths = Math.Truncate(remainingDays / 31);
+                remainingDays -= (remainingMonths * 31);
+            }
+            value = years;
+            var yearsPostfix = years > 1 ? "s" : "";
+            var monthsPostfix = remainingMonths > 1 ? "s" : "";
+            var dayPostfix = remainingDays > 1 ? "s" : "";
+            postfix = $" year{yearsPostfix}";
+            if (remainingMonths > 0)
+            {
+                postfix += $" {remainingMonths} month{monthsPostfix}";
+            }
 
-        if (value > 1) postfix += "s";
+            if (remainingDays > 0)
+            {
+                postfix += $" {remainingDays} day{dayPostfix}";
+            }
+            determinePlural = false;
+        }
+
+        if (determinePlural && value > 1) postfix += "s";
         return value + postfix;
     }
 

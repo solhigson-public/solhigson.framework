@@ -356,7 +356,7 @@ public sealed class ApiRequestService : IApiRequestService
             {
                 traceData.ResponseTime = DateTime.UtcNow;
                 apiRequestHelperResponse.TimeTaken = traceData.ResponseTime - traceData.RequestTime;
-                traceData.TimeTaken = HelperFunctions.Format(apiRequestHelperResponse.TimeTaken);
+                traceData.TimeTaken = HelperFunctions.TimespanToWords(apiRequestHelperResponse.TimeTaken);
                 /*
                 traceData.ResponseMessage =
                     HelperFunctions.CheckForProtectedFields(apiRequestHelperResponse.Response, _servicesWrapper);
