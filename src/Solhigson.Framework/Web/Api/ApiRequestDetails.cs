@@ -28,4 +28,6 @@ public class ApiRequestDetails
     public string ServiceDescription { get; set; }
         
     public string NamedHttpClient { get; set; }
+    
+    public bool? LogTrace { get; set; }
 }

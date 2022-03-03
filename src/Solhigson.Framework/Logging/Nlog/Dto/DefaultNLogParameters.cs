@@ -1,4 +1,7 @@
-﻿namespace Solhigson.Framework.Logging.Nlog.Dto;
+﻿using System;
+using Solhigson.Framework.Web.Api;
+
+namespace Solhigson.Framework.Logging.Nlog.Dto;
 
 public class DefaultNLogParameters
 {
@@ -21,4 +24,5 @@ public class DefaultNLogParameters
     public bool LogApiTrace { get; set; }
     public string ProtectedFields { get; set; }
     public bool EncodeChildJsonContent { get; set; }
+    public Action<ApiConfiguration> ApiTraceConfiguration { get; set; }
 }

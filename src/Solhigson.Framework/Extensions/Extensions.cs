@@ -135,10 +135,21 @@ public static class Extensions
         DefaultNLogParameters defaultNLogParameters = null)
     {
         defaultNLogParameters ??= new DefaultNLogParameters();
-        if (defaultNLogParameters.LogApiTrace)
+        defaultNLogParameters.ApiTraceConfiguration ??= configuration =>
+        {
+            configuration.LogOutBoundApiRequests = configuration.LogInBoundApiRequests = defaultNLogParameters.LogApiTrace;
+        };
+        
+        var apiConfiguration = new ApiConfiguration();
+        defaultNLogParameters.ApiTraceConfiguration.Invoke(apiConfiguration);
+        
+        if (apiConfiguration.LogInBoundApiRequests)
         {
             app.UseMiddleware<ApiTraceMiddleware>();
         }
+
+        app.ApplicationServices.GetService<IApiRequestService>()?.UseConfiguration(defaultNLogParameters.ApiTraceConfiguration);
+
         ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, defaultNLogParameters.ProtectedFields);
             
         Constants.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();

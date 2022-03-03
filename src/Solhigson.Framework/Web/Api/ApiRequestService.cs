@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NLog;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
@@ -20,58 +22,67 @@ public sealed class ApiRequestService : IApiRequestService
     public const string ContentTypeXWwwFormUrlencoded = "application/x-www-form-urlencoded";
     private readonly LogWrapper _logger = new LogWrapper("ApiRequestHelper");
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ApiConfiguration _apiConfiguration;
+    private Action<ApiConfiguration> _configuration;
 
     public ApiRequestService(IHttpClientFactory httpClientFactory)
     {
         _httpClientFactory = httpClientFactory;
+        _apiConfiguration = new ApiConfiguration();
     }
+    
+    public void UseConfiguration(Action<ApiConfiguration> configuration)
+    {
+        _configuration = configuration;
+    }
+
 
     #region GET Requests
 
     public async Task<ApiRequestResponse> GetDataJsonAsync(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Get, null, ContentTypeJson, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse> GetDataXmlAsync(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Get, null, ContentTypeXml, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse> GetDataPlainAsync(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Get, null, ContentTypePlain, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse<T>> GetDataJsonAsync<T>(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0) where T : class
+        int timeOut = 0, bool? logTrace = null) where T : class
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Get, null, ContentTypeJson, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse<T>> GetDataXmlAsync<T>(string uri,
         Dictionary<string, string> headers = null,
         string serviceName = null, string serviceDescription = null, string serviceType = null,  string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
         where T : class
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Get, null, ContentTypeXml, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     #endregion
@@ -81,91 +92,91 @@ public sealed class ApiRequestService : IApiRequestService
     public async Task<ApiRequestResponse> PostDataJsonAsync(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Post, data, ContentTypeJson, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse> PostDataXmlAsync(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Post, data, ContentTypeXml, headers, serviceName,
             serviceDescription, serviceType, namedHttpClient,
-            timeOut);
+            timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse> PostDataAsync(string uri, string data, string contentType,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Post, data, contentType, headers, serviceName,
             serviceDescription, serviceType, namedHttpClient,
-            timeOut);
+            timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse<T>> PostDataJsonAsync<T>(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0) where T : class
+        int timeOut = 0, bool? logTrace = null) where T : class
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeJson, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
         string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0) where T : class
+        int timeOut = 0, bool? logTrace = null) where T : class
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeXWwwFormUrlencoded, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
         IDictionary<string, string> data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0) where T : class
+        int timeOut = 0, bool? logTrace = null) where T : class
     {
         return await PostDataXWwwFormUrlencodedAsync<T>(uri,
             await new FormUrlEncodedContent(data).ReadAsStringAsync(),
-            headers, serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            headers, serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
     public async Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri,
         IDictionary<string, string> data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await PostDataXWwwFormUrlencodedAsync(uri, await new FormUrlEncodedContent(data).ReadAsStringAsync(),
-            headers, serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            headers, serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
 
     public async Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync(uri, HttpMethod.Post, data, ContentTypeXWwwFormUrlencoded, headers,
-            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut);
+            serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
     }
 
 
     public async Task<ApiRequestResponse<T>> PostDataXmlAsync<T>(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0) where T : class
+        int timeOut = 0, bool? logTrace = null) where T : class
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeXml, headers, serviceName,
             serviceDescription, namedHttpClient,
-            serviceType, timeOut);
+            serviceType, timeOut, logTrace);
     }
 
     #endregion
@@ -176,18 +187,18 @@ public sealed class ApiRequestService : IApiRequestService
         string data = "", string format = ContentTypeJson,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0)
+        int timeOut = 0, bool? logTrace = null)
     {
         return await SendRequestAsync<object>(uri, method, data, format, headers, serviceName, serviceDescription,
             serviceType, namedHttpClient,
-            timeOut);
+            timeOut, logTrace);
     }
 
     private async Task<ApiRequestResponse<T>> SendRequestAsync<T>(string uri, HttpMethod method,
         string data = "", string format = ContentTypeJson,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0) where T : class
+        int timeOut = 0, bool? logTrace = null) where T : class
     {
         try
         {
@@ -200,6 +211,7 @@ public sealed class ApiRequestService : IApiRequestService
                 ServiceType = serviceType,
                 ServiceDescription = serviceDescription,
                 NamedHttpClient = namedHttpClient,
+                LogTrace = logTrace
             };
             return await SendRequestAsync<T>(apiRequestDetails);
         }
@@ -227,6 +239,11 @@ public sealed class ApiRequestService : IApiRequestService
         ApiRequestDetails apiRequestDetails)
         where T : class
     {
+        _configuration?.Invoke(_apiConfiguration);
+        if (apiRequestDetails.LogTrace is not null)
+        {
+            _apiConfiguration.LogOutBoundApiRequests = apiRequestDetails.LogTrace.Value;
+        }
         var method = apiRequestDetails.HttpMethod;
         var data = apiRequestDetails.Payload;
         var format = apiRequestDetails.Format;
@@ -249,15 +266,9 @@ public sealed class ApiRequestService : IApiRequestService
         var client = _httpClientFactory.CreateClient(apiRequestDetails.NamedHttpClient ?? "");
         client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
         var request = new HttpRequestMessage();
-        //HttpResponseMessage httpResponseMsg = null;
-        var traceData = new ApiTraceData
-        {
-            RequestTime = DateTime.UtcNow,
-            Url = url,
-            Method = method.ToString(),
-            Caller = Constants.ServiceType.Self,
-            RequestHeaders = HelperFunctions.ToJsonObject(apiRequestDetails.Headers),
-        };
+
+        var startTime = DateTime.UtcNow;
+        var endTime = startTime;
         try
         {
             request.Method = method;
@@ -291,12 +302,6 @@ public sealed class ApiRequestService : IApiRequestService
             apiRequestHelperResponse.Request = request.Content != null
                 ? await request.Content.ReadAsStringAsync()
                 : data;
-
-            /*
-            traceData.RequestMessage =
-                HelperFunctions.CheckForProtectedFields(apiRequestHelperResponse.Request, _servicesWrapper);
-            */
-            traceData.RequestMessage = apiRequestHelperResponse.Request;
 
             apiRequestHelperResponse.ResponseHeaders = new Dictionary<string, string>();
 
@@ -343,7 +348,7 @@ public sealed class ApiRequestService : IApiRequestService
             apiRequestHelperResponse.Response = e.Message;
             _logger.Error(e, $"While sending request to url: {url}");
             apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
-            if ((DateTime.UtcNow - traceData.RequestTime).TotalMilliseconds >= apiRequestDetails.TimeOut)
+            if ((DateTime.UtcNow - startTime).TotalMilliseconds >= apiRequestDetails.TimeOut)
             {
                 apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.RequestTimeout;
             }
@@ -354,24 +359,20 @@ public sealed class ApiRequestService : IApiRequestService
         {
             try
             {
-                traceData.ResponseTime = DateTime.UtcNow;
-                apiRequestHelperResponse.TimeTaken = traceData.ResponseTime - traceData.RequestTime;
-                traceData.TimeTaken = HelperFunctions.TimespanToWords(apiRequestHelperResponse.TimeTaken);
-                /*
-                traceData.ResponseMessage =
-                    HelperFunctions.CheckForProtectedFields(apiRequestHelperResponse.Response, _servicesWrapper);
-                */
-                traceData.ResponseMessage = apiRequestHelperResponse.Response;
+                endTime = DateTime.UtcNow;
+                apiRequestHelperResponse.TimeTaken = endTime - startTime;
+
                 var responseFormat = format;
+                JObject responseHeaders = null;
                 if (apiRequestHelperResponse.HttpResponseMessage != null)
                 {
                     apiRequestHelperResponse.HttpStatusCode =
                         apiRequestHelperResponse.HttpResponseMessage.StatusCode;
-                    traceData.ResponseHeaders =
+                    responseHeaders =
                         HelperFunctions.ToJsonObject(apiRequestHelperResponse.HttpResponseMessage.Headers);
-                    if (traceData.ResponseHeaders.ContainsKey("Content-Type"))
+                    if (responseHeaders.ContainsKey("Content-Type"))
                     {
-                        responseFormat = traceData.ResponseHeaders["Content-Type"].ToString();
+                        responseFormat = responseHeaders["Content-Type"].ToString();
                     }
                     if (apiRequestHelperResponse.HttpResponseMessage.Headers != null)
                     {
@@ -382,22 +383,17 @@ public sealed class ApiRequestService : IApiRequestService
                     }
                 }
 
-                traceData.StatusCode = ((int) apiRequestHelperResponse.HttpStatusCode).ToString();
-                traceData.StatusCodeDescription = apiRequestHelperResponse.HttpStatusCode.ToString();
 
                 ExtractObject(apiRequestHelperResponse, responseFormat);
-                var status = HelperFunctions.IsServiceUp(apiRequestHelperResponse.HttpStatusCode)
-                    ? Constants.ServiceStatus.Up
-                    : Constants.ServiceStatus.Down;
 
-                var desc = string.IsNullOrWhiteSpace(apiRequestDetails.ServiceDescription)
-                    ? "Outbound"
-                    : apiRequestDetails.ServiceDescription;
-
-                _logger.Log(desc, LogLevel.Info, traceData, null,
-                    serviceName, serviceType,
-                    Constants.Group.ServiceStatus, status, traceData.Url,
-                    traceData.GetUserIdentity());
+                if (_apiConfiguration.LogOutBoundApiRequests)
+                {
+                    SaveApiTraceData(url, method.ToString(), apiRequestDetails.Headers, startTime, endTime,
+                        apiRequestHelperResponse.Request,
+                        apiRequestHelperResponse.Response, responseHeaders,
+                        apiRequestHelperResponse.HttpStatusCode,
+                        apiRequestDetails.ServiceDescription, serviceName, serviceType);
+                }
             }
             catch (Exception e)
             {
@@ -406,6 +402,42 @@ public sealed class ApiRequestService : IApiRequestService
         }
 
         return apiRequestHelperResponse;
+    }
+
+    private void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string requestMessage,
+        string responseMessage, JObject responseHeaders, HttpStatusCode statusCode, string serviceDescription,
+        string serviceName, string serviceType)
+    {
+        var traceData = new ApiTraceData
+        {
+            RequestTime = DateTime.UtcNow,
+            Url = url,
+            Method = method,
+            Caller = Constants.ServiceType.Self,
+            RequestHeaders = HelperFunctions.ToJsonObject(requestHeaders),
+            RequestMessage = requestMessage,
+            ResponseTime = endTime, 
+            TimeTaken = HelperFunctions.TimespanToWords(endTime - startTime),
+            ResponseMessage = responseMessage,
+            ResponseHeaders = responseHeaders,
+            StatusCode = ((int)statusCode).ToString(),
+            StatusCodeDescription = statusCode.ToString(),
+            
+        };
+        
+        var status = HelperFunctions.IsServiceUp(statusCode)
+            ? Constants.ServiceStatus.Up
+            : Constants.ServiceStatus.Down;
+
+        var desc = string.IsNullOrWhiteSpace(serviceDescription)
+            ? "Outbound"
+            : serviceDescription;
+
+        _logger.Log(desc, LogLevel.Info, traceData, null,
+            serviceName, serviceType,
+            Constants.Group.ServiceStatus, status, traceData.Url,
+            traceData.GetUserIdentity());
+
     }
 
     private void GetStatusCode(WebException we, ApiRequestResponse apiRequestResponse)
