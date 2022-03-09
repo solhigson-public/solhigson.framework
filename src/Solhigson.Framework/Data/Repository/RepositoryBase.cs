@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Solhigson.Framework.Extensions;
@@ -30,16 +31,16 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return Add(entity);
     }
 
-    public IQueryable<T> GetAll()
-    {
-        return DbContext.Set<T>().AsNoTracking();
-    }
-
     public IQueryable<T> Get(Expression<Func<T, bool>> expression)
     {
         return DbContext.Set<T>().Where(expression);
     }
-        
+    
+    public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression)
+    {
+        return DbContext.Set<T>().Where(expression).AsNoTracking().ProjectToType<TK>();
+    }
+
     public async Task<bool> ExistsAsync(Expression<Func<T, bool>> expression)
     {
         return await DbContext.Set<T>().AnyAsync(expression);
