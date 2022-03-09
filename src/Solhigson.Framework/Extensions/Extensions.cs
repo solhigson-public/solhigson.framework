@@ -671,10 +671,20 @@ public static class Extensions
     }
 
 
-    public static IQueryable<T> DateRangeQuery<T>(this IQueryable<T> source, DateTime fromDate, DateTime toDate)
+    public static IQueryable<T> DateRangeQuery<T>(this IQueryable<T> source, DateTime? fromDate, DateTime? toDate)
         where T: IDateSearchable
     {
-        return source.Where(t => t.Date >= fromDate && t.Date <= toDate);
+        if (fromDate.HasValue)
+        {
+            source = source.Where(t => t.Date >= fromDate);
+        }
+
+        if (toDate.HasValue)
+        {
+            source = source.Where(t => t.Date <= toDate);
+        }
+        
+        return source;
     }
 
     #endregion
