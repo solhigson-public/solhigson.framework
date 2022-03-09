@@ -325,10 +325,15 @@ internal class GenCommand : CommandBase
         var sBuilder = new StringBuilder();
         foreach (var indexAttr in attributes)
         {
-            sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface));
+            sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface, false));
             if (!isInterface)
             {
-                sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, false));
+                sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, false, false));
+            }
+            sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface, true));
+            if (!isInterface)
+            {
+                sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, false, true));
             }
         }
 
@@ -343,10 +348,15 @@ internal class GenCommand : CommandBase
         cachedSuffix = "Cached";
         foreach (var indexAttr in attributes)
         {
-            sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface));
+            sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface, false));
             if (!isInterface)
             {
-                sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, true));
+                sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, true, false));
+            }
+            sBuilder.AppendLine(GetMethodDefinition(indexAttr, type, className, cachedSuffix, isInterface, true));
+            if (!isInterface)
+            {
+                sBuilder.AppendLine(GenerateMethodBody(indexAttr, type, true, true));
             }
         }
         return sBuilder.ToString();
@@ -358,7 +368,7 @@ internal class GenCommand : CommandBase
         return $"{ContractsProjectNamespace}.{CachedEntityNamespace}.{type.Name}{CacheEntityClassType}";
     }
 
-    private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity)
+    private string GenerateMethodBody(IndexAttribute indexAttr, Type type, bool isCacheEntity, bool returnProjectedType)
     {
         var sBuilder = new StringBuilder();
         var propertyNames = new List<string> { indexAttr.PropertyNames[0] };
@@ -372,7 +382,13 @@ internal class GenCommand : CommandBase
             }
         }
 
-        var getMethod = "Get";
+        var projectedReturnType = "";
+        if (returnProjectedType)
+        {
+            projectedReturnType = "<TK>";
+        }
+
+        var getMethod = $"Get{projectedReturnType}";
         var resultProjection = indexAttr.IsUnique
             ? ".FirstOrDefaultAsync()"
             : ".ToListAsync()";
@@ -382,8 +398,8 @@ internal class GenCommand : CommandBase
         {
             resultProjection = "";
             getMethod = indexAttr.IsUnique
-                ? "GetSingleCached"
-                : "GetListCached";
+                ? $"GetSingleCached{projectedReturnType}"
+                : $"GetListCached{projectedReturnType}";
         }
         else
         {
@@ -416,6 +432,10 @@ internal class GenCommand : CommandBase
                 returnType = isCacheEntity
                     ? GetCachedDtoClassType(type)
                     : type.FullName;
+                if (returnProjectedType)
+                {
+                    returnType = "TK";
+                }
                 returnType = $"new System.Collections.Generic.List<{returnType}>()";
             }
                 
@@ -445,7 +465,7 @@ internal class GenCommand : CommandBase
         
     private static string GetMethodDefinition(IndexAttribute indexAttr, Type type, string className,
         string cachedSuffix,
-        bool isInterface)
+        bool isInterface, bool returnProjectedType)
     {
         var propertyName = indexAttr.PropertyNames[0];
         var qualifier = isInterface ? "" : "public ";
@@ -475,12 +495,21 @@ internal class GenCommand : CommandBase
 
         }
 
+        var asyncPostfix = "";
+        var projectedTypeIndicator = "";
+        var typeRestraint = "";
+        if (returnProjectedType)
+        {
+            className = "TK";
+            projectedTypeIndicator = "<TK>";
+            typeRestraint = " where TK : class";
+        }
+
         if (!indexAttr.IsUnique)
         {
             className = $"System.Collections.Generic.List<{className}>";
         }
 
-        var asyncPostfix = "";
 
         if (string.IsNullOrWhiteSpace(cachedSuffix))
         {
@@ -492,7 +521,7 @@ internal class GenCommand : CommandBase
             }
         }
 
-        return $"{GetTabSpace(2)}{qualifier}{className} GetBy{propertyName}{cachedSuffix}{asyncPostfix}({parameters})" + (isInterface ? ";" : "");
+        return $"{GetTabSpace(2)}{qualifier}{className} GetBy{propertyName}{cachedSuffix}{asyncPostfix}{projectedTypeIndicator}({parameters}){typeRestraint}" + (isInterface ? ";" : "");
     }
 
         
