@@ -11,7 +11,7 @@ public interface IRepositoryBase<T> where T : class, new()
 {
     T New(object identifier = null);
     IQueryable<T> Get(Expression<Func<T, bool>> expression);
-    IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression);
+    IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class;
     Task<bool> ExistsAsync(Expression<Func<T, bool>> expression);
     T Add(T entity);
     void AddRange(IEnumerable<T> entities);

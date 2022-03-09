@@ -30,4 +30,15 @@ public abstract class CachedRepositoryBase<T, TDbContext, TCacheModel> : Reposit
     {
         return DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheSingle(typeof(T));
     }
+    
+    public List<TK> GetListCached<TK>(Expression<Func<T, bool>> expression) where TK : class
+    {
+        return DbContext.Set<T>().Where(expression).ProjectToType<TK>().FromCacheList(typeof(T));
+    }
+
+    public TK GetSingleCached<TK>(Expression<Func<T, bool>> expression) where TK : class
+    {
+        return DbContext.Set<T>().Where(expression).ProjectToType<TK>().FromCacheSingle(typeof(T));
+    }
+
 }

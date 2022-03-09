@@ -36,7 +36,7 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return DbContext.Set<T>().Where(expression);
     }
     
-    public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression)
+    public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class
     {
         return DbContext.Set<T>().Where(expression).AsNoTracking().ProjectToType<TK>();
     }

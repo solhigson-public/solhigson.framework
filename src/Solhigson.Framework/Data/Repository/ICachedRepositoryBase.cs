@@ -11,5 +11,8 @@ public interface ICachedRepositoryBase<T, TCacheModel> : IRepositoryBase<T> wher
     List<TCacheModel> GetAllCached();
     List<TCacheModel> GetListCached(Expression<Func<T, bool>> expression);
     TCacheModel GetSingleCached(Expression<Func<T, bool>> expression);
+    List<TK> GetListCached<TK>(Expression<Func<T, bool>> expression) where TK : class;
+    TK GetSingleCached<TK>(Expression<Func<T, bool>> expression) where TK : class;
+
 
 }
