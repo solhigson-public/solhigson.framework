@@ -15,18 +15,18 @@ public interface IRepositoryBase<T> where T : class, new()
     Task<bool> ExistsAsync(Expression<Func<T, bool>> expression);
     T Add(T entity);
     void AddRange(IEnumerable<T> entities);
-    Task<T> AddAndSaveChanges(T entity);
-    Task AddRangeAndSaveChanges(IEnumerable<T> entities);
+    Task<T> AddAndSaveChangesAsync(T entity);
+    Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities);
     T Attach(T entity);
     void AttachRange(IEnumerable<T> entities);
     T Update(T entity);
     void UpdateRange(IEnumerable<T> entities);
-    Task<T> UpdateAndSaveChanges(T entity);
-    Task UpdateRangeAndSaveChanges(IEnumerable<T> entities);
+    Task<T> UpdateAndSaveChangesAsync(T entity);
+    Task UpdateRangeAndSaveChangesAsync(IEnumerable<T> entities);
 
     T Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
-    Task<T> RemoveAndSaveChanges(T entity);
-    Task RemoveRangeAndSaveChanges(IEnumerable<T> entities);
+    Task<T> RemoveAndSaveChangesAsync(T entity);
+    Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities);
 
 }

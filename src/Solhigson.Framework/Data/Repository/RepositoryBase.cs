@@ -52,9 +52,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return DbContext.Set<T>().Add(entity).Entity;
     }
         
-    public async Task<T> AddAndSaveChanges(T entity)
+    public async Task<T> AddAndSaveChangesAsync(T entity)
     {
-        return await DoAction(DbContext.Set<T>().Add, entity);
+        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Add, entity);
     }
 
     public void AddRange(IEnumerable<T> entities)
@@ -62,9 +62,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         DbContext.Set<T>().AddRange(entities);
     }
  
-    public async Task AddRangeAndSaveChanges(IEnumerable<T> entities)
+    public async Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities)
     {
-        await DoAction(DbContext.Set<T>().AddRange, entities);
+        await DoActionAndSaveChangesAsync(DbContext.Set<T>().AddRange, entities);
     }
     #endregion
 
@@ -89,14 +89,14 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         DbContext.Set<T>().UpdateRange(entities);
     }
         
-    public async Task<T> UpdateAndSaveChanges(T entity)
+    public async Task<T> UpdateAndSaveChangesAsync(T entity)
     {
-        return await DoAction(DbContext.Set<T>().Update, entity);
+        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Update, entity);
     }
         
-    public async Task UpdateRangeAndSaveChanges(IEnumerable<T> entities)
+    public async Task UpdateRangeAndSaveChangesAsync(IEnumerable<T> entities)
     {
-        await DoAction(DbContext.Set<T>().UpdateRange, entities);
+        await DoActionAndSaveChangesAsync(DbContext.Set<T>().UpdateRange, entities);
     }
     #endregion
 
@@ -111,26 +111,26 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         DbContext.Set<T>().RemoveRange(entities);
     }
         
-    public async Task<T> RemoveAndSaveChanges(T entity)
+    public async Task<T> RemoveAndSaveChangesAsync(T entity)
     {
-        return await DoAction(DbContext.Set<T>().Remove, entity);
+        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Remove, entity);
     }
         
-    public async Task RemoveRangeAndSaveChanges(IEnumerable<T> entities)
+    public async Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities)
     {
-        await DoAction(DbContext.Set<T>().RemoveRange, entities);
+        await DoActionAndSaveChangesAsync(DbContext.Set<T>().RemoveRange, entities);
     }
     #endregion
 
 
-    private async Task<T> DoAction(Func<T, EntityEntry<T>> method, T entity)
+    private async Task<T> DoActionAndSaveChangesAsync(Func<T, EntityEntry<T>> method, T entity)
     {
         var ent = method(entity).Entity;
         await DbContext.SaveChangesAsync();
         return ent;
     }
         
-    private async Task DoAction(Action<IEnumerable<T>> method, IEnumerable<T> entity)
+    private async Task DoActionAndSaveChangesAsync(Action<IEnumerable<T>> method, IEnumerable<T> entity)
     {
         method(entity);
         await DbContext.SaveChangesAsync();
