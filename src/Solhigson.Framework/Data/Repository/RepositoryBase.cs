@@ -31,15 +31,28 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return Add(entity);
     }
 
+    [ObsoleteAttribute("This property is obsolete. Use Where() instead.")]
     public IQueryable<T> Get(Expression<Func<T, bool>> expression)
+    {
+        return Where(expression);
+    }
+    
+    [ObsoleteAttribute("This property is obsolete. Use Where<TK>() instead.")]
+    public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class
+    {
+        return Where<TK>(expression);
+    }
+    
+    public IQueryable<T> Where(Expression<Func<T, bool>> expression)
     {
         return DbContext.Set<T>().Where(expression);
     }
     
-    public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class
+    public IQueryable<TK> Where<TK>(Expression<Func<T, bool>> expression) where TK : class
     {
         return DbContext.Set<T>().Where(expression).AsNoTracking().ProjectToType<TK>();
     }
+
 
     public async Task<bool> ExistsAsync(Expression<Func<T, bool>> expression)
     {

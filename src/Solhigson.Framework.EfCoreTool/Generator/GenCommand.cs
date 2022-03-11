@@ -388,7 +388,7 @@ internal class GenCommand : CommandBase
             projectedReturnType = "<TK>";
         }
 
-        var getMethod = $"Get{projectedReturnType}";
+        var getMethod = $"Where{projectedReturnType}";
         var resultProjection = indexAttr.IsUnique
             ? ".FirstOrDefaultAsync()"
             : ".ToListAsync()";

@@ -887,6 +887,20 @@ public static class Extensions
         tempData.SetDisplayMessages(messages);
     }
 
+    public static string GetHeaderValue(this ControllerBase controller, string header)
+    {
+        if (string.IsNullOrWhiteSpace(header))
+        {
+            return null;
+        }
+        string val = null;
+        if (controller.Request.Headers.TryGetValue(header, out var headerValue))
+        {
+            val = headerValue.FirstOrDefault();
+        }
+        return val;
+    }
+
 
     #endregion
         
