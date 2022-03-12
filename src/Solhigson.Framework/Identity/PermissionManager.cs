@@ -322,7 +322,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         x is ControllerActionDescriptor controllerActionDescriptor
                         && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
                         && controllerActionDescriptor.ActionName == methodInfo.Name);
-
+                    
                     var permission = new SolhigsonPermission();
                     permission = permissionAttribute.Adapt(permission);
                     if (permission.IsMenuRoot)
@@ -330,7 +330,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         permission.IsMenu = true;
                     }
 
-                    if (permission.IsMenu)
+                    if (permission.IsMenu && !(actionInfo as ControllerActionDescriptor).IsApiController())
                     {
                         permission.Url = actionInfo?.AttributeRouteInfo?.Template;
                         if (!string.IsNullOrWhiteSpace(permission.Url))

@@ -922,9 +922,14 @@ public static class Extensions
     public static bool IsApiController(this HttpContext context)
     {
         return context.GetEndpoint()?.Metadata
-            .GetMetadata<ControllerActionDescriptor>()?.ControllerTypeInfo
-            .GetCustomAttribute<ApiControllerAttribute>() != null;
+            .GetMetadata<ControllerActionDescriptor>()?.IsApiController() == true;
     }
+    
+    public static bool IsApiController(this ControllerActionDescriptor type)
+    {
+        return type?.ControllerTypeInfo?.GetCustomAttribute<ApiControllerAttribute>() != null;
+    }
+
 
     /*
     public static bool IsPermissionAllowed(this SolhigsonMvcControllerBase controller, string permission)
