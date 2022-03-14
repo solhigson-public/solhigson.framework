@@ -1024,7 +1024,7 @@ public static class Extensions
         var output = new StringBuilder(bytes.Length);
         foreach (var t in bytes)
         {
-            output.Append(t.ToString("X2"));
+            output.Append(t.ToString("x2"));
         }
         return output.ToString();
     }
