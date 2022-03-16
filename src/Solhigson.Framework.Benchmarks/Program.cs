@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
-using Solhigson.Framework.Benchmarks.Whiteboard;
 
 IServiceProvider BuildDi(IConfiguration config)
 {
@@ -17,7 +16,6 @@ IServiceProvider BuildDi(IConfiguration config)
             loggingBuilder.ClearProviders();
             loggingBuilder.AddNLog(config);
         })
-        .AddSingleton<Benchmark>()
         .BuildServiceProvider();
 }
 
@@ -26,6 +24,5 @@ var config = new ConfigurationBuilder()
     .Build();
 
 var provider = BuildDi(config);
-provider.GetRequiredService<Benchmark>().Execute();
 BenchmarkRunner.Run(typeof(Program).Assembly);
 
