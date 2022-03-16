@@ -19,6 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.AzureCo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.MongoDb", "Solhigson.Framework.MongoDb\Solhigson.Framework.MongoDb.csproj", "{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Whiteboard", "Whiteboard", "{DAC45FC3-14AD-4864-A26B-67BE7A3E0575}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Benchmarks", "Solhigson.Framework.Benchmarks\Solhigson.Framework.Benchmarks.csproj", "{75B3DB70-148C-41AD-9E48-13676CF00A7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,5 +53,14 @@ Global
 		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5DAA5FC-1389-4743-A7B1-CBF242952BEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA} = {DAC45FC3-14AD-4864-A26B-67BE7A3E0575}
+		{8821BA48-56EF-43D3-BF00-EE60A235D5B1} = {DAC45FC3-14AD-4864-A26B-67BE7A3E0575}
+		{75B3DB70-148C-41AD-9E48-13676CF00A7E} = {DAC45FC3-14AD-4864-A26B-67BE7A3E0575}
 	EndGlobalSection
 EndGlobal

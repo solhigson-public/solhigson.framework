@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Mapster;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -29,7 +30,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Common;
 using NLog.Config;
-using NLog.Targets;
 using NLog.Targets.Wrappers;
 using Polly;
 using Solhigson.Framework.Data;
@@ -52,6 +52,7 @@ using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
 using Xunit.Abstractions;
 using LogLevel = NLog.LogLevel;
+using LogManager = Solhigson.Framework.Logging.LogManager;
 
 namespace Solhigson.Framework.Extensions;
 
@@ -228,11 +229,11 @@ public static class Extensions
     }
 
     public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
-        DefaultNLogAzureLogAnalyticsParameters defaultNLogAzureLogAnalyticsParameters = null)
+        DefaultNLogAzureLogAnalyticsParameters parameters = null)
     {
-        if (string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsWorkspaceId)
-            || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsSharedSecret)
-            || string.IsNullOrWhiteSpace(defaultNLogAzureLogAnalyticsParameters?.AzureAnalyticsLogName))
+        if (string.IsNullOrWhiteSpace(parameters?.AzureAnalyticsWorkspaceId)
+            || string.IsNullOrWhiteSpace(parameters?.AzureAnalyticsSharedSecret)
+            || string.IsNullOrWhiteSpace(parameters?.AzureAnalyticsLogName))
         {
             app.UseSolhigsonNLogDefaultFileTarget();
             InternalLogger.Error(
@@ -240,17 +241,19 @@ public static class Extensions
                 "[WorkspaceId, Sharedkey or LogName].");
             return app;
         }
-        app.ConfigureSolhigsonNLogDefaults(defaultNLogAzureLogAnalyticsParameters);
+        app.ConfigureSolhigsonNLogDefaults(parameters);
 
-        var customTarget = new AzureLogAnalyticsTarget(defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsWorkspaceId, 
-            defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsSharedSecret, defaultNLogAzureLogAnalyticsParameters.AzureAnalyticsLogName,
+        var customTarget = new AzureLogAnalyticsTarget(parameters.AzureAnalyticsWorkspaceId, 
+            parameters.AzureAnalyticsSharedSecret, parameters.AzureAnalyticsLogName,
             app.ApplicationServices.GetRequiredService<IHttpClientFactory>())
         {
             Name = "custom document",
             Layout = NLogDefaults.GetDefaultJsonLayout(),
         };
-
-        app.UseSolhigsonNLogCustomTarget(new CustomNLogTargetParameters(customTarget));
+        
+        var customTargetParameters = new CustomNLogTargetParameters(customTarget);
+        parameters.Adapt(customTargetParameters);
+        app.UseSolhigsonNLogCustomTarget(customTargetParameters);
         return app;
     }
 
@@ -354,66 +357,6 @@ public static class Extensions
 
 
 
-
-    #endregion
-
-    #region Logging Extensions
-
-    public static void EServiceStatus(this object obj, string serviceName, string serviceDescription,
-        string serviceType,
-        bool isUp, string endPointUrl, object data = null,
-        string userEmail = null, Exception exception = null)
-    {
-        if (exception != null)
-        {
-            isUp = false;
-        }
-
-        var desc = string.IsNullOrWhiteSpace(serviceDescription)
-            ? "Outbound"
-            : serviceDescription;
-
-        var status = isUp ? Constants.ServiceStatus.Up : Constants.ServiceStatus.Down;
-        LogManager.GetLogger(obj)?.Log(desc, LogLevel.Info, data, exception, serviceName, serviceType,
-            Constants.Group.ServiceStatus, status, endPointUrl, userEmail);
-    }
-
-    public static void ELogTrace(this object obj, string message, object data = null, string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Trace(message, data, userEmail);
-    }
-
-    public static void ELogDebug(this object obj, string message, object data = null, string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Debug(message, data, userEmail);
-    }
-
-    public static void ELogInfo(this object obj, string message, object data = null, string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Info(message, data, userEmail);
-    }
-
-    public static void ELogWarn(this object obj, string message, object data = null, string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Warn(message, data, userEmail);
-    }
-
-    public static void ELogError(this object obj, string message, object data = null, string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Error(null, message, data, userEmail);
-    }
-
-    public static void ELogError(this object obj, Exception e, string message = null, object data = null,
-        string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Error(e, message, data, userEmail);
-    }
-
-    public static void ELogFatal(this object obj, string message, Exception e = null, object data = null,
-        string userEmail = null)
-    {
-        LogManager.GetLogger(obj)?.Fatal(message, e, data, userEmail);
-    }
 
     #endregion
 

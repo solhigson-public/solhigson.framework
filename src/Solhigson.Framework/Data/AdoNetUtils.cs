@@ -19,7 +19,7 @@ public static class AdoNetUtils
         await using var conn = new SqlConnection(connectionString);
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
         if (isStoredProcedure) cmd.CommandType = CommandType.StoredProcedure;
-        if (parameters != null && parameters.Count > 0) cmd.Parameters.AddRange(parameters.ToArray());
+        if (parameters is { Count: > 0 }) cmd.Parameters.AddRange(parameters.ToArray());
         await conn.OpenAsync();
         return await cmd.ExecuteNonQueryAsync();
     }

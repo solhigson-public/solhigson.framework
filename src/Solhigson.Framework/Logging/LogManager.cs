@@ -1,17 +1,18 @@
-﻿using System;
-using System.Collections.Concurrent;
-using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Concurrent;
 using NLog;
-using NLog.Common;
-using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Logging;
 
 public static class LogManager
 {
-    private static readonly LogWrapper Logger = new LogWrapper(typeof(LogManager).FullName);
+    private static readonly LogWrapper Logger = new (typeof(LogManager).FullName);
     private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
         new ();
+    
+    internal static bool IsLoggerEnabled(LogLevel logLevel)
+    {
+        return Logger.IsEnabled(logLevel);
+    }
 
     public static void SetLogLevel(string level)
     {
@@ -57,7 +58,7 @@ public static class LogManager
         NLog.LogManager.ReconfigExistingLoggers();
     }
 
-    private static LogWrapper GetLoggerInternal(string name, object obj = null)
+    private static LogWrapper GetLoggerInternal(string name)
     {
         if (string.IsNullOrEmpty(name)) name = "MISC";
 
@@ -68,14 +69,17 @@ public static class LogManager
         LogWrappers.TryAdd(name, logWrapper);
         return logWrapper;
     }
-
+    
     internal static LogWrapper GetLogger(object obj)
     {
         return obj == null ? null : GetLoggerInternal(obj.GetType().FullName);
     }
-
+    
     public static LogWrapper GetLogger(string loggerName)
     {
         return GetLoggerInternal(loggerName);
     }
+
+
+
 }

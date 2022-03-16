@@ -343,3 +343,5 @@ src/Solhigson.Framework.Tests/BaseTest.cs
 src/Solhigson.Framework.Tests/BaseTest.generated.cs
 *.development.json
 /src/Solhigson.Framework.Playground/Views/
+/src/Solhigson.Framework.Benchmarks/Whiteboard/
+

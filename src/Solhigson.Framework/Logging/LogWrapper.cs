@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Security.Claims;
 using NLog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
@@ -16,6 +15,11 @@ public class LogWrapper
         _logger = NLog.LogManager.GetLogger(name);
     }
 
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return _logger.IsEnabled(logLevel);
+    }
+
     public bool IsDebugEnabled => _logger.IsDebugEnabled;
 
     internal void Log(string message, LogLevel logLevel, object data = null,
@@ -23,6 +27,10 @@ public class LogWrapper
         string group = Constants.Group.AppLog, string status = null, string endPointUrl = null,
         string userEmail = null)
     {
+        if (!_logger.IsEnabled(logLevel))
+        {
+            return;
+        }
         var eventInfo = LogEventInfo.Create(logLevel, _logger.Name, message);
         eventInfo.Exception = exception;
         eventInfo.TimeStamp = DateTime.UtcNow;
@@ -39,36 +47,54 @@ public class LogWrapper
         }
         eventInfo.Properties["chainId"] = Constants.HttpContextAccessor?.HttpContext?.GetChainId();
         eventInfo.Properties[UserRenderer.Name] = authenticatedEmail;
-        _logger.Log(typeof(LogWrapper), eventInfo);
+        _logger.Log(eventInfo);
     }
 
     public void Debug(string message, object data = null, string userEmail = null)
     {
-        Log(message, LogLevel.Debug, data, userEmail: userEmail);
+        if (_logger.IsDebugEnabled)
+        {
+            Log(message, LogLevel.Debug, data, userEmail: userEmail);
+        }
     }
 
     public void Info(string message, object data = null, string userEmail = null)
     {
-        Log(message, LogLevel.Info, data, userEmail: userEmail);
+        if (_logger.IsInfoEnabled)
+        {
+            Log(message, LogLevel.Info, data, userEmail: userEmail);
+        }
     }
 
     public void Warn(string message, object data = null, string userEmail = null)
     {
-        Log(message, LogLevel.Warn, data, userEmail: userEmail);
+        if (_logger.IsWarnEnabled)
+        {
+            Log(message, LogLevel.Warn, data, userEmail: userEmail);
+        }
     }
 
     public void Error(Exception e, string message = null, object data = null, string userEmail = null)
     {
-        Log(message, LogLevel.Error, data, e, userEmail: userEmail);
+        if (_logger.IsErrorEnabled)
+        {
+            Log(message, LogLevel.Error, data, e, userEmail: userEmail);
+        }
     }
 
     public void Fatal(string message, Exception e = null, object data = null, string userEmail = null)
     {
-        Log(message, LogLevel.Fatal, data, e, userEmail: userEmail);
+        if (_logger.IsFatalEnabled)
+        {
+            Log(message, LogLevel.Fatal, data, e, userEmail: userEmail);
+        }
     }
 
     public void Trace(string message, object data = null, string userEmail = null)
     {
-        Log(message, LogLevel.Trace, data, userEmail: userEmail);
+        if (_logger.IsTraceEnabled)
+        {
+            Log(message, LogLevel.Trace, data, userEmail: userEmail);
+        }
     }
 }
