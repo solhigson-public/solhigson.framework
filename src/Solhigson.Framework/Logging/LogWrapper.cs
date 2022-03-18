@@ -24,8 +24,7 @@ public class LogWrapper
 
     internal void Log(string message, LogLevel logLevel, object data = null,
         Exception exception = null, string serviceName = null, string serviceType = null,
-        string group = Constants.Group.AppLog, string status = null, string endPointUrl = null,
-        string userEmail = null)
+        string group = Constants.Group.AppLog, string status = null, string endPointUrl = null)
     {
         if (!_logger.IsEnabled(logLevel))
         {
@@ -40,61 +39,56 @@ public class LogWrapper
         eventInfo.Properties[GroupRenderer.Name] = group;
         eventInfo.Properties["status"] = status;
         eventInfo.Properties["url"] = endPointUrl;
-        var authenticatedEmail = Constants.HttpContextAccessor?.GetEmailClaim();
-        if (string.IsNullOrWhiteSpace(authenticatedEmail))
-        {
-            authenticatedEmail = userEmail;
-        }
-        eventInfo.Properties["chainId"] = Constants.HttpContextAccessor?.HttpContext?.GetChainId();
-        eventInfo.Properties[UserRenderer.Name] = authenticatedEmail;
+        eventInfo.Properties[UserRenderer.Name] = ServiceProviderWrapper.HttpContextAccessor?.GetEmailClaim() ?? ServiceProviderWrapper.UserEmail;
+        eventInfo.Properties["chainId"] = ServiceProviderWrapper.CurrentLogChainId;
         _logger.Log(eventInfo);
     }
 
-    public void Debug(string message, object data = null, string userEmail = null)
+    public void Debug(string message, object data = null)
     {
         if (_logger.IsDebugEnabled)
         {
-            Log(message, LogLevel.Debug, data, userEmail: userEmail);
+            Log(message, LogLevel.Debug, data);
         }
     }
 
-    public void Info(string message, object data = null, string userEmail = null)
+    public void Info(string message, object data = null)
     {
         if (_logger.IsInfoEnabled)
         {
-            Log(message, LogLevel.Info, data, userEmail: userEmail);
+            Log(message, LogLevel.Info, data);
         }
     }
 
-    public void Warn(string message, object data = null, string userEmail = null)
+    public void Warn(string message, object data = null)
     {
         if (_logger.IsWarnEnabled)
         {
-            Log(message, LogLevel.Warn, data, userEmail: userEmail);
+            Log(message, LogLevel.Warn, data);
         }
     }
 
-    public void Error(Exception e, string message = null, object data = null, string userEmail = null)
+    public void Error(Exception e, string message = null, object data = null)
     {
         if (_logger.IsErrorEnabled)
         {
-            Log(message, LogLevel.Error, data, e, userEmail: userEmail);
+            Log(message, LogLevel.Error, data, e);
         }
     }
 
-    public void Fatal(string message, Exception e = null, object data = null, string userEmail = null)
+    public void Fatal(string message, Exception e = null, object data = null)
     {
         if (_logger.IsFatalEnabled)
         {
-            Log(message, LogLevel.Fatal, data, e, userEmail: userEmail);
+            Log(message, LogLevel.Fatal, data, e);
         }
     }
 
-    public void Trace(string message, object data = null, string userEmail = null)
+    public void Trace(string message, object data = null)
     {
         if (_logger.IsTraceEnabled)
         {
-            Log(message, LogLevel.Trace, data, userEmail: userEmail);
+            Log(message, LogLevel.Trace, data);
         }
     }
 }

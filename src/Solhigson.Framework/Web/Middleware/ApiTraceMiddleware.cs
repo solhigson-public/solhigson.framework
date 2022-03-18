@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.IO;
 using NLog;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities;
@@ -59,9 +60,10 @@ public sealed class ApiTraceMiddleware : IMiddleware
             ? "Inbound"
             : HelperFunctions.SeparatePascalCaseWords(action);
 
+        this.SetCurrentLogUserEmail(traceData.GetUserIdentity());
         Logger.Log(desc, LogLevel.Info, traceData, null,
             null, Constants.ServiceType.Self,
-            Constants.Group.ServiceStatus, status, traceData.Url, traceData.GetUserIdentity());
+            Constants.Group.ServiceStatus, status, traceData.Url);
 
         //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
         await responseBody.CopyToAsync(originalBodyStream);

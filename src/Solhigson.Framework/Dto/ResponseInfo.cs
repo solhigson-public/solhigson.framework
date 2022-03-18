@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace Solhigson.Framework.Infrastructure;
+namespace Solhigson.Framework.Dto;
 
 public struct ResponseInfo
 {

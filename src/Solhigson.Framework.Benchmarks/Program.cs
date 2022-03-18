@@ -23,6 +23,6 @@ var config = new ConfigurationBuilder()
     .SetBasePath(System.IO.Directory.GetCurrentDirectory())
     .Build();
 
-var provider = BuildDi(config);
+BuildDi(config);
 BenchmarkRunner.Run(typeof(Program).Assembly);
 

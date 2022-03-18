@@ -34,6 +34,7 @@ using NLog.Targets.Wrappers;
 using Polly;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
+using Solhigson.Framework.Dto;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Infrastructure.Dependency;
@@ -153,7 +154,7 @@ public static class Extensions
 
         ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, defaultNLogParameters.ProtectedFields);
             
-        Constants.HttpContextAccessor = app.ApplicationServices.GetService<IHttpContextAccessor>();
+        ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
         return app;
     }
 
@@ -902,53 +903,6 @@ public static class Extensions
         }
 
         return null;
-    }
-
-    private const string ChainIdKey = "::ApiTrace::ChainId::Key";
-    public static string GetChainId(this HttpContext httpContext)
-    {
-        object chainIdObj = null;
-        try
-        {
-            if (httpContext != null)
-            {
-                httpContext.Items?.TryGetValue(ChainIdKey, out chainIdObj);
-            }
-            else
-            {
-                chainIdObj = Thread.GetData(Thread.GetNamedDataSlot(ChainIdKey));
-            }
-        }
-        catch(Exception e)
-        {
-            Logger.Error(e);
-        }
-
-        if (chainIdObj == null)
-        {
-            return null;
-        }
-        var cId = Convert.ToString(chainIdObj);
-        return !string.IsNullOrWhiteSpace(cId) ? cId : null;
-    }
-
-    public static void AddChainId(this HttpContext httpContext, string value)
-    {
-        try
-        {
-            if (httpContext != null)
-            {
-                httpContext.Items?.TryAdd(ChainIdKey, value);
-            }
-            else
-            {
-                Thread.SetData(Thread.GetNamedDataSlot(ChainIdKey), value);
-            }
-        }
-        catch(Exception e)
-        {
-            Logger.Error(e);
-        }
     }
 
     public static bool IsValidDate(this DateTime dateTime)

@@ -14,17 +14,6 @@ public static class LoggerExtensions
     private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
         new ();
     
-    /*
-    private const string tempName = "Solhigson.Framework.Benchmarks.Whiteboard.Benchmark";
-    static LogManager()
-    {
-        LogWrappers.TryAdd(tempName, LogManager.GetLogger(tempName));
-
-    }
-    */
-
-    #region Logging Extensions
-
     public static void EServiceStatus(this object obj, string serviceName, string serviceDescription,
         string serviceType,
         bool isUp, string endPointUrl, object data = null,
@@ -46,60 +35,47 @@ public static class LoggerExtensions
 
         var status = isUp ? Constants.ServiceStatus.Up : Constants.ServiceStatus.Down;
         LogManager.GetLogger(obj)?.Log(desc, LogLevel.Info, data, exception, serviceName, serviceType,
-            Constants.Group.ServiceStatus, status, endPointUrl, userEmail);
+            Constants.Group.ServiceStatus, status, endPointUrl);
     }
 
-    public static void ELogTrace(this object obj, string message, object data = null, string userEmail = null)
+    public static void ELogTrace(this object obj, string message, object data = null)
     {
         if (Logger.IsTraceEnabled)
         {
-            LogManager.GetLogger(obj)?.Trace(message, data, userEmail);
+            LogManager.GetLogger(obj)?.Trace(message, data);
         }
     }
 
-    
-    /*
-    public static void ELogDebug(this object obj, FormattableString message, object data = null, string userEmail = null)
+    public static void ELogDebug(this object obj, string message, object data = null)
     {
-        //LogManager.Log(logger, message, LogLevel.Info, data, userEmail: userEmail);
-        if (LogManager.IsLoggerEnabled(LogLevel.Debug))
-        {
-            LogManager.GetLogger(obj, LogLevel.Debug)?.Debug(message.ToString(), data, userEmail);
-        }
-    }
-    */
-
-    public static void ELogDebug(this object obj, string message, object data = null, string userEmail = null)
-    {
-        //LogManager.Log(logger, message, LogLevel.Info, data, userEmail: userEmail);
+        //LogManager.Log(logger, message, LogLevel.Info, data: userEmail);
         if (Logger.IsDebugEnabled)
         {
-            GetLogger(obj)?.Debug(message, data, userEmail);
+            GetLogger(obj)?.Debug(message, data);
         }
     }
 
-
-    public static void ELogInfo(this object obj, string message, object data = null, string userEmail = null)
+    public static void ELogInfo(this object obj, string message, object data = null)
     {
         if (Logger.IsInfoEnabled)
         {
-            LogManager.GetLogger(obj)?.Info(message, data, userEmail);
+            LogManager.GetLogger(obj)?.Info(message, data);
         }
     }
 
-    public static void ELogWarn(this object obj, string message, object data = null, string userEmail = null)
+    public static void ELogWarn(this object obj, string message, object data = null)
     {
         if (Logger.IsWarnEnabled)
         {
-            LogManager.GetLogger(obj)?.Warn(message, data, userEmail);
+            LogManager.GetLogger(obj)?.Warn(message, data);
         }
     }
 
-    public static void ELogError(this object obj, string message, object data = null, string userEmail = null)
+    public static void ELogError(this object obj, string message, object data = null)
     {
         if (Logger.IsErrorEnabled)
         {
-            LogManager.GetLogger(obj)?.Error(null, message, data, userEmail);
+            LogManager.GetLogger(obj)?.Error(null, message, data);
         }
     }
 
@@ -108,7 +84,7 @@ public static class LoggerExtensions
     {
         if (Logger.IsErrorEnabled)
         {
-            LogManager.GetLogger(obj)?.Error(e, message, data, userEmail);
+            LogManager.GetLogger(obj)?.Error(e, message, data);
         }
     }
 
@@ -117,11 +93,19 @@ public static class LoggerExtensions
     {
         if (Logger.IsFatalEnabled)
         {
-            LogManager.GetLogger(obj)?.Fatal(message, e, data, userEmail);
+            LogManager.GetLogger(obj)?.Fatal(message, e, data);
         }
     }
 
-    #endregion
+    public static void SetCurrentLogChainId(this object obj, string chainId)
+    {
+        ServiceProviderWrapper.SetCurrentLogChainId(chainId);
+    }
+
+    public static void SetCurrentLogUserEmail(this object obj, string email)
+    {
+        ServiceProviderWrapper.SetCurrentLogUserEmail(email);
+    }
 
     private static LogWrapper GetLoggerInternal(string name)
     {

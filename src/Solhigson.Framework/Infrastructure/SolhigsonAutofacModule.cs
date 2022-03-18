@@ -29,7 +29,8 @@ public class SolhigsonAutofacModule : Module
 
         builder.RegisterType<SolhigsonConfigurationService>().AsSelf().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-            
+
+        builder.RegisterType<CurrentLogScopedPropertiesAccessor>().AsSelf().InstancePerLifetimeScope();
     }
     protected override void Load(ContainerBuilder builder)
     {

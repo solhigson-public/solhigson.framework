@@ -4,7 +4,6 @@ namespace Solhigson.Framework.Infrastructure;
 
 public static class Constants
 {
-    public static IHttpContextAccessor HttpContextAccessor { get; set; }
     public const string TimeZoneCookieName = ".solhigsonTimeZoneOffset";
     public const string PaginationParameters = "PaginationParameters";
     public const string PaginationPage = "Pagination_Page";

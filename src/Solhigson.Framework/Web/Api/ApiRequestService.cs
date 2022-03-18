@@ -435,8 +435,7 @@ public sealed class ApiRequestService : IApiRequestService
 
         _logger.Log(desc, LogLevel.Info, traceData, null,
             serviceName, serviceType,
-            Constants.Group.ServiceStatus, status, traceData.Url,
-            traceData.GetUserIdentity());
+            Constants.Group.ServiceStatus, status, traceData.Url);
 
     }
 

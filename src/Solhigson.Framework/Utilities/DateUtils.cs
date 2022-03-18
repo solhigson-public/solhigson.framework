@@ -29,13 +29,14 @@ public static class DateUtils
 
     public static double CurrentUnixTimestamp => ToUnixTimestamp(DateTime.UtcNow);
 
-    public static double ToUnixTimestamp(DateTime datetime)
+    public static double ToUnixTimestamp(this DateTime datetime, bool isUtc = true)
     {
-        var timeDiff = datetime.ToUniversalTime() - Epoch;
+        var dateToUse = isUtc ? datetime : datetime.ToUniversalTime();
+        var timeDiff = dateToUse - Epoch;
         return Math.Floor(timeDiff.TotalSeconds);
     }
-
-    public static DateTime FromUnixTimestamp(double unixTimestamp)
+    
+    public static DateTime FromUnixTimestamp(this double unixTimestamp)
     {
         return Epoch.AddSeconds(unixTimestamp);
     }
