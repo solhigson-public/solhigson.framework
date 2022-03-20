@@ -53,9 +53,26 @@ public class NotificationService : INotificationService
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(emailNotificationDetail.Body) &&
-                !string.IsNullOrWhiteSpace(emailNotificationDetail.TemplateName))
+            if (emailNotificationDetail.ToAddresses == null || !emailNotificationDetail.ToAddresses.Any())
             {
+                this.ELogWarn($"No recipients, email will not be sent for template: {emailNotificationDetail.TemplateName}");
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(emailNotificationDetail.Subject)
+                || string.IsNullOrWhiteSpace(emailNotificationDetail.Body))
+            {
+                this.ELogWarn($"Subject and/or body are empty for notification template: {emailNotificationDetail.TemplateName}");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(emailNotificationDetail.Body))
+            {
+                if (string.IsNullOrWhiteSpace(emailNotificationDetail.TemplateName))
+                {
+                    this.ELogWarn("No email template specified.");
+                    return;
+                }
                 var template =
                     _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(emailNotificationDetail
                         .TemplateName);
@@ -74,19 +91,6 @@ public class NotificationService : INotificationService
 
                 emailNotificationDetail.Body = HelperFunctions.ReplacePlaceHolders(contents,
                     emailNotificationDetail.TemplatePlaceholders);
-            }
-
-            if (string.IsNullOrWhiteSpace(emailNotificationDetail.Subject)
-                || string.IsNullOrWhiteSpace(emailNotificationDetail.Body))
-            {
-                this.ELogWarn($"Subject and/or body are empty for notification template: {emailNotificationDetail.TemplateName}");
-                return;
-            }
-
-            if (emailNotificationDetail.ToAddresses == null || !emailNotificationDetail.ToAddresses.Any())
-            {
-                this.ELogWarn($"No recipients, email will not be sent for template: {emailNotificationDetail.TemplateName}");
-                return;
             }
 
             this.ELogDebug("Validations passed - sending email");
