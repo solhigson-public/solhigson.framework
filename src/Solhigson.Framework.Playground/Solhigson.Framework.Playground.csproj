@@ -29,4 +29,8 @@
       <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Views" />
+    </ItemGroup>
+
 </Project>

@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Solhigson.Framework.Infrastructure;
 
-internal static class ServiceProviderWrapper
+public static class ServiceProviderWrapper
 {
-    internal static IServiceProvider ServiceProvider { get; set; }
+    public static IServiceProvider ServiceProvider { get; set; }
 
-    internal static HttpContextAccessor HttpContextAccessor => ServiceProvider?.GetService<HttpContextAccessor>();
+    public static HttpContextAccessor HttpContextAccessor => ServiceProvider?.GetService<HttpContextAccessor>();
 
     private static ScopedProperties GetScopedProperties()
     {
