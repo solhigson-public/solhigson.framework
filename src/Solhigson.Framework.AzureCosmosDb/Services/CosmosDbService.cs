@@ -68,7 +68,7 @@ public class CosmosDbService
             Items = new List<T>()
         };
             
-        while (query.HasMoreResults)
+        while (query.HasMoreResults && results.Items.Count < maxItemCount)
         {
             var response = await query.ReadNextAsync();
 
