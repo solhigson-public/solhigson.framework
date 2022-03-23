@@ -53,7 +53,7 @@ public class NotificationService : INotificationService
                 return;
             }
 
-            if (emailNotificationDetail.ToAddresses == null || !emailNotificationDetail.ToAddresses.Any())
+            if (!emailNotificationDetail.HasAddresses())
             {
                 this.ELogWarn($"No recipients, email will not be sent for template: {emailNotificationDetail.TemplateName}");
                 return;

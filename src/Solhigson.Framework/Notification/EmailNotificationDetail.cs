@@ -59,10 +59,7 @@ public class EmailNotificationDetail
 
     private List<string> _toAddresses;
 
-    public List<string> ToAddresses
-    {
-        get { return _toAddresses ??= new List<string>(); }
-    }
+    public List<string> ToAddresses => _toAddresses ??= new List<string>();
 
     private List<string> _ccAddresses;
     public List<string> CcAddresses
@@ -75,5 +72,10 @@ public class EmailNotificationDetail
     public List<string> BccAddresses
     {
         get { return _bccAddresses ??= new List<string>(); }
+    }
+
+    internal bool HasAddresses()
+    {
+        return ToAddresses.Any() || CcAddresses.Any() || BccAddresses.Any();
     }
 }
