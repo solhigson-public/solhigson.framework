@@ -42,11 +42,6 @@ public class NotificationService : INotificationService
     {
         try
         {
-            if (_repositoryWrapper == null)
-            {
-                this.ELogWarn("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string");
-                return;
-            }
             if (_mailProvider == null)
             {
                 this.ELogWarn($"No type of {nameof(IMailProvider)} has been registered, mail will not be sent");
@@ -59,12 +54,6 @@ public class NotificationService : INotificationService
                 return;
             }
             
-            if (string.IsNullOrWhiteSpace(emailNotificationDetail.Subject)
-                || string.IsNullOrWhiteSpace(emailNotificationDetail.Body))
-            {
-                this.ELogWarn($"Subject and/or body are empty for notification template: {emailNotificationDetail.TemplateName}");
-                return;
-            }
 
             if (string.IsNullOrWhiteSpace(emailNotificationDetail.Body))
             {
@@ -73,12 +62,19 @@ public class NotificationService : INotificationService
                     this.ELogWarn("No email template specified.");
                     return;
                 }
+                if (_repositoryWrapper == null)
+                {
+                    this.ELogWarn("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string and " +
+                                  "email has a template specified");
+                    return;
+                }
+
                 var template =
                     _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(emailNotificationDetail
                         .TemplateName);
                 if (template is null)
                 {
-                    this.ELogWarn($"Notification tTemplate: [{emailNotificationDetail.TemplateName} not found. Email will not be sent");
+                    this.ELogWarn($"Notification Template: [{emailNotificationDetail.TemplateName} not found. Email will not be sent");
                     return;
                 }
 
@@ -92,7 +88,7 @@ public class NotificationService : INotificationService
                 emailNotificationDetail.Body = HelperFunctions.ReplacePlaceHolders(contents,
                     emailNotificationDetail.TemplatePlaceholders);
             }
-
+            
             this.ELogDebug("Validations passed - sending email");
             _mailProvider.SendMail(emailNotificationDetail);
         }
@@ -116,11 +112,6 @@ public class NotificationService : INotificationService
     {
         try
         {
-            if (_repositoryWrapper == null)
-            {
-                this.ELogWarn("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string");
-                return;
-            }
             if (_smsProvider == null)
             {
                 this.ELogWarn($"No type of {nameof(ISmsProvider)} has been registered, SMS will not be sent");
@@ -133,6 +124,12 @@ public class NotificationService : INotificationService
             if (string.IsNullOrWhiteSpace(parameters.Text) &&
                 !string.IsNullOrWhiteSpace(parameters.TemplateName))
             {
+                if (_repositoryWrapper == null)
+                {
+                    this.ELogWarn("SMS will not be sent as SolhigsonAutofacModule was not initialized with a connection string and " +
+                                  "template was specified");
+                    return;
+                }
                 var template =
                     _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(parameters.TemplateName);
                 if (template == null)
