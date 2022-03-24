@@ -516,7 +516,7 @@ public static class Extensions
         CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
     }
         
-    internal static T GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class
+    public static T GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class
     {
         var result = CacheManager.GetFromCache(query.GetCacheKey());
         if (result == null)
