@@ -585,29 +585,15 @@ public static class Extensions
 
     private static IList<Type> GetQueryBaseTypeList<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
     {
-        var types = new List<Type>();
         if (iCachedEntityTypes != null && iCachedEntityTypes.Any())
         {
             return CacheManager.GetValidICacheEntityTypes(iCachedEntityTypes);
         }
-        var type = typeof(T);
-        try
-        {
-            if (query.Expression is System.Linq.Expressions.MethodCallExpression me)
-            {
-                if (me.Arguments.Count > 0 && me.Arguments[0].Type.GenericTypeArguments?.Length > 0)
-                {
-                    type = me.Arguments[0].Type.GenericTypeArguments[0];
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e);
-        }
 
-        types.Add(type);
-        return types;
+        return new List<Type>
+        {
+            GetQueryBaseTypeSingle(query)
+        };
     }
 
     private static object ResolveToList<T>(IQueryable<T> query) where T : class
