@@ -71,7 +71,7 @@ public class ConfigurationWrapper
         var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
             .Select(t => t);
 
-        var cacheValue = query.GetCustomResultFromCache<string>();
+        var cacheValue = query.GetCustomResultFromCache<string, AppSetting>();
         if (cacheValue is not null)
         {
             return cacheValue;

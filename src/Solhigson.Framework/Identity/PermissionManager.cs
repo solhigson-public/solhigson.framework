@@ -224,7 +224,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
             select perm;
 
-        var result = query.GetCustomResultFromCache<List<SolhigsonPermissionDto>>();
+        var result = query.GetCustomResultFromCache<List<SolhigsonPermissionDto>, SolhigsonPermission>();
         if (result != null)
         {
             return result;

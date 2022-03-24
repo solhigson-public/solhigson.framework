@@ -442,7 +442,7 @@ public static class Extensions
         }
         return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DbSet<>);
     }
-    public static string GetCacheKey(this IQueryable query, bool hash = true)
+    public static string GetCacheKey<T>(this IQueryable<T> query, bool hash = true) where T : class
     {
         var expression = query.Expression;
 
@@ -453,7 +453,7 @@ public static class Extensions
         expression = LocalCollectionExpander.Rewrite(expression);
 
         // use the string representation of the expression for the cache key
-        var key = $"{query.ElementType}{expression}";
+        var key = $"{GetQueryBaseTypeSingle(query)}{expression}";
 
         if (hash)
         {
@@ -466,7 +466,7 @@ public static class Extensions
     public static ResponseInfo<object> GetCacheStatus<T>(this IQueryable<T> query, params Type [] iCachedEntityType) where T : class
     {
         var response = new ResponseInfo<object>();
-        var types = GetQueryBaseType(query, iCachedEntityType);
+        var types = GetQueryBaseTypeList(query, iCachedEntityType);
         var queryExpression = query.GetCacheKey(false);
         var data = new
         {
@@ -513,10 +513,10 @@ public static class Extensions
 
     public static void AddCustomResultToCache<T>(this IQueryable<T> query, object result, params Type [] types) where T : class
     {
-        CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseType(query, types));
+        CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
     }
         
-    public static T GetCustomResultFromCache<T>(this IQueryable query) where T : class
+    internal static T GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class
     {
         var result = CacheManager.GetFromCache(query.GetCacheKey());
         if (result == null)
@@ -556,13 +556,34 @@ public static class Extensions
 
             var result = func(query) as TK;
                 
-            CacheManager.AddToCache(key, result, GetQueryBaseType(query, iCachedEntityType));
+            CacheManager.AddToCache(key, result, GetQueryBaseTypeList(query, iCachedEntityType));
                 
             return result;
         }
     }
 
-    private static IList<Type> GetQueryBaseType<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
+    private static Type GetQueryBaseTypeSingle<T>(IQueryable<T> query) where T : class
+    {
+        var type = typeof(T);
+        try
+        {
+            if (query.Expression is System.Linq.Expressions.MethodCallExpression me)
+            {
+                if (me.Arguments.Count > 0 && me.Arguments[0].Type.GenericTypeArguments?.Length > 0)
+                {
+                    type = me.Arguments[0].Type.GenericTypeArguments[0];
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e);
+        }
+
+        return type;
+    }
+
+    private static IList<Type> GetQueryBaseTypeList<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
     {
         var types = new List<Type>();
         if (iCachedEntityTypes != null && iCachedEntityTypes.Any())
