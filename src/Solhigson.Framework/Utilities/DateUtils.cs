@@ -20,7 +20,7 @@ public static class DateUtils
     public static string DefaultShortDateFormat => "dd/MMM/yyyy";
     //old one
     //return "dd/MM/yyyy HH:mm";
-    public static readonly DateTime Epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    //public static readonly DateTime Epoch = DateTime.UnixEpoch;
 
     //public static DateTime Epoch
     //{
@@ -32,13 +32,13 @@ public static class DateUtils
     public static double ToUnixTimestamp(this DateTime datetime, bool isUtc = true)
     {
         var dateToUse = isUtc ? datetime : datetime.ToUniversalTime();
-        var timeDiff = dateToUse - Epoch;
+        var timeDiff = dateToUse - DateTime.UnixEpoch;
         return Math.Floor(timeDiff.TotalSeconds);
     }
     
     public static DateTime FromUnixTimestamp(this double unixTimestamp)
     {
-        return Epoch.AddSeconds(unixTimestamp);
+        return DateTime.UnixEpoch.AddSeconds(unixTimestamp);
     }
 
     /// <summary>
@@ -103,10 +103,27 @@ public static class DateUtils
     }
 
     //Returns that last day of any specified Date
-    public static int LastDayOfMonth(DateTime currentDate)
+    public static int DaysInMonth(DateTime currentDate)
     {
         return System.DateTime.DaysInMonth(currentDate.Year, currentDate.Month);
     }
+    
+    /// <summary>
+    /// Gets the last day of the month
+    /// </summary>
+    /// <param name="current">
+    /// The current date
+    /// </param>
+    /// <returns>
+    /// date of the last day of the month
+    /// </returns>
+    public static DateTime LastDateOfMonth(this DateTime current)
+    {
+        int num = DateTime.DaysInMonth(current.Year, current.Month);
+        return current.FirstDayOfMonth().AddDays((double)(num - 1));
+    }
+
+
 
     public static string MonthInShortWords(int month)
     {
@@ -230,7 +247,7 @@ public static class DateUtils
             dateToUse = anchor;
         }
 
-        var toDate = fromDate.AddDays(LastDayOfMonth(dateToUse)).AddMilliseconds(-1);
+        var toDate = fromDate.AddDays(DaysInMonth(dateToUse)).AddMilliseconds(-1);
 
         return (fromDate, toDate);
     }
@@ -258,7 +275,7 @@ public static class DateUtils
     /// <returns>
     /// date of the first day of the month
     /// </returns>
-    public static DateTime First(this DateTime current)
+    public static DateTime FirstDayOfMonth(this DateTime current)
     {
         return current.AddDays((double)(1 - current.Day));
     }
@@ -273,30 +290,15 @@ public static class DateUtils
     /// <returns>
     /// date of the first day of the month
     /// </returns>
-    public static DateTime First(this DateTime current, DayOfWeek dayOfWeek)
+    public static DateTime FirstWeekDayOfMonth(this DateTime current, DayOfWeek dayOfWeek)
     {
-        DateTime dateTime = current.First();
+        DateTime dateTime = current.FirstDayOfMonth();
         if (dateTime.DayOfWeek != dayOfWeek)
         {
-            dateTime = dateTime.Next(dayOfWeek);
+            dateTime = dateTime.NextWeekDay(dayOfWeek);
         }
 
         return dateTime;
-    }
-
-    /// <summary>
-    /// Gets the last day of the month
-    /// </summary>
-    /// <param name="current">
-    /// The current date
-    /// </param>
-    /// <returns>
-    /// date of the last day of the month
-    /// </returns>
-    public static DateTime Last(this DateTime current)
-    {
-        int num = DateTime.DaysInMonth(current.Year, current.Month);
-        return current.First().AddDays((double)(num - 1));
     }
 
     /// <summary>
@@ -309,11 +311,32 @@ public static class DateUtils
     /// <returns>
     /// date of the last day of the month
     /// </returns>
-    public static DateTime Last(this DateTime current, DayOfWeek dayOfWeek)
+    public static DateTime LastWeekDayOfMonth(this DateTime current, DayOfWeek dayOfWeek)
     {
-        DateTime result = current.Last();
-        result = result.AddDays((double)(Math.Abs((int)(dayOfWeek - result.DayOfWeek)) * -1));
-        return result;
+        int numDays = current.NumberOfDaysInMonth();
+
+        DateTime date;
+
+        do
+        {
+            date = new DateTime(current.Year, current.Month, numDays);
+            numDays--;
+        } while (date.DayOfWeek != dayOfWeek);
+
+        return date;
+    }
+    
+    public static DateTime StartOfWeek(DayOfWeek startOfWeek)
+    {
+        var current = DateTime.UtcNow;
+        var diff = (7 + (current.DayOfWeek - startOfWeek)) % 7;
+        return current.AddDays(-1 * diff).Date;
+    }
+
+    public static DateTime StartOfWeek(this DateTime dt, DayOfWeek startOfWeek)
+    {
+        var diff = (7 + (dt.DayOfWeek - startOfWeek)) % 7;
+        return dt.AddDays(-1 * diff).Date;
     }
 
     /// <summary>
@@ -326,7 +349,7 @@ public static class DateUtils
     /// <returns>
     /// date of the next day of the month
     /// </returns>
-    public static DateTime Next(this DateTime current, DayOfWeek dayOfWeek)
+    public static DateTime NextWeekDay(this DateTime current, DayOfWeek dayOfWeek)
     {
         int num = (int)(dayOfWeek - current.DayOfWeek);
         if (num <= 0)
@@ -336,7 +359,7 @@ public static class DateUtils
 
         return current.AddDays((double)num);
     }
-
+    
     public static bool IsFirstDayOfMonth(this DateTime dateTime)
     {
         return dateTime.Day == 1;
