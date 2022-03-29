@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using Mapster;
+using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Cosmos;
 using NLog.Common;
@@ -112,12 +113,22 @@ public static class Extensions
             }
             var containerResponse = parameters.Database
                 .CreateContainerIfNotExistsAsync(parameters.AuditContainer, "/id").Result;
-        
+
+            if (containerResponse.StatusCode is HttpStatusCode.Created or HttpStatusCode.OK)
+            {
+                Audit.Core.Configuration.DataProvider = new Audit.AzureCosmos.Providers.AzureCosmosDataProvider(
+                    config => config
+                        .Database(parameters.Database.Id)
+                        .Container(parameters.AuditContainer)
+                        .CosmosClient(parameters.Database.Client)
+                        .WithId(_ => NewId.NextSequentialGuid().ToString()));
+            }
+
             if (!parameters.AuditLogExpireAfter.HasValue || containerResponse.StatusCode != HttpStatusCode.Created)
             {
                 return true;
             }
-            Logger.Info($"{parameters.Container} created, updating indexes");
+            Logger.Info($"{parameters.Container} created, setting ttl");
             containerResponse.Resource.DefaultTimeToLive = (int)parameters.AuditLogExpireAfter.Value.TotalSeconds;
 
             AsyncTools.RunSync(() =>
