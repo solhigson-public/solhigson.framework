@@ -84,7 +84,7 @@ public static class LoggerExtensions
     {
         if (Logger.IsErrorEnabled)
         {
-            LogManager.GetLogger(obj)?.Error(e, message, data);
+            LogManager.GetLogger(obj)?.Error(e, message ?? e.Message, data);
         }
     }
 
