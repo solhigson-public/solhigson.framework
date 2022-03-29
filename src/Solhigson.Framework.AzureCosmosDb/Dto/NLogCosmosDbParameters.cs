@@ -8,6 +8,9 @@ public class NLogCosmosDbParameters : DefaultNLogParameters
 {
     public Database Database { get; set; }
     public string Container { get; set; }
+    public string AuditContainer { get; set; }
+        
     public TimeSpan? ExpireAfter { get; set; }
+    public TimeSpan? AuditLogExpireAfter { get; set; }
 
 }

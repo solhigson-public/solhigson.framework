@@ -36,6 +36,7 @@ public static class Extensions
         {
             return null;
         }
+        ConfigureAuditCollection(parameters);
            
 
         var layout = NLogDefaults.GetDefaultJsonLayout2(parameters.EncodeChildJsonContent);

@@ -17,9 +17,10 @@ namespace Solhigson.Framework.Extensions;
 public static class Extensions
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
-    public static CosmosDbService UseSolhigsonNLogCosmosDbTarget(this IApplicationBuilder app,
+    public static CosmosDbInitializationResult UseSolhigsonNLogCosmosDbTarget(this IApplicationBuilder app,
         NLogCosmosDbParameters parameters = null)
     {
+        var result = new CosmosDbInitializationResult();
         if (string.IsNullOrWhiteSpace(parameters?.Container)
             || parameters?.Database == null)
         {
@@ -27,18 +28,18 @@ public static class Extensions
             InternalLogger.Error(
                 "Unable to initalize NLog Azure Cosmos Db Target because one or more the the required parameters are missing: " +
                 "[Database or Container].");
-            return null;
+            return result;
         }
         app.ConfigureSolhigsonNLogDefaults(parameters);
            
         var ttl = parameters.ExpireAfter ?? TimeSpan.FromDays(1);
-        var service = CreateLogContainer(parameters, ttl);
-        if (service == null)
+        result.LogContainerInitializationSuccess = CreateLogContainer(parameters, ttl);
+        if (!result.LogContainerInitializationSuccess)
         {
             Logger.Warn($"CreateLogContainer for container: {parameters.Container} returned null, not initializing NLogCosmosDb Target");
-            return null;
+            return result;
         }
-           
+        result.AuditContainerInitializationSuccess = CreateAuditContainer(parameters);
         var customTarget = new CosmosDbTarget<CosmosDbLog>(parameters.Database, parameters.Container, ttl)
         {
             Name = "custom document",
@@ -48,10 +49,10 @@ public static class Extensions
         var customTargetParameters = new CustomNLogTargetParameters(customTarget);
         parameters.Adapt(customTargetParameters);
         app.UseSolhigsonNLogCustomTarget(customTargetParameters);
-        return service;
+        return result;
     }
 
-    private static CosmosDbService CreateLogContainer(NLogCosmosDbParameters parameters, TimeSpan ttl)
+    private static bool CreateLogContainer(NLogCosmosDbParameters parameters, TimeSpan ttl)
     {
         try
         {
@@ -91,14 +92,44 @@ public static class Extensions
                     containerResponse.Container.ReplaceContainerAsync(containerResponse.Resource));
             }
 
-            return new CosmosDbService(parameters.Database.Client, parameters.Database.Id, parameters.Container);
+            return true;
         }
         catch (Exception e)
         {
             Logger.Error(e, $"Creating CosmosDbService for Container: {parameters.Container}");
         }
 
-        return null;
+        return false;
+    }
+
+    private static bool CreateAuditContainer(NLogCosmosDbParameters parameters)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(parameters.AuditContainer))
+            {
+                return false;
+            }
+            var containerResponse = parameters.Database
+                .CreateContainerIfNotExistsAsync(parameters.AuditContainer, "/id").Result;
+        
+            if (!parameters.AuditLogExpireAfter.HasValue || containerResponse.StatusCode != HttpStatusCode.Created)
+            {
+                return true;
+            }
+            Logger.Info($"{parameters.Container} created, updating indexes");
+            containerResponse.Resource.DefaultTimeToLive = (int)parameters.AuditLogExpireAfter.Value.TotalSeconds;
+
+            AsyncTools.RunSync(() =>
+                containerResponse.Container.ReplaceContainerAsync(containerResponse.Resource));
+            return true;
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, $"Creating CosmosDbService for Container: {parameters.AuditContainer}");
+        }
+
+        return false;
     }
 
 
