@@ -12,7 +12,9 @@ public class NlogMongoDbParameters : DefaultNLogParameters
     public string ConnectionString { get; set; }
     public string Database { get; set; }
     public string Collection { get; set; }
+    public string AuditCollection { get; set; }
         
     public TimeSpan? ExpireAfter { get; set; }
+    public TimeSpan? AuditLogExpireAfter { get; set; }
 
 }

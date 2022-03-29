@@ -1,4 +1,6 @@
 using System;
+using Audit.Core;
+using Audit.MongoDB.Providers;
 using Mapster;
 using Microsoft.AspNetCore.Builder;
 using MongoDB.Driver;
@@ -29,12 +31,35 @@ public static class Extensions
             return null;
         }
         app.ConfigureSolhigsonNLogDefaults(parameters);
+        var (service, expireAfter) = CreateDefaultCollection(parameters);
+        if (service is null)
+        {
+            return null;
+        }
            
+
+        var layout = NLogDefaults.GetDefaultJsonLayout2(parameters.EncodeChildJsonContent);
+        layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
+        layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
+        var customTarget = new MongoDbTarget<MongoDbLog>(service, expireAfter)
+        {
+            Name = "custom document",
+            Layout = layout,
+        };
+
+        var customTargetParameters = new CustomNLogTargetParameters(customTarget);
+        parameters.Adapt(customTargetParameters);
+        app.UseSolhigsonNLogCustomTarget(customTargetParameters);
+        return service;
+    }
+
+    private static (MongoDbService<MongoDbLog>, TimeSpan) CreateDefaultCollection(NlogMongoDbParameters parameters)
+    {
         var service = MongoDbServiceFactory.Create<MongoDbLog>(parameters.ConnectionString, parameters.Database, parameters.Collection);
         if (service == null)
         {
             InternalLogger.Error($"Unable to create Mongo Db service with supplied parameters, check log for errror.");
-            return null;
+            return (null, TimeSpan.Zero);
         }
 
         var expireAfter = parameters.ExpireAfter ?? TimeSpan.FromDays(1);
@@ -64,20 +89,39 @@ public static class Extensions
             new CreateIndexModel<MongoDbLog>(chainIndex, generalCreateIndexOptions),
             new CreateIndexModel<MongoDbLog>(composite, generalCreateIndexOptions),
         });
+        return (service, expireAfter);
+    }
 
-        var layout = NLogDefaults.GetDefaultJsonLayout2(parameters.EncodeChildJsonContent);
-        layout.Attributes.Add(new JsonAttribute("Id", "${guid}", true));
-        layout.Attributes.Add(new JsonAttribute("Timestamp", "${solhigson-timestamp}", true));
-        var customTarget = new MongoDbTarget<MongoDbLog>(service, expireAfter)
+    private static void ConfigureAuditCollection(NlogMongoDbParameters parameters)
+    {
+        if (string.IsNullOrWhiteSpace(parameters.AuditCollection))
         {
-            Name = "custom document",
-            Layout = layout,
-        };
+            return;
+        }
 
-        var customTargetParameters = new CustomNLogTargetParameters(customTarget);
-        parameters.Adapt(customTargetParameters);
-        app.UseSolhigsonNLogCustomTarget(customTargetParameters);
-        return service;
+        var dataProvider = new MongoDataProvider
+        {
+            ConnectionString = parameters.ConnectionString,
+            Database = parameters.Database,
+            Collection = parameters.AuditCollection
+        };
+        
+        Configuration.DataProvider = dataProvider;
+
+        if (!parameters.AuditLogExpireAfter.HasValue)
+        {
+            return;
+        }
+        
+        var ttlIndex = Builders<AuditEvent>.IndexKeys.Descending(t => t.StartDate);
+        dataProvider.GetMongoCollection().Indexes.CreateOne(
+            new CreateIndexModel<AuditEvent>(ttlIndex, new CreateIndexOptions
+                {
+                    ExpireAfter = parameters.AuditLogExpireAfter,
+                    Name = "LogsExpireIndex",
+                    Background = true
+                }
+            ));
     }
         
 }
