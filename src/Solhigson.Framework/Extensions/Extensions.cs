@@ -457,7 +457,7 @@ public static class Extensions
 
         if (hash)
         {
-            key = key.ToSha256();
+            key = key.ToSha512();
         }
 
         return key;
@@ -466,18 +466,35 @@ public static class Extensions
     public static ResponseInfo<object> GetCacheStatus<T>(this IQueryable<T> query, params Type [] iCachedEntityType) where T : class
     {
         var response = new ResponseInfo<object>();
-        var types = GetQueryBaseTypeList(query, iCachedEntityType);
+        var validTypes = GetQueryBaseTypeList(query, iCachedEntityType);
+        var types = new List<string>();
+        if (iCachedEntityType?.Any() == true)
+        {
+            types.AddRange(iCachedEntityType.Select(t => t.FullName));
+        }
+        else
+        {
+            types.Add(GetQueryBaseTypeSingle(query).FullName);
+        }
         var queryExpression = query.GetCacheKey(false);
+        var cacheInfo = new Dictionary<string, List<string>>
+        {
+            { "QueryTypes", types },
+            { "ValidCacheTypes", validTypes.Select(t => t.FullName).ToList() }
+        };
         var data = new
         {
-            Type = $"{CacheManager.Flatten(types.Select(t => $"{t.Namespace}.{t.Name}"))}",
-            CacheKey = queryExpression.ToSha256(),
+            CacheKey = queryExpression.ToSha512(),
             QueryExpression = queryExpression,
+            TypesInfo = cacheInfo
         };
-        var validTypes = CacheManager.GetValidICacheEntityTypes(iCachedEntityType);
-        return !validTypes.Any()
-            ? response.Fail($"{CacheManager.Flatten(types.Select(t => t.Name))} does not Inherit from ICacheEntity", result: data) 
-            : response.Success(data);
+        if (validTypes.Count == types.Count)
+        {
+            return response.Success(data);
+        }
+        return !validTypes.Any() 
+            ? response.Fail("No Caching", result: data) 
+            : response.Fail("Partial Caching", "90001", result: data);
     }
 
     /// <summary>
@@ -590,10 +607,7 @@ public static class Extensions
             return CacheManager.GetValidICacheEntityTypes(iCachedEntityTypes);
         }
 
-        return new List<Type>
-        {
-            GetQueryBaseTypeSingle(query)
-        };
+        return CacheManager.GetValidICacheEntityTypes(GetQueryBaseTypeSingle(query));
     }
 
     private static object ResolveToList<T>(IQueryable<T> query) where T : class
@@ -965,6 +979,10 @@ public static class Extensions
         return CryptoHelper.HashData(s, HashAlgorithmType.Sha256);
     }
         
+    public static string ToSha512(this string s)
+    {
+        return CryptoHelper.HashData(s, HashAlgorithmType.Sha512);
+    }
     #endregion
 
 }

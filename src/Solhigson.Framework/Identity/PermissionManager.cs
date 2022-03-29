@@ -55,24 +55,21 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             return ResponseInfo.FailedResult("User not assigned any roles in Jwt Token.");
         }
 
-        var permission = _dbContext.Permissions.Where(t => t.Name == permissionName)
-            .FromCacheSingle();
-        if (permission is null)
-        {
-            return ResponseInfo.FailedResult("Resource not configured.");
-        }
+        var query = (from p in _dbContext.Permissions
+            join rp in _dbContext.RolePermissions
+                on p.Id equals rp.PermissionId
+            join r in _dbContext.Roles
+                on rp.RoleId equals r.Id
+            where roles.Contains(r.Name) && p.Name == permissionName
+            select rp).FromCacheSingle(typeof(SolhigsonPermission),
+            typeof(SolhigsonRolePermission<TKey>), typeof(TRole));
 
-        var roleIds = (from role in roles select 
-                _dbContext.Roles.Where(t => t.Name == role).FromCacheSingle()
-            into roleObj where roleObj != null 
-            select roleObj.Id).ToList();
-
-        return roleIds.Any(roleId => _dbContext.RolePermissions.Where(t => t.RoleId.Equals(roleId) && t.PermissionId == permission.Id)
-            .FromCacheSingle() is not null) 
+        return query is not null
             ? ResponseInfo.SuccessResult() 
             : ResponseInfo.FailedResult("User does not have the required permission");
+       
     }
-
+    
     public async Task AddPermissionAsync(SolhigsonPermission permission)
     {
         _dbContext.Permissions.Add(permission);

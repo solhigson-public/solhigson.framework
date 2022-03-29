@@ -100,26 +100,26 @@ public static class CacheManager
 
     internal static void AddToCache(string key, object value, IList<Type> types)
     {
-        if (string.IsNullOrWhiteSpace(key) || types == null || !types.Any())
+        if (string.IsNullOrWhiteSpace(key))
         {
+            return;
+        }
+
+        if (types == null || !types.Any())
+        {
+            InsertItem(key, value);
             return;
         }
 
         InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
     }
 
-    internal static IList<Type> GetValidICacheEntityTypes(IEnumerable<Type> types)
+    internal static IList<Type> GetValidICacheEntityTypes(params Type [] types)
     {
         var validTypes = new List<Type>();
-        foreach (var type in types)
+        if (types is not null && types.Any())
         {
-            if (!typeof(ICachedEntity).IsAssignableFrom(type))
-            {
-                Logger.Warn(
-                    $"Data of type: [{type}] will not be cached as it does not inherit from [{nameof(ICachedEntity)}]");
-                continue;
-            }
-            validTypes.Add(type);
+            validTypes.AddRange(types.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)));
         }
         return validTypes;
     }
