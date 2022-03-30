@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using NLog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
@@ -30,8 +31,8 @@ public class LogWrapper
         {
             return;
         }
-        var eventInfo = LogEventInfo.Create(logLevel, _logger.Name, message);
-        eventInfo.Exception = exception;
+        var eventInfo = LogEventInfo.Create(logLevel, _logger.Name, exception, CultureInfo.InvariantCulture, message);
+        //eventInfo.Exception = exception;
         eventInfo.TimeStamp = DateTime.UtcNow;
         eventInfo.Properties[CustomDataRenderer.Name] = data;
         eventInfo.Properties["serviceName"] = serviceName;
