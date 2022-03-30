@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Text.Json.Serialization;
+using MongoDB.Bson;
 using Newtonsoft.Json;
 
 namespace Solhigson.Framework.MongoDb.Dto;
 
-public record MongoDbDocumentBase
+public record MongoDbDocumentBase : IMongoDbDocumentBase
 {
     public MongoDbDocumentBase()
     {

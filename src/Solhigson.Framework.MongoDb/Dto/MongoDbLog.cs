@@ -70,7 +70,7 @@ public record MongoDbLog : MongoDbDocumentBase
         {
             try
             {
-                return DateUtils.FromUnixTimestamp(Timestamp);
+                return Timestamp.FromUnixTimestamp();
             }
             catch (Exception e)
             {

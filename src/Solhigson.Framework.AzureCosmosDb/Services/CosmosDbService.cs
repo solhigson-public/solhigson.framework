@@ -19,7 +19,7 @@ public class CosmosDbService
         _container = dbClient.GetContainer(databaseName, containerName);
     }
 
-    public async Task AddItemAsync<T>(T item) where T : CosmosDocumentBase
+    public async Task AddItemAsync<T>(T item) where T : ICosmosDocumentBase
     {
         if (string.IsNullOrWhiteSpace(item.Id))
         {
@@ -35,12 +35,12 @@ public class CosmosDbService
     }
 
 
-    public async Task DeleteItemAsync<T>(string id, string partitionKey) where T : CosmosDocumentBase
+    public async Task DeleteItemAsync<T>(string id, string partitionKey) where T : class, ICosmosDocumentBase
     {
         await _container.DeleteItemAsync<T>(id, new PartitionKey(partitionKey));
     }
 
-    public async Task<T> GetItemAsync<T>(string id, string partitionKey) where T : CosmosDocumentBase
+    public async Task<T> GetItemAsync<T>(string id, string partitionKey) where T : class, ICosmosDocumentBase
     {
         try
         {
@@ -54,7 +54,7 @@ public class CosmosDbService
     }
 
     public async Task<CosmosDbResponse<T>> GetItemsAsync<T>(string queryString,
-        string continuationToken = null, int? maxItemCount = null) where T : CosmosDocumentBase
+        string continuationToken = null, int? maxItemCount = null) where T : class, ICosmosDocumentBase
     {
         maxItemCount ??= 100;
             
@@ -80,7 +80,7 @@ public class CosmosDbService
         return results;
     }
 
-    public async Task UpdateItemAsync<T>(T item) where T : CosmosDocumentBase
+    public async Task UpdateItemAsync<T>(T item) where T : class, ICosmosDocumentBase
     {
         await _container.UpsertItemAsync(item, new PartitionKey(item.PartitionKey));
     }

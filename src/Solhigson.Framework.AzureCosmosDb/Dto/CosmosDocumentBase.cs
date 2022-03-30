@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Solhigson.Framework.AzureCosmosDb.Dto;
 
-public record CosmosDocumentBase
+public record CosmosDocumentBase : ICosmosDocumentBase
 {
     public virtual string PartitionKey => throw new System.NotImplementedException();
 
