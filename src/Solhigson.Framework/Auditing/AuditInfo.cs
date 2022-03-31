@@ -4,5 +4,18 @@ namespace Solhigson.Framework.Auditing;
 
 public class AuditInfo
 {
-    public Dictionary<string, object> AuditData { get; set; }
+    public List<AuditEntry> Entries { get; set; }
+}
+
+public class AuditEntry
+{
+    public string Table { get; set; }
+    public string PrimaryKey { get; set; }
+    public List<AuditChange> Changes { get; set; }
+}
+public class AuditChange
+{
+    public string ColumnName { get; set; }
+    public string OriginalValue { get; set; }
+    public string NewValue { get; set; }
 }

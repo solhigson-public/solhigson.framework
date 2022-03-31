@@ -9,27 +9,38 @@ namespace Solhigson.Framework.Auditing;
 public static class AuditHelper
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(AuditHelper).FullName);
-    
-    public static async Task AuditAsync(string eventType, Dictionary<string, object> info)
+
+    public static async Task AuditAsync(string eventType, List<AuditEntry> entries)
     {
         await AuditInternalAsync(eventType, new AuditInfo
         {
-            AuditData = info
+            Entries = entries
         });
     }
-    
+
     public static async Task AuditAsync(string eventType)
     {
         await AuditInternalAsync(eventType, null);
     }
 
-    public static async Task AuditAsync(string eventType, string key, string value)
+    public static async Task AuditAsync(string eventType, string propertyName, string oldValue, string newValue)
     {
         await AuditInternalAsync(eventType, new AuditInfo
         {
-            AuditData = new Dictionary<string, object>
+            Entries = new List<AuditEntry>
             {
-                {key, value}
+                new()
+                {
+                    Changes = new List<AuditChange>
+                    {
+                        new()
+                        {
+                            ColumnName = propertyName,
+                            OriginalValue = oldValue,
+                            NewValue = newValue
+                        }
+                    }
+                }
             }
         });
     }
@@ -45,5 +56,4 @@ public static class AuditHelper
             Logger.Error(e);
         }
     }
-    
 }
