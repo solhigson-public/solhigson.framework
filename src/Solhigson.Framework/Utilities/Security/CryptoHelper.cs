@@ -68,7 +68,7 @@ public static class CryptoHelper
 
         var tmpHash = hashAlgorithm.ComputeHash(encodingToUse.GetBytes(data));
         return stringEncodingType == StringEncodingType.Hex
-            ? tmpHash.ToHexString()
+            ? tmpHash.Hex()
             : Convert.ToBase64String(tmpHash);
     }
         
@@ -87,7 +87,7 @@ public static class CryptoHelper
 
         var tmpHash = hashAlgorithm.ComputeHash(encodingToUse.GetBytes(data));
         return stringEncodingType == StringEncodingType.Hex
-            ? tmpHash.ToHexString()
+            ? tmpHash.Hex()
             : Convert.ToBase64String(tmpHash);
     }
 

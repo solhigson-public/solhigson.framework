@@ -457,7 +457,7 @@ public static class Extensions
 
         if (hash)
         {
-            key = key.ToSha512();
+            key = key.Sha512();
         }
 
         return key;
@@ -484,7 +484,7 @@ public static class Extensions
         };
         var data = new
         {
-            CacheKey = queryExpression.ToSha512(),
+            CacheKey = queryExpression.Sha512(),
             QueryExpression = queryExpression,
             TypesInfo = cacheInfo
         };
@@ -933,8 +933,19 @@ public static class Extensions
         
     #region Crypto
         
-    public static string ToHexString(this byte[] bytes)
+    public static string Hex(this byte[] bytes)
     {
+        var result = new StringBuilder(bytes.Length * 2);
+        const string hexAlphabet = "0123456789abcdef";
+
+        foreach (var b in bytes)
+        {
+            result.Append(hexAlphabet[b >> 4]);
+            result.Append(hexAlphabet[b & 0xF]);
+        }
+
+        return result.ToString();
+        /*
         if (bytes == null)
         {
             return null;
@@ -945,8 +956,9 @@ public static class Extensions
             output.Append(t.ToString("x2"));
         }
         return output.ToString();
+    */
     }
-        
+
     public static byte[] FromHexString(this string hexString)
     {
         if (hexString.Length % 2 != 0)
@@ -964,25 +976,36 @@ public static class Extensions
         return hexAsBytes;
     }
 
-    public static string ToBase64String(this byte[] data)
+    public static string Base64(this byte[] data)
     {
         return Convert.ToBase64String(data);
     }
         
-    public static byte[] FromBase64String(this string data)
+    public static byte[] Base64(this string data)
     {
         return Convert.FromBase64String(data);
     }
+    
+    public static string Md5(this string s)
+    {
+        return CryptoHelper.HashData(s, HashAlgorithmType.Md5);
+    }
         
-    public static string ToSha256(this string s)
+    public static string Sha256(this string s)
     {
         return CryptoHelper.HashData(s, HashAlgorithmType.Sha256);
     }
         
-    public static string ToSha512(this string s)
+    public static string Sha512(this string s)
     {
         return CryptoHelper.HashData(s, HashAlgorithmType.Sha512);
     }
+    
+    public static string Hash(this string s, HashAlgorithmType hashAlgorithmType)
+    {
+        return CryptoHelper.HashData(s, hashAlgorithmType);
+    }
+
     #endregion
 
 }
