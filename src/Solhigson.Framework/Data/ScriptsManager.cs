@@ -15,6 +15,7 @@ namespace Solhigson.Framework.Data;
 
 public static class ScriptsManager
 {
+    private const string TableCacheTriggerNamePrefix = "Solhigson_UTrig_";
     internal static void SetUpDatabaseObjects(Assembly dbContextAssembly, string connectionString)
     {
         var sBuilder = new StringBuilder();
@@ -29,7 +30,7 @@ public static class ScriptsManager
                     QUOTENAME(OBJECT_SCHEMA_NAME(t.object_id)) + N'.' + 
                     QUOTENAME(t.name) + N'; ' + NCHAR(13)
                 FROM sys.triggers AS t
-                WHERE t.is_ms_shipped = 0
+                WHERE t.is_ms_shipped = 0 and t.name like '{TableCacheTriggerNamePrefix}%'
                   AND t.parent_class_desc = N'OBJECT_OR_COLUMN';
 
                 exec (N'' + @sql + N'');
@@ -38,8 +39,11 @@ public static class ScriptsManager
         sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.TableName}]') IS NULL ");
         sBuilder.Append("BEGIN ");
         sBuilder.Append($"CREATE TABLE [{CacheChangeTrackerInfo.TableName}] ( ");
-        sBuilder.Append($"[{CacheChangeTrackerInfo.TableNameColumn}] VARCHAR(255) NOT NULL, [{CacheChangeTrackerInfo.ChangeIdColumn}] SMALLINT NOT NULL ");
+        sBuilder.Append($"[{CacheChangeTrackerInfo.TableNameColumn}] VARCHAR(255) NOT NULL, [{CacheChangeTrackerInfo.ChangeIdColumn}] BIGINT NOT NULL ");
         sBuilder.Append($"CONSTRAINT [PK__{CacheChangeTrackerInfo.TableName}] PRIMARY KEY ([{CacheChangeTrackerInfo.TableNameColumn}])); END;");
+
+        sBuilder.Append(
+            $"ALTER TABLE {CacheChangeTrackerInfo.TableName} ALTER COLUMN {CacheChangeTrackerInfo.ChangeIdColumn} BIGINT NOT NULL;");
 
         #region AppSettings Table
         sBuilder.Append($"IF OBJECT_ID(N'[{AppSettingInfo.TableName}]') IS NULL ");
@@ -66,7 +70,11 @@ public static class ScriptsManager
             
         #endregion
 
-          
+
+        /*
+        var updateChangeTrackerSpVerb = "CREATE";
+        var getAllChangeTrackerSpVerb = "CREATE";
+        var getTableChangeTrackerSpVerb = "CREATE";
         sBuilder.Append($"IF OBJECT_ID(N'[{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}]') IS NOT NULL ");
         sBuilder.Append("BEGIN ");
         sBuilder.Append($"DROP PROCEDURE [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ");
@@ -81,20 +89,21 @@ public static class ScriptsManager
         sBuilder.Append("BEGIN ");
         sBuilder.Append($"DROP PROCEDURE [{CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ");
         sBuilder.Append("END;");
+        */
 
-        getAllChangeTrackerBuilder.Append($"CREATE PROCEDURE [{CacheChangeTrackerInfo.GetAllChangeTrackerSpName}] ");
+        getAllChangeTrackerBuilder.Append($"CREATE OR ALTER PROCEDURE [{CacheChangeTrackerInfo.GetAllChangeTrackerSpName}] ");
         getAllChangeTrackerBuilder.Append("AS ");
         getAllChangeTrackerBuilder.Append(
             $"SELECT [{CacheChangeTrackerInfo.TableNameColumn}], [{CacheChangeTrackerInfo.ChangeIdColumn}] from [{CacheChangeTrackerInfo.TableName}] (NOLOCK)");
 
         getTableChangeTrackerBuilder.Append(
-            $"CREATE PROCEDURE [{CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
+            $"CREATE OR ALTER PROCEDURE [{CacheChangeTrackerInfo.GetTableChangeTrackerSpName}] ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
         getTableChangeTrackerBuilder.Append("AS ");
         getTableChangeTrackerBuilder.Append(
             $"SELECT [{CacheChangeTrackerInfo.ChangeIdColumn}] from [{CacheChangeTrackerInfo.TableName}] (NOLOCK) WHERE [{CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)}");
 
         updateChangeTrackerBuilder.Append(
-            $"CREATE PROCEDURE [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
+            $"CREATE OR ALTER PROCEDURE [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] ({GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} VARCHAR(255)) ");
         updateChangeTrackerBuilder.Append("AS ");
         updateChangeTrackerBuilder.Append($"DECLARE {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} INT ");
         updateChangeTrackerBuilder.Append(
@@ -111,8 +120,8 @@ public static class ScriptsManager
             $"UPDATE dbo.[{CacheChangeTrackerInfo.TableName}] SET [{CacheChangeTrackerInfo.ChangeIdColumn}] = {GetParameterName(CacheChangeTrackerInfo.ChangeIdColumn)} + 1 WHERE [{CacheChangeTrackerInfo.TableNameColumn}] = {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)}");
 
         var dbTriggerCommands = new List<StringBuilder>();
-        dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(AppSetting)));
-        dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(typeof(NotificationTemplate)));
+        dbTriggerCommands.Add(GetCacheTrackerTriggerCommands(typeof(AppSetting)));
+        dbTriggerCommands.Add(GetCacheTrackerTriggerCommands(typeof(NotificationTemplate)));
 
         if (dbContextAssembly != null)
         {
@@ -127,7 +136,7 @@ public static class ScriptsManager
                     var genericArg = prop.PropertyType.GetGenericArguments().FirstOrDefault();
                     if (genericArg is not null && cachedEntityType.IsAssignableFrom(genericArg))
                     {
-                        dbTriggerCommands.AddRange(GetCacheTrackerTriggerCommands(genericArg));
+                        dbTriggerCommands.Add(GetCacheTrackerTriggerCommands(genericArg));
                     }
                 }
             }
@@ -170,7 +179,7 @@ public static class ScriptsManager
 
     private static string GetTriggerName(Type entityType)
     {
-        var triggerName = $"Solhigson_UTrig_{GetTableName(entityType)}_UpdateChangeTracker";
+        var triggerName = $"{TableCacheTriggerNamePrefix}{GetTableName(entityType)}_UpdateChangeTracker";
 
         var schema = entityType.GetAttribute<TableAttribute>()?.Schema;
         return string.IsNullOrWhiteSpace(schema)
@@ -178,26 +187,17 @@ public static class ScriptsManager
             : $"[{schema}].[{triggerName}]";
     }
 
-    private static IEnumerable<StringBuilder> GetCacheTrackerTriggerCommands(Type entityType)
+    private static StringBuilder GetCacheTrackerTriggerCommands(Type entityType)
     {
-        var list = new List<StringBuilder>();
         var triggerName = GetTriggerName(entityType);
-
-        var deleteScriptBuilder = new StringBuilder();
-        deleteScriptBuilder.Append($"IF OBJECT_ID(N'{triggerName}') IS NOT NULL ");
-        deleteScriptBuilder.Append("BEGIN ");
-        deleteScriptBuilder.Append($"DROP TRIGGER {triggerName} ");
-        deleteScriptBuilder.Append("END;");
 
         var createTriggerScriptBuilder = new StringBuilder();
         createTriggerScriptBuilder.Append(
-            $"CREATE TRIGGER {triggerName} ON {GetTableName(entityType, true)} AFTER INSERT, DELETE, UPDATE AS ");
+            $"CREATE OR ALTER TRIGGER {triggerName} ON {GetTableName(entityType, true)} AFTER INSERT, DELETE, UPDATE AS ");
         createTriggerScriptBuilder.Append(
             $"BEGIN TRY SET NOCOUNT ON; EXEC [{CacheChangeTrackerInfo.UpdateChangeTrackerSpName}] {GetParameterName(CacheChangeTrackerInfo.TableNameColumn)} = N'{GetTableName(entityType)}' END TRY BEGIN CATCH END CATCH");
 
-        list.Add(deleteScriptBuilder);
-        list.Add(createTriggerScriptBuilder);
-        return list;
+        return createTriggerScriptBuilder;
     }
         
     internal static string GetParameterName(string tableName)
