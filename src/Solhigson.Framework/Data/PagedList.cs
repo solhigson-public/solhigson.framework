@@ -52,12 +52,12 @@ public record PagedList<T>
         });
     }
 
-    internal PagedList(List<T> items, long count, int pageNumber, int pageSize)
+    internal PagedList(IEnumerable<T> items, long count, int pageNumber, int pageSize)
     {
         TotalCount = count;
-        PageSize = pageSize;
+        PageSize = pageSize <= 0 ? 20 : pageSize;
         CurrentPage = pageNumber;
-        TotalPages = (int)Math.Ceiling(count / (double)pageSize);
+        TotalPages = count <= 0 ? 1 : (int)Math.Ceiling(count / (double)pageSize);
         Results.AddRange(items);
     }
 }
