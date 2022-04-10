@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Mapster;
 using NLog;
 using NLog.LayoutRenderers;
 using Solhigson.Framework.Utilities;
@@ -15,6 +16,6 @@ public class ExceptionJsonRenderer : LayoutRenderer
             return;
         }
 
-        builder.Append(logEvent.Exception.SerializeToJson());
+        builder.Append(logEvent.Exception.Adapt<ExceptionInfo>().SerializeToJson());
     }
 }
