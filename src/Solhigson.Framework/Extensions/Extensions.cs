@@ -935,7 +935,7 @@ public static class Extensions
         
     public static string Hex(this byte[] bytes)
     {
-        var result = new StringBuilder(bytes.Length * 2);
+        var result = new StringBuilder(bytes.Length);
         const string hexAlphabet = "0123456789abcdef";
 
         foreach (var b in bytes)
