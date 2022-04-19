@@ -40,8 +40,8 @@ public class LogWrapper
         eventInfo.Properties[GroupRenderer.Name] = group;
         eventInfo.Properties["status"] = status;
         eventInfo.Properties["url"] = endPointUrl;
-        eventInfo.Properties[UserRenderer.Name] = ServiceProviderWrapper.HttpContextAccessor?.GetEmailClaim() ?? ServiceProviderWrapper.UserEmail;
-        eventInfo.Properties["chainId"] = ServiceProviderWrapper.CurrentLogChainId;
+        eventInfo.Properties[UserRenderer.Name] = ServiceProviderWrapper.HttpContextAccessor?.GetEmailClaim() ?? ServiceProviderWrapper.GetCurrentLogUserEmail();
+        eventInfo.Properties["chainId"] = ServiceProviderWrapper.GetCurrentLogChainId();
         _logger.Log(eventInfo);
     }
 
