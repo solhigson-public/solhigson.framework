@@ -37,6 +37,6 @@ internal static class ServiceProviderWrapper
         }
     }
 
-    internal static string CurrentLogChainId => ServiceProvider?.GetService<CurrentLogScopedPropertiesAccessor>()?.ScopedProperties?.LogChainId;
-    internal static string UserEmail => ServiceProvider?.GetService<CurrentLogScopedPropertiesAccessor>()?.ScopedProperties?.UserEmail;
+    internal static string CurrentLogChainId => GetScopedProperties()?.LogChainId;
+    internal static string UserEmail => GetScopedProperties()?.UserEmail;
 }
