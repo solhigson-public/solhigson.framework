@@ -12,7 +12,8 @@ internal static class ServiceProviderWrapper
 
     private static ScopedProperties GetScopedProperties()
     {
-        var accessor = ServiceProvider?.GetService<CurrentLogScopedPropertiesAccessor>();
+        var serviceProvider = HttpContextAccessor?.HttpContext?.RequestServices ?? ServiceProvider;
+        var accessor = serviceProvider?.GetService<CurrentLogScopedPropertiesAccessor>();
         if (accessor is null)
         {
             return null;
