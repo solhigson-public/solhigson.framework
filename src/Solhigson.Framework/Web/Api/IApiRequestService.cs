@@ -16,7 +16,7 @@ public interface IApiRequestService
     Task<ApiRequestResponse<T>> GetDataJsonAsync<T>(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class;
+        int timeOut = 0, bool? logTrace = null) ;
 
     Task<ApiRequestResponse> GetDataXmlAsync(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
@@ -27,7 +27,7 @@ public interface IApiRequestService
         Dictionary<string, string> headers = null,
         string serviceName = null, string serviceDescription = null, 
         string serviceType = null,  string namedHttpClient = null, int timeOut = 0, bool? logTrace = null)
-        where T : class;
+        ;
 
     Task<ApiRequestResponse> GetDataPlainAsync(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
@@ -42,7 +42,7 @@ public interface IApiRequestService
     Task<ApiRequestResponse<T>> PostDataJsonAsync<T>(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class;
+        int timeOut = 0, bool? logTrace = null) ;
 
     Task<ApiRequestResponse> PostDataXmlAsync(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
@@ -52,7 +52,7 @@ public interface IApiRequestService
     Task<ApiRequestResponse<T>> PostDataXmlAsync<T>(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class;
+        int timeOut = 0, bool? logTrace = null) ;
 
     Task<ApiRequestResponse> PostDataAsync(string uri, string data, string contentType,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
@@ -63,13 +63,13 @@ public interface IApiRequestService
         string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class;
+        int timeOut = 0, bool? logTrace = null) ;
 
     Task<ApiRequestResponse<T>> PostDataXWwwFormUrlencodedAsync<T>(string uri,
         IDictionary<string, string> data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class;
+        int timeOut = 0, bool? logTrace = null) ;
 
     Task<ApiRequestResponse> PostDataXWwwFormUrlencodedAsync(string uri,
         IDictionary<string, string> data,
@@ -85,5 +85,5 @@ public interface IApiRequestService
     Task<ApiRequestResponse> SendRequestAsync(ApiRequestDetails apiRequestDetails);
 
     Task<ApiRequestResponse<T>> SendRequestAsync<T>(ApiRequestDetails apiRequestDetails)
-        where T : class;
+        ;
 }

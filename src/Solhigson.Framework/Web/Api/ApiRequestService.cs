@@ -69,7 +69,7 @@ public sealed class ApiRequestService : IApiRequestService
     public async Task<ApiRequestResponse<T>> GetDataJsonAsync<T>(string uri,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class
+        int timeOut = 0, bool? logTrace = null) 
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Get, null, ContentTypeJson, headers,
             serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
@@ -79,7 +79,7 @@ public sealed class ApiRequestService : IApiRequestService
         Dictionary<string, string> headers = null,
         string serviceName = null, string serviceDescription = null, string serviceType = null,  string namedHttpClient = null,
         int timeOut = 0, bool? logTrace = null)
-        where T : class
+        
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Get, null, ContentTypeXml, headers,
             serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
@@ -121,7 +121,7 @@ public sealed class ApiRequestService : IApiRequestService
     public async Task<ApiRequestResponse<T>> PostDataJsonAsync<T>(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class
+        int timeOut = 0, bool? logTrace = null) 
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeJson, headers,
             serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
@@ -131,7 +131,7 @@ public sealed class ApiRequestService : IApiRequestService
         string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class
+        int timeOut = 0, bool? logTrace = null) 
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeXWwwFormUrlencoded, headers,
             serviceName, serviceDescription, serviceType, namedHttpClient, timeOut, logTrace);
@@ -141,7 +141,7 @@ public sealed class ApiRequestService : IApiRequestService
         IDictionary<string, string> data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class
+        int timeOut = 0, bool? logTrace = null) 
     {
         return await PostDataXWwwFormUrlencodedAsync<T>(uri,
             await new FormUrlEncodedContent(data).ReadAsStringAsync(),
@@ -172,7 +172,7 @@ public sealed class ApiRequestService : IApiRequestService
     public async Task<ApiRequestResponse<T>> PostDataXmlAsync<T>(string uri, string data,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class
+        int timeOut = 0, bool? logTrace = null) 
     {
         return await SendRequestAsync<T>(uri, HttpMethod.Post, data, ContentTypeXml, headers, serviceName,
             serviceDescription, namedHttpClient,
@@ -198,7 +198,7 @@ public sealed class ApiRequestService : IApiRequestService
         string data = "", string format = ContentTypeJson,
         Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
         string serviceType = null, string namedHttpClient = null,
-        int timeOut = 0, bool? logTrace = null) where T : class
+        int timeOut = 0, bool? logTrace = null) 
     {
         try
         {
@@ -230,14 +230,13 @@ public sealed class ApiRequestService : IApiRequestService
     }
 
     public async Task<ApiRequestResponse<T>> SendRequestAsync<T>(ApiRequestDetails apiRequestDetails)
-        where T : class
+        
     {
         return await SendRequestInternalAsync<T>(apiRequestDetails);
     }
 
     private async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
         ApiRequestDetails apiRequestDetails)
-        where T : class
     {
         _configuration?.Invoke(_apiConfiguration);
         if (apiRequestDetails.LogTrace is not null)
@@ -450,7 +449,6 @@ public sealed class ApiRequestService : IApiRequestService
     }
 
     private void ExtractObject<T>(ApiRequestResponse<T> apiRequestResponse, string format)
-        where T : class
     {
         try
         {

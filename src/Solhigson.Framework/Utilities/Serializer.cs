@@ -144,7 +144,7 @@ public static class Serializer
         return theObject;
     }
 
-    public static T DeserializeFromXml<T>(this string xmlString) where T : class
+    public static T DeserializeFromXml<T>(this string xmlString)// where T : class
     {
         return (T) xmlString.DeserializeFromXml(typeof(T));
     }
