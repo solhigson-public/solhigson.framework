@@ -283,7 +283,7 @@ public sealed class ApiRequestService : IApiRequestService
 
             if (timeOut > 0)
             {
-                client.Timeout = TimeSpan.FromMilliseconds(timeOut);
+                client.Timeout = TimeSpan.FromSeconds(timeOut);
             }
 
             if (apiRequestDetails.Headers is { Count: > 0 })

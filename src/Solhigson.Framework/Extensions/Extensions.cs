@@ -1007,5 +1007,22 @@ public static class Extensions
     }
 
     #endregion
+    
+    public static string Truncate(this string text, int length)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return text;
+        }
+        var maxLength = text.Length > length ? length : text.Length;
+        if (text.Length > maxLength)
+        {
+            text = text[..maxLength] + "...";
+        }
+
+        return text;
+
+    }
+
 
 }
