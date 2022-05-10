@@ -14,7 +14,7 @@ public static class AdoNetUtils
 
     public static async Task<int> ExecuteNonQueryAsync(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null,
-        bool isStoredProcedure = false)
+        bool isStoredProcedure = true)
     {
         await using var conn = new SqlConnection(connectionString);
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
@@ -24,8 +24,8 @@ public static class AdoNetUtils
         return await cmd.ExecuteNonQueryAsync();
     }
 
-    public static async Task<T> GetSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null, bool isStoredProcedure = false)
+    public static async Task<T> ExecuteSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
+        List<SqlParameter> parameters = null, bool isStoredProcedure = true)
     {
         await using var conn = new SqlConnection(connectionString);
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
@@ -34,8 +34,8 @@ public static class AdoNetUtils
         return ReadSingle<T>(reader);
     }
         
-    public static async Task<List<T>> GetListAsync<T>(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null, bool isStoredProcedure = false)
+    public static async Task<List<T>> ExecuteListAsync<T>(string connectionString, string spNameOrCommand,
+        List<SqlParameter> parameters = null, bool isStoredProcedure = true)
     {
         await using var conn = new SqlConnection(connectionString);
         await using var cmd = new SqlCommand(spNameOrCommand, conn);

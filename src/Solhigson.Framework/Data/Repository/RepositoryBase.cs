@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -19,6 +20,33 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     {
         DbContext = dbContext;
     }
+
+    public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter> parameters = null,
+        bool isStoredProcedure = true)
+    {
+        return await AdoNetUtils.ExecuteNonQueryAsync(DbContext.Database.GetConnectionString(),
+            spName, parameters, isStoredProcedure);
+    }
+    
+    public async Task<TK> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter> parameters = null,
+        bool isStoredProcedure = true)
+    {
+        return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(DbContext.Database.GetConnectionString(),
+            spName, parameters, isStoredProcedure);
+    }
+
+    public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter> parameters = null,
+        bool isStoredProcedure = true)
+    {
+        return await AdoNetUtils.ExecuteListAsync<TK>(DbContext.Database.GetConnectionString(),
+            spName, parameters, isStoredProcedure);
+    }
+    
+    protected SqlParameter GetParameter(string name, object value)
+    {
+        return new SqlParameter { ParameterName = name, Value = value };
+    }
+
         
     public T New(object identifier = null)
     {
