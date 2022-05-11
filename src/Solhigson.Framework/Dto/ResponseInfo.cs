@@ -6,6 +6,11 @@ namespace Solhigson.Framework.Dto;
 
 public struct ResponseInfo
 {
+    internal const string DefaultMessage = "An unexpected error has occurred.";
+    private string _statusCode = Infrastructure.StatusCode.UnExpectedError;
+    private string _message = DefaultMessage;
+    private bool _initialized = false;
+
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
     public object ErrorData { get; set; }
@@ -14,13 +19,21 @@ public struct ResponseInfo
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsSuccessful => StatusCode == Infrastructure.StatusCode.Successful;
 
-    [JsonProperty("statusCode")] 
+    [JsonProperty("statusCode")]
     [JsonPropertyName("statusCode")]
-    public string StatusCode { get; set; }
+    public string StatusCode
+    {
+        get => _initialized ? _statusCode : Infrastructure.StatusCode.UnExpectedError;
+        set => _statusCode = value;
+    }
 
-    [JsonProperty("message")] 
+    [JsonProperty("message")]
     [JsonPropertyName("message")]
-    public string Message { get; set; }
+    public string Message
+    {
+        get => _initialized ? _message : DefaultMessage;
+        set => _message = value;
+    }
 
     public ResponseInfo SetStatusCode(string statusCode)
     {
@@ -50,20 +63,20 @@ public struct ResponseInfo
         return new ResponseInfo<T>().Success(result, message);
     }
 
-    public static ResponseInfo FailedResult(string message = "An unexpected error has occurred.",
+    public static ResponseInfo FailedResult(string message = DefaultMessage,
         string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null)
     {
         return new ResponseInfo().Fail(message, responseCode, errorData);
     }
 
-    public static ResponseInfo<T> FailedResult<T>(string message = "An unexpected error has occurred.",
+    public static ResponseInfo<T> FailedResult<T>(string message = DefaultMessage,
         string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null,
         T result = default)
     {
         return new ResponseInfo<T>().Fail(message, responseCode, errorData, result);
     }
 
-    public ResponseInfo Fail(string message = "An unexpected error has occurred.",
+    public ResponseInfo Fail(string message = DefaultMessage,
         string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null)
     {
         Message = message;
@@ -72,11 +85,11 @@ public struct ResponseInfo
         return this;
     }
         
-    public ResponseInfo(string message = "An unexpected error has occurred.", 
+    public ResponseInfo(string message = DefaultMessage, 
         string statusCode = Infrastructure.StatusCode.UnExpectedError)
     {
-        Message = message;
-        StatusCode = statusCode;
+        _message = message;
+        _statusCode = statusCode;
         ErrorData = null;
     }
 }
@@ -85,7 +98,7 @@ public struct ResponseInfo<T>
 {
     private ResponseInfo _responseInfo;
 
-    public ResponseInfo(string message = "An unexpected error has occurred.",
+    public ResponseInfo(string message = ResponseInfo.DefaultMessage,
         string statusCode = Infrastructure.StatusCode.UnExpectedError,
         T result = default)
     {
@@ -119,7 +132,7 @@ public struct ResponseInfo<T>
 
     public ResponseInfo<T> Success(T result, string message = null)
     {
-        if (result == null)
+        if (result is null)
         {
             throw new ArgumentNullException(nameof(result),
                 $"result cannot be null when calling ResponseInfo<>.Success({typeof(T).FullName}, string)");
@@ -130,7 +143,7 @@ public struct ResponseInfo<T>
         return this;
     }
 
-    public ResponseInfo<T> Fail(string message = "An unexpected error has occurred.",
+    public ResponseInfo<T> Fail(string message = ResponseInfo.DefaultMessage,
         string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null,
         T result = default)
     {
