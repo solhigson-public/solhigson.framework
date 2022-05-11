@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
-using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities.Pluralization;
 
@@ -634,6 +634,24 @@ public static class HelperFunctions
         }
 
         return b.ToString();
+    }
+
+    public static T Invoke<T>(this Func<T> method)
+    {
+        if (method is null)
+        {
+            return default;
+        }
+        try
+        {
+            return method();
+        }
+        catch (Exception e)
+        {
+            method.Method.DeclaringType.ELogError(e);
+        }
+
+        return default;
     }
 
 }

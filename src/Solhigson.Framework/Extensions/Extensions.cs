@@ -552,17 +552,11 @@ public static class Extensions
         var customCacheEntry = CacheManager.GetFromCache(key);
         if (customCacheEntry != null)
         {
-            if (Logger.IsDebugEnabled)
-            {
-                Logger.Trace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
-            }
+            Logger.Trace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
             return customCacheEntry.Value as TK;
         }
 
-        if (Logger.IsDebugEnabled)
-        {
-            Logger.Trace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
-        }
+        Logger.Trace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
         lock (key)
         {
             customCacheEntry = CacheManager.GetFromCache(key);
