@@ -72,7 +72,7 @@ public static class CacheManager
         try
         {
             return await AdoNetUtils.ExecuteListAsync<ChangeTrackerDto>
-                (_connectionString, $"[{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}]", isStoredProcedure: true);
+                (_connectionString, $"[{ScriptsManager.CacheChangeTrackerInfo.GetAllChangeTrackerSpName}]");
         }
         catch (Exception e)
         {
@@ -88,7 +88,8 @@ public static class CacheManager
         {
             return await AdoNetUtils.ExecuteSingleOrDefaultAsync<short>
             (_connectionString,
-                $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {ScriptsManager.GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'");
+                $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {ScriptsManager.GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'",
+                isStoredProcedure: false);
         }
         catch (Exception e)
         {
