@@ -9,7 +9,7 @@ public struct ResponseInfo
     internal const string DefaultMessage = "An unexpected error has occurred.";
     private string _statusCode = Infrastructure.StatusCode.UnExpectedError;
     private string _message = DefaultMessage;
-    private bool _initialized = false;
+    private bool _initialized;
 
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
@@ -35,22 +35,9 @@ public struct ResponseInfo
         set => _message = value;
     }
 
-    public ResponseInfo SetStatusCode(string statusCode)
-    {
-        StatusCode = statusCode;
-        return this;
-    }
-
     public T GetError<T>()
     {
         return ErrorData is T error ? error : default;
-    }
-
-    public ResponseInfo Success(string message = "")
-    {
-        StatusCode = Infrastructure.StatusCode.Successful;
-        Message = message;
-        return this;
     }
 
     public static ResponseInfo SuccessResult(string message = null)
@@ -76,12 +63,21 @@ public struct ResponseInfo
         return new ResponseInfo<T>().Fail(message, responseCode, errorData, result);
     }
 
+    public ResponseInfo Success(string message = "")
+    {
+        StatusCode = Infrastructure.StatusCode.Successful;
+        Message = message;
+        _initialized = true;
+        return this;
+    }
+
     public ResponseInfo Fail(string message = DefaultMessage,
         string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null)
     {
         Message = message;
         StatusCode = responseCode;
         ErrorData = errorData;
+        _initialized = true;
         return this;
     }
         
@@ -91,6 +87,7 @@ public struct ResponseInfo
         _message = message;
         _statusCode = statusCode;
         ErrorData = null;
+        _initialized = true;
     }
 }
 
