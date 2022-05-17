@@ -18,6 +18,16 @@ public class SolhigsonIdentityDbContext<TUser> : SolhigsonIdentityDbContext<TUse
     /// Initializes a new instance of the <see cref="SolhigsonIdentityDbContext" /> class.
     /// </summary>
     protected SolhigsonIdentityDbContext() { }
+    
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        builder.Entity<SolhigsonRolePermission<string>>(b =>
+        {
+            b.Property(a => a.RoleId).HasColumnType("VARCHAR(450)");
+        });
+        base.OnModelCreating(builder);
+    }
+
         
 }
     
