@@ -19,16 +19,6 @@ public class SolhigsonIdentityDbContext<TUser> : SolhigsonIdentityDbContext<TUse
     /// </summary>
     protected SolhigsonIdentityDbContext() { }
     
-    protected override void OnModelCreating(ModelBuilder builder)
-    {
-        builder.Entity<SolhigsonRolePermission<string>>(b =>
-        {
-            b.Property(a => a.RoleId).HasColumnType("VARCHAR(450)");
-        });
-        base.OnModelCreating(builder);
-    }
-
-        
 }
     
 public class SolhigsonIdentityDbContext<TUser, TKey> : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey> 
