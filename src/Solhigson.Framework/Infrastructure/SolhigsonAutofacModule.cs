@@ -22,7 +22,8 @@ public class SolhigsonAutofacModule : Module
         _configuration = configuration;
     }
 
-    public static void LoadDbSupport(ContainerBuilder builder)
+    public static void LoadDbSupport(ContainerBuilder builder, IConfiguration configuration,
+        DbContextOptionsBuilder<SolhigsonDbContext> optionsBuilder = null)
     {
         builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
@@ -30,24 +31,23 @@ public class SolhigsonAutofacModule : Module
         builder.RegisterType<SolhigsonConfigurationService>().AsSelf().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
+        builder.Register(c => new ConfigurationWrapper(configuration, optionsBuilder))
+            .AsSelf().InstancePerLifetimeScope();
+
         builder.RegisterType<CurrentLogScopedPropertiesAccessor>().AsSelf().InstancePerLifetimeScope();
     }
+    
     protected override void Load(ContainerBuilder builder)
     {
         #region Registed AsSelf(), no interface implementation
 
         if (!string.IsNullOrWhiteSpace(_connectionString))
         {
-            builder.Register(c =>
-            {
-                var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
-                opt.UseSqlServer(_connectionString);
-                return new SolhigsonDbContext(opt.Options);
-            }).AsSelf().InstancePerLifetimeScope();
+            var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
+            opt.UseSqlServer(_connectionString);
+            builder.Register(c => new SolhigsonDbContext(opt.Options)).AsSelf().InstancePerLifetimeScope();
                 
-            builder.Register(c => new ConfigurationWrapper(_configuration, _connectionString))
-                .AsSelf().InstancePerLifetimeScope();
-            LoadDbSupport(builder);
+            LoadDbSupport(builder, _configuration, opt);
         }
         else
         {

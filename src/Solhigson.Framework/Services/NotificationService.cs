@@ -74,7 +74,7 @@ public class NotificationService : INotificationService
                         .TemplateName);
                 if (template is null)
                 {
-                    this.ELogWarn($"Notification Template: [{emailNotificationDetail.TemplateName} not found. Email will not be sent");
+                    this.ELogWarn($"Notification Template: [{emailNotificationDetail.TemplateName}] not found. Email will not be sent");
                     return;
                 }
 

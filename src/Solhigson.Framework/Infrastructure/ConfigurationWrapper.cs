@@ -20,15 +20,12 @@ public class ConfigurationWrapper
     private readonly SolhigsonDbContext _dbContext;
     private static readonly object SyncHelper = new();
 
-    public ConfigurationWrapper(IConfiguration configuration, string connectionString)
+    public ConfigurationWrapper(IConfiguration configuration, DbContextOptionsBuilder<SolhigsonDbContext> optionsBuilder)
     {
         Configuration = configuration;
-        var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
-        //_dbContext = serviceProvider.GetService<SolhigsonDbContext>();
-        if (!string.IsNullOrWhiteSpace(connectionString))
+        if (optionsBuilder is not null)
         {
-            opt.UseSqlServer(connectionString);
-            _dbContext = new SolhigsonDbContext(opt.Options);
+            _dbContext = new SolhigsonDbContext(optionsBuilder.Options);
         }
     }
 
