@@ -60,8 +60,12 @@ public class ConfigurationWrapper
         // ReSharper disable once InconsistentlySynchronizedField
         if (useAppSettingsFileOnly || _dbContext is null)
         {
+            if (defaultValue is not null)
+            {
+                return defaultValue;
+            }
             throw new Exception(
-                $"Configuration [{key}] for group [{group}] not found in appSettings file.");
+                $"Configuration [{configKey}] not found in appSettings.");
         }
 
         // ReSharper disable once InconsistentlySynchronizedField
@@ -95,7 +99,7 @@ public class ConfigurationWrapper
 
         if (defaultValue is null)
         {
-            throw new Exception($"Configuration [{key}] for group [{group}] not found.");
+            throw new Exception($"Configuration [{configKey}] not found in appSettings or database.");
         }
 
         AddSettingToDb(configKey, defaultValue);
