@@ -19,6 +19,7 @@ public static class CacheManager
 {
     private static Timer _timer;
 
+    private static bool _initialized;
     private static string _connectionString;
     private static readonly LogWrapper Logger = new LogWrapper(typeof(CacheManager).FullName);
     private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
@@ -41,6 +42,7 @@ public static class CacheManager
                 cacheDependencyChangeTrackerTimerIntervalMilliseconds;
             ScriptsManager.SetUpDatabaseObjects(dbContextAssembly, connectionString);
             StartCacheTimer();
+            _initialized = true;
         }
         catch (Exception e)
         {
@@ -86,6 +88,10 @@ public static class CacheManager
     {
         try
         {
+            if (!_initialized)
+            {
+                return 0;
+            }
             return await AdoNetUtils.ExecuteSingleOrDefaultAsync<short>
             (_connectionString,
                 $"EXEC [{ScriptsManager.CacheChangeTrackerInfo.GetTableChangeTrackerSpName}]  {ScriptsManager.GetParameterName(ScriptsManager.CacheChangeTrackerInfo.TableNameColumn)} = N'{tableName}'",
@@ -101,7 +107,7 @@ public static class CacheManager
 
     internal static void AddToCache(string key, object value, IList<Type> types)
     {
-        if (string.IsNullOrWhiteSpace(key))
+        if (!_initialized || string.IsNullOrWhiteSpace(key))
         {
             return;
         }
