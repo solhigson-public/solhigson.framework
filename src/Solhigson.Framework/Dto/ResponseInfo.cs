@@ -34,6 +34,11 @@ public struct ResponseInfo
         get => _initialized ? _message : DefaultMessage;
         set => _message = value;
     }
+    
+    //for consistency in resulting json string with ResponseInfo<T> - will always be null
+    [JsonProperty("data")] 
+    [JsonPropertyName("data")]
+    public object Data { get; private set; }
 
     public T GetError<T>()
     {
@@ -87,6 +92,7 @@ public struct ResponseInfo
         _message = message;
         _statusCode = statusCode;
         ErrorData = null;
+        Data = null;
         _initialized = true;
     }
 }

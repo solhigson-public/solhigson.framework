@@ -875,6 +875,11 @@ public static class Extensions
         
     public static IActionResult HttpOk<T>(this ResponseInfo<T> response)
     {
+        if (!response.IsSuccessful && response.Data is null)
+        {
+            //for unit test simplification
+            return response.InfoResult.HttpOk();
+        }
         return new OkObjectResult(response);
     }
 
