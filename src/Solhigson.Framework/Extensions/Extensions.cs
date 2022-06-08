@@ -381,17 +381,17 @@ public static class Extensions
         
     public static string Email(this ClaimsPrincipal principal)
     {
-        return principal.Identity.GetClaimValue(ClaimTypes.Email);
+        return principal?.Identity.GetClaimValue(ClaimTypes.Email);
     }
 
     public static string Id(this ClaimsPrincipal principal)
     {
-        return principal.Identity.GetClaimValue(ClaimTypes.NameIdentifier);
+        return principal?.Identity.GetClaimValue(ClaimTypes.NameIdentifier);
     }
 
     public static string Role(this ClaimsPrincipal principal)
     {
-        return principal.Identity.GetClaimValue(ClaimTypes.Role);
+        return principal?.Identity.GetClaimValue(ClaimTypes.Role);
     }
 
 

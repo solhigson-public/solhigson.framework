@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -654,4 +656,51 @@ public static class HelperFunctions
         return default;
     }
 
+    private const char EqualsChar = '=';
+    private const char Slash = '/';
+    private const byte SlashByte = (byte)Slash;
+    private const char Plus = '+';
+    private const byte PlusByte = (byte)Plus;
+    private const char Hyphen = '-';
+    private const char Underscore = '_';
+    public static Guid ToGuidFromBase64String(ReadOnlySpan<char> id)
+    {
+        Span<char> base64Chars = stackalloc char[24];
+        for (var i = 0; i < 22; i++)
+        {
+            base64Chars[i] = id[i] switch
+            {
+                Hyphen => Slash,
+                Underscore => Plus,
+                _ => id[i]
+            };
+        }
+
+        base64Chars[22] = EqualsChar;
+        base64Chars[23] = EqualsChar;
+
+        Span<byte> idBytes = stackalloc byte[16];
+        Convert.TryFromBase64Chars(base64Chars, idBytes, out _);
+        return new Guid(idBytes);
+    }
+
+    public static string ToStringFromGuid(Guid guid)
+    {
+        Span<byte> guidBytes = stackalloc byte[16];
+        Span<byte> base64Bytes = stackalloc byte[24];
+        MemoryMarshal.TryWrite(guidBytes, ref guid);
+        Base64.EncodeToUtf8(guidBytes, base64Bytes, out _, out _);
+
+        Span<char> finalChars = stackalloc char[22];
+        for (var i = 0; i < 22; i++)
+        {
+            finalChars[i] = base64Bytes[i] switch
+            {
+                SlashByte => Hyphen,
+                PlusByte => Underscore,
+                _ => (char)base64Bytes[i]
+            };
+        }
+        return new string(finalChars);
+    }
 }
