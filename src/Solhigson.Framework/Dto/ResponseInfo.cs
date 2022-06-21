@@ -24,7 +24,11 @@ public struct ResponseInfo
     public string StatusCode
     {
         get => _initialized ? _statusCode : Infrastructure.StatusCode.UnExpectedError;
-        set => _statusCode = value;
+        set
+        {
+            _statusCode = value;
+            _initialized = true;
+        }
     }
 
     [JsonProperty("message")]
@@ -32,7 +36,11 @@ public struct ResponseInfo
     public string Message
     {
         get => _initialized ? _message : DefaultMessage;
-        set => _message = value;
+        set
+        {
+            _message = value;
+            _initialized = true;
+        }
     }
     
     //for consistency in resulting json string with ResponseInfo<T> - will always be null
