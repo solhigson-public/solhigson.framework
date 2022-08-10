@@ -2,7 +2,7 @@
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
     [CustomFileComment]
-    public partial class [ApplicationName]RepositoryBase<T>
+    public partial class [ApplicationNameClassSafe]RepositoryBase<T>
     {
         
     }

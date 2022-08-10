@@ -10,7 +10,7 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <Version>6.0.39</Version>
+        <Version>6.0.40</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>10</LangVersion>

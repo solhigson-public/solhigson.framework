@@ -2,7 +2,7 @@
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
     [CustomFileComment]
-    public partial class [ApplicationName]CachedRepositoryBase<T, TCacheModel>
+    public partial class [ApplicationNameClassSafe]CachedRepositoryBase<T, TCacheModel>
     {
         
     }
