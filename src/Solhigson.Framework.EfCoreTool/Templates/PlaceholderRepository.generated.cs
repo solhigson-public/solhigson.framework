@@ -7,7 +7,7 @@ using Solhigson.Framework.Infrastructure;
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
     [GeneratedFileComment]
-    public partial class [Placeholder]Repository : [ApplicationNameClassSafe][Cached]RepositoryBase<[EntityNameSpace].[Placeholder]
+    public partial class [Placeholder]Repository : [ApplicationName][Cached]RepositoryBase<[EntityNameSpace].[Placeholder]
         [CachedEntityModel]>, 
             [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder].I[Placeholder]Repository
     {

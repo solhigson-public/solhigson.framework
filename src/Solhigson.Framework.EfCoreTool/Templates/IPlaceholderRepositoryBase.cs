@@ -2,7 +2,7 @@
 namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
     [CustomFileComment]
-    public partial interface I[ApplicationNameClassSafe]RepositoryBase<T>
+    public partial interface I[ApplicationName]RepositoryBase<T>
     {
         
     }

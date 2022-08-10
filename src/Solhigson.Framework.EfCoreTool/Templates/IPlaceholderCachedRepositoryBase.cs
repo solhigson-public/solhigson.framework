@@ -2,7 +2,7 @@
 namespace [PersistenceProjectRootNamespace].[Folder].[AbstractionsFolder]
 {
     [CustomFileComment]
-    public partial interface I[ApplicationNameClassSafe]CachedRepositoryBase<T, TCacheModel>
+    public partial interface I[ApplicationName]CachedRepositoryBase<T, TCacheModel>
     {
         
     }
