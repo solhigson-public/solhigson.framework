@@ -931,11 +931,13 @@ public static class Extensions
     }
         
     #region Crypto
-        
-    public static string Hex(this byte[] bytes)
+
+    private const string HexAlphabetLower = "0123456789abcdef";
+    private const string HexAlphabetUpper = "0123456789ABCDEF";
+    public static string Hex(this byte[] bytes, bool useUpper = false)
     {
         var result = new StringBuilder(bytes.Length);
-        const string hexAlphabet = "0123456789abcdef";
+        var hexAlphabet = useUpper ? HexAlphabetUpper : HexAlphabetLower;
 
         foreach (var b in bytes)
         {

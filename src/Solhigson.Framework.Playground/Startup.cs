@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Web;
+﻿namespace Solhigson.Framework.Playground;
 
 public partial class Startup
 {

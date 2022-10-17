@@ -33,7 +33,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Views" />
+      <None Update="Whiteboard\public.key">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
