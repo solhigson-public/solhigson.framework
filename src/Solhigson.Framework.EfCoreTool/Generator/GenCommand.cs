@@ -70,6 +70,12 @@ internal class GenCommand : CommandBase
         persistenceProjectPath = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
 #endif
 
+        if (persistenceProjectPath.Contains('*'))
+        {
+            Console.WriteLine("Invalid path...existing");
+            return;
+        }
+
 
         Console.WriteLine($"Using path: {persistenceProjectPath}");
         if (!Args.TryGetValue(DtoProjectPathOption, out var serviceProjectPath))
