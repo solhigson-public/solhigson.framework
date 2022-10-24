@@ -350,7 +350,6 @@ public static class Extensions
                 $"{nameof(SolhigsonSmtpMailProvider)} service has not been registered, kindly include " +
                 $"services.AddSolhigsonSmtpMailProvider() under ConfigureServices in Startup.");
         }
-
         provider.UseConfiguration(configuration);
 
         return app;

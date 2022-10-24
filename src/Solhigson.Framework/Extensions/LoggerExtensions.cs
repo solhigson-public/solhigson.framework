@@ -19,7 +19,7 @@ public static class LoggerExtensions
         bool isUp, string endPointUrl, object data = null,
         string userEmail = null, Exception exception = null)
     {
-        if (Logger.IsInfoEnabled)
+        if (!Logger.IsInfoEnabled)
         {
             return;
         }
