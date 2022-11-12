@@ -33,15 +33,25 @@ public static class EnumUtil
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static List<KeyValuePair<string, string>> GetEnumList<T>(bool separateCamelCase = true) where T : struct//, IConvertible
+    private static IEnumerable<KeyValuePair<string, string>> GetEnumList<T>(bool separateCamelCase = true, bool useNameAsValue = false) where T : struct
     {
         if (!typeof(T).IsEnum) throw new ArgumentException("T must be an enum type");
 
         var enumValues = Enum.GetValues(typeof(T)).Cast<int>();
 
-        var enumList = separateCamelCase 
-            ? enumValues.Select(value => new KeyValuePair<string, string>(value.ToString(), FromCamelCase(Enum.GetName(typeof(T), value)))).ToList() 
-            : enumValues.Select(value => new KeyValuePair<string, string>(value.ToString(), Enum.GetName(typeof(T), value))).ToList();
+        List<KeyValuePair<string, string>> enumList;
+        if (useNameAsValue)
+        {
+            enumList = separateCamelCase 
+                ? enumValues.Select(value => new KeyValuePair<string, string>(Enum.GetName(typeof(T), value), FromCamelCase(Enum.GetName(typeof(T), value)))).ToList() 
+                : enumValues.Select(value => new KeyValuePair<string, string>(Enum.GetName(typeof(T), value), Enum.GetName(typeof(T), value))).ToList();
+        }
+        else
+        {
+            enumList = separateCamelCase 
+                ? enumValues.Select(value => new KeyValuePair<string, string>(value.ToString(), FromCamelCase(Enum.GetName(typeof(T), value)))).ToList() 
+                : enumValues.Select(value => new KeyValuePair<string, string>(value.ToString(), Enum.GetName(typeof(T), value))).ToList();
+        }
 
         return enumList.OrderBy(kvp => kvp.Value).ToList();
     }
@@ -63,10 +73,11 @@ public static class EnumUtil
         return enumValues.ToDictionary(value => value, value => FromCamelCase(Enum.GetName(typeof(T), value)));
     }
 
-    public static List<SelectListItem> GetEnumSelectList<T>(bool separateCamelCase = true) where T : struct//, IConvertible
+    public static List<SelectListItem> GetEnumSelectList<T>(bool separateCamelCase = true, bool useNameAsValue = false) where T : struct
     {
-        return GetEnumList<T>(separateCamelCase).Select(keypair => new SelectListItem { Text = keypair.Value, Value = keypair.Key }).ToList();
+        return GetEnumList<T>(separateCamelCase, useNameAsValue).Select(keypair => new SelectListItem { Text = keypair.Value, Value = keypair.Value }).ToList();
     }
+
     /// <summary>
     /// Returns an enum from name string.
     /// </summary>
