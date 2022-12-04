@@ -123,7 +123,7 @@ public sealed class ApiTraceMiddleware : IMiddleware
         traceData.ResponseMessage = responseContent;
         traceData.ResponseTime = DateTime.UtcNow;
         var timeTaken = traceData.ResponseTime - traceData.RequestTime;
-        traceData.TimeMilliseconds = timeTaken.TotalMilliseconds;
+        traceData.TimeSeconds = timeTaken.TotalSeconds;
         traceData.TimeTaken = HelperFunctions.TimespanToWords(timeTaken);
         traceData.ResponseHeaders = HelperFunctions.ToJsonObject(response.Headers);
 

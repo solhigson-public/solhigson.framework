@@ -418,7 +418,7 @@ public sealed class ApiRequestService : IApiRequestService
             RequestMessage = requestMessage,
             ResponseTime = endTime, 
             TimeTaken = HelperFunctions.TimespanToWords(timeTaken),
-            TimeMilliseconds = timeTaken.TotalMilliseconds,
+            TimeSeconds = timeTaken.TotalSeconds,
             ResponseMessage = responseMessage,
             ResponseHeaders = responseHeaders,
             StatusCode = ((int)statusCode).ToString(),
