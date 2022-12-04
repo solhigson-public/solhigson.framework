@@ -24,6 +24,7 @@ public class ApiTraceData
     public DateTime RequestTime { get; set; }
     public DateTime ResponseTime { get; set; }
     public string TimeTaken { get; set; }
+    public double TimeMilliseconds { get; set; }
 
     internal string GetUserIdentity()
     {

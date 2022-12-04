@@ -122,7 +122,9 @@ public sealed class ApiTraceMiddleware : IMiddleware
         //traceData.ResponseMessage = HelperFunctions.CheckForProtectedFields(responseContent, _servicesWrapper);
         traceData.ResponseMessage = responseContent;
         traceData.ResponseTime = DateTime.UtcNow;
-        traceData.TimeTaken = HelperFunctions.TimespanToWords(traceData.ResponseTime - traceData.RequestTime);
+        var timeTaken = traceData.ResponseTime - traceData.RequestTime;
+        traceData.TimeMilliseconds = timeTaken.TotalMilliseconds;
+        traceData.TimeTaken = HelperFunctions.TimespanToWords(timeTaken);
         traceData.ResponseHeaders = HelperFunctions.ToJsonObject(response.Headers);
 
         traceData.StatusCode = response.StatusCode.ToString();

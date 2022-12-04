@@ -407,6 +407,7 @@ public sealed class ApiRequestService : IApiRequestService
         string responseMessage, JObject responseHeaders, HttpStatusCode statusCode, string serviceDescription,
         string serviceName, string serviceType)
     {
+        var timeTaken = endTime - startTime;
         var traceData = new ApiTraceData
         {
             RequestTime = DateTime.UtcNow,
@@ -416,7 +417,8 @@ public sealed class ApiRequestService : IApiRequestService
             RequestHeaders = HelperFunctions.ToJsonObject(requestHeaders),
             RequestMessage = requestMessage,
             ResponseTime = endTime, 
-            TimeTaken = HelperFunctions.TimespanToWords(endTime - startTime),
+            TimeTaken = HelperFunctions.TimespanToWords(timeTaken),
+            TimeMilliseconds = timeTaken.TotalMilliseconds,
             ResponseMessage = responseMessage,
             ResponseHeaders = responseHeaders,
             StatusCode = ((int)statusCode).ToString(),
