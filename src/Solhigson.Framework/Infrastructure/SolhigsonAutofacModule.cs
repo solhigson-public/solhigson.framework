@@ -67,15 +67,15 @@ public class SolhigsonAutofacModule : Module
         builder.RegisterType<ApiTraceMiddleware>().AsSelf().SingleInstance()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
-        builder.RegisterType<ExceptionHandlingMiddleware>().AsSelf().SingleInstance()
+        builder.RegisterType<ExceptionHandlingMiddleware>().AsSelf().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
         #endregion
 
-        builder.RegisterType<ApiRequestService>().As<IApiRequestService>().SingleInstance()
+        builder.RegisterType<ApiRequestService>().As<IApiRequestService>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
-        builder.RegisterType<NotificationService>().As<INotificationService>().SingleInstance()
+        builder.RegisterType<NotificationService>().As<INotificationService>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
     }

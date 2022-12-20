@@ -266,8 +266,7 @@ public sealed class ApiRequestService : IApiRequestService
         client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
         var request = new HttpRequestMessage();
 
-        var startTime = DateTime.UtcNow;
-        var endTime = startTime;
+        apiRequestHelperResponse.StartTime = DateTime.UtcNow;
         try
         {
             request.Method = method;
@@ -304,6 +303,7 @@ public sealed class ApiRequestService : IApiRequestService
 
             apiRequestHelperResponse.ResponseHeaders = new Dictionary<string, string>();
 
+            apiRequestHelperResponse.StartTime = DateTime.UtcNow;
             apiRequestHelperResponse.HttpResponseMessage = await client.SendAsync(request);
             apiRequestHelperResponse.Response =
                 await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
@@ -347,7 +347,7 @@ public sealed class ApiRequestService : IApiRequestService
             apiRequestHelperResponse.Response = e.Message;
             _logger.Error(e, $"While sending request to url: {url}");
             apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
-            if ((DateTime.UtcNow - startTime).TotalMilliseconds >= apiRequestDetails.TimeOut)
+            if ((DateTime.UtcNow - apiRequestHelperResponse.StartTime).TotalMilliseconds >= apiRequestDetails.TimeOut)
             {
                 apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.RequestTimeout;
             }
@@ -358,8 +358,8 @@ public sealed class ApiRequestService : IApiRequestService
         {
             try
             {
-                endTime = DateTime.UtcNow;
-                apiRequestHelperResponse.TimeTaken = endTime - startTime;
+                apiRequestHelperResponse.EndTime = DateTime.UtcNow;
+                apiRequestHelperResponse.TimeTaken = apiRequestHelperResponse.EndTime - apiRequestHelperResponse.StartTime;
 
                 var responseFormat = format;
                 JObject responseHeaders = null;
@@ -387,7 +387,7 @@ public sealed class ApiRequestService : IApiRequestService
 
                 if (_apiConfiguration.LogOutBoundApiRequests)
                 {
-                    SaveApiTraceData(url, method.ToString(), apiRequestDetails.Headers, startTime, endTime,
+                    SaveApiTraceData(url, method.ToString(), apiRequestDetails.Headers, apiRequestHelperResponse.EndTime, apiRequestHelperResponse.EndTime,
                         apiRequestHelperResponse.Request,
                         apiRequestHelperResponse.Response, responseHeaders,
                         apiRequestHelperResponse.HttpStatusCode,
