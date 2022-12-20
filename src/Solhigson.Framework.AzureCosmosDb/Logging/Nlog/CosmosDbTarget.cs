@@ -39,7 +39,8 @@ public class CosmosDbTarget<T> : TargetWithLayout where T : CosmosDocumentBase
             document.TimeToLive = (int)_ttl.TotalSeconds;
             document.Id = Guid.NewGuid().ToString();
             document.Timestamp = DateUtils.CurrentUnixTimestamp;
-            AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
+            _ = _service.AddDocumentAsync(document);
+            //AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
             return true;
         }
         catch (Exception e)
