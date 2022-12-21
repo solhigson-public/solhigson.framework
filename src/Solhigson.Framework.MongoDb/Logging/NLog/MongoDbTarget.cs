@@ -40,7 +40,8 @@ public class MongoDbTarget<T> : TargetWithLayout where T : MongoDbDocumentBase
             var document = JsonConvert.DeserializeObject<T>(jsonString);
             document.Id = Guid.NewGuid().ToString();
             document.Ttl = DateTime.UtcNow.Add(_expireAfter);
-            AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
+            _ = _service.AddDocumentAsync(document);
+            //AsyncTools.RunSync(() => _service.AddDocumentAsync(document));
             return true;
         }
         catch (Exception e)
