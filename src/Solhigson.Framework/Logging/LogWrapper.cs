@@ -25,7 +25,8 @@ public class LogWrapper
 
     internal void Log(string message, LogLevel logLevel, object data = null,
         Exception exception = null, string serviceName = null, string serviceType = null,
-        string group = Constants.Group.AppLog, string status = null, string endPointUrl = null)
+        string group = Constants.Group.AppLog, string status = null, string endPointUrl = null,
+        string chainId = null)
     {
         if (!_logger.IsEnabled(logLevel))
         {
@@ -41,7 +42,7 @@ public class LogWrapper
         eventInfo.Properties["status"] = status;
         eventInfo.Properties["url"] = endPointUrl;
         eventInfo.Properties[UserRenderer.Name] = ServiceProviderWrapper.HttpContextAccessor?.GetEmailClaim() ?? ServiceProviderWrapper.GetCurrentLogUserEmail();
-        eventInfo.Properties["chainId"] = ServiceProviderWrapper.GetCurrentLogChainId();
+        eventInfo.Properties["chainId"] = chainId ?? ServiceProviderWrapper.GetCurrentLogChainId();
         _logger.Log(eventInfo);
     }
 

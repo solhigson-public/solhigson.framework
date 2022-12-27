@@ -17,7 +17,7 @@ public static class LoggerExtensions
     public static void EServiceStatus(this object obj, string serviceName, string serviceDescription,
         string serviceType,
         bool isUp, string endPointUrl, object data = null,
-        string userEmail = null, Exception exception = null)
+        string userEmail = null, Exception exception = null, string chainId = null)
     {
         if (!Logger.IsInfoEnabled)
         {
@@ -35,7 +35,7 @@ public static class LoggerExtensions
 
         var status = isUp ? Constants.ServiceStatus.Up : Constants.ServiceStatus.Down;
         LogManager.GetLogger(obj)?.Log(desc, LogLevel.Info, data, exception, serviceName, serviceType,
-            Constants.Group.ServiceStatus, status, endPointUrl);
+            Constants.Group.ServiceStatus, status, endPointUrl, chainId);
     }
 
     public static void ELogTrace(this object obj, string message, object data = null)
