@@ -15,32 +15,32 @@ namespace Solhigson.Framework.Data.Repository;
 public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T : class, new() where TDbContext : DbContext
 {
     protected TDbContext DbContext { get; set; }
-    private string _connectionString { get; }
+    private string ConnectionString { get; }
 
     public RepositoryBase(TDbContext dbContext)
     {
         DbContext = dbContext;
-        _connectionString = DbContext.Database.GetConnectionString();
+        ConnectionString = DbContext.Database.GetConnectionString();
     }
 
     public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter> parameters = null,
         bool isStoredProcedure = true)
     {
-        return await AdoNetUtils.ExecuteNonQueryAsync(_connectionString,
+        return await AdoNetUtils.ExecuteNonQueryAsync(ConnectionString,
             spName, parameters, isStoredProcedure);
     }
     
     public async Task<TK> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter> parameters = null,
         bool isStoredProcedure = true)
     {
-        return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(_connectionString,
+        return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(ConnectionString,
             spName, parameters, isStoredProcedure);
     }
 
     public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter> parameters = null,
         bool isStoredProcedure = true)
     {
-        return await AdoNetUtils.ExecuteListAsync<TK>(_connectionString,
+        return await AdoNetUtils.ExecuteListAsync<TK>(ConnectionString,
             spName, parameters, isStoredProcedure);
     }
     
