@@ -10,6 +10,7 @@
     <ItemGroup>
       <PackageReference Include="BenchmarkDotNet" Version="0.13.1" />
       <PackageReference Include="NLog.Schema" Version="4.7.14" />
+      <PackageReference Include="Open.Text" Version="6.3.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,6 +23,15 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Whiteboard\public.key">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Whiteboard\private.key">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

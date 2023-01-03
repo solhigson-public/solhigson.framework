@@ -42,7 +42,7 @@ public static class NLogDefaults
                 new JsonAttribute("User", "${solhigson-user}", true),
 
 
-                new JsonAttribute("MachineName", "${machineName}", true)
+                new JsonAttribute("MachineName", "${solhigson-machineName}", true)
             },
 
         };
@@ -71,7 +71,7 @@ public static class NLogDefaults
                 new JsonAttribute("User", "${solhigson-user}", true),
 
 
-                new JsonAttribute("MachineName", "${machineName}", true)
+                new JsonAttribute("MachineName", "${solhigson-machineName}", true)
             },
 
         };
