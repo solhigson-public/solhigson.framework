@@ -6,7 +6,7 @@
         <Description>Mongo Db Client and NLog Target</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>6.0.50</PackageVersion>
+        <PackageVersion>6.0.51</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>10</LangVersion>
@@ -15,7 +15,7 @@
     <ItemGroup>
       <PackageReference Include="Audit.NET.MongoDB" Version="19.0.7" />
       <PackageReference Include="MongoDB.Driver" Version="2.14.1" />
-      <PackageReference Include="Solhigson.Framework" Version="6.0.46" />
+      <PackageReference Include="Solhigson.Framework" Version="6.0.86" />
     </ItemGroup>
 
 </Project>
