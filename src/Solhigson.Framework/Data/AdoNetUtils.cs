@@ -2,21 +2,26 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using Solhigson.Framework.Logging;
 
 namespace Solhigson.Framework.Data;
 
 public static class AdoNetUtils
 {
-    private static readonly LogWrapper Logger = new LogWrapper(typeof(AdoNetUtils).FullName);
+    private static readonly LogWrapper Logger = new(typeof(AdoNetUtils).FullName);
 
     public static async Task<int> ExecuteNonQueryAsync(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null,
-        bool isStoredProcedure = true)
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
     {
         await using var conn = new SqlConnection(connectionString);
+        if (retryLogicBaseProvider is not null)
+        {
+            conn.RetryLogicProvider = retryLogicBaseProvider;
+        }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
         if (isStoredProcedure) cmd.CommandType = CommandType.StoredProcedure;
         if (parameters is { Count: > 0 }) cmd.Parameters.AddRange(parameters.ToArray());
@@ -25,9 +30,14 @@ public static class AdoNetUtils
     }
 
     public static async Task<T> ExecuteSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null, bool isStoredProcedure = true)
+        List<SqlParameter> parameters = null, bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
     {
         await using var conn = new SqlConnection(connectionString);
+        if (retryLogicBaseProvider is not null)
+        {
+            conn.RetryLogicProvider = retryLogicBaseProvider;
+        }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
         await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure);
         await reader.ReadAsync();
@@ -35,9 +45,14 @@ public static class AdoNetUtils
     }
         
     public static async Task<List<T>> ExecuteListAsync<T>(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null, bool isStoredProcedure = true)
+        List<SqlParameter> parameters = null, bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
     {
         await using var conn = new SqlConnection(connectionString);
+        if (retryLogicBaseProvider is not null)
+        {
+            conn.RetryLogicProvider = retryLogicBaseProvider;
+        }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
         await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure);
         return await ReadCollectionAsync<T>(reader);
