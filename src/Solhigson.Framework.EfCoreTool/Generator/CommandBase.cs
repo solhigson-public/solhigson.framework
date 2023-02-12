@@ -43,6 +43,7 @@ internal abstract class CommandBase
 
     internal (bool IsValid, string ErrorMessage) ParseArguments(string[] args)
     {
+        Console.WriteLine("Args: ");
         for (var i = 1; i < args.Length; i++)
         {
             var option = args[i];
@@ -56,7 +57,6 @@ internal abstract class CommandBase
                 value = "";
             }
 
-            Console.WriteLine("Args: ");
             Console.WriteLine($"{option} => {value}");
             Args.Add(option, value);
         }
