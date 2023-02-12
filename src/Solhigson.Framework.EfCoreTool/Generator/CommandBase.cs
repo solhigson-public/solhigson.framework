@@ -56,6 +56,8 @@ internal abstract class CommandBase
                 value = "";
             }
 
+            Console.WriteLine("Args: ");
+            Console.WriteLine($"{option} => {value}");
             Args.Add(option, value);
         }
 
@@ -88,6 +90,11 @@ internal abstract class CommandBase
             var assembly = Assembly.LoadFile(assemblyPath);
             var databaseContexts = assembly
                 .GetTypes().Where(t => t.IsSubclassOf(typeof(DbContext))).ToList();
+            Console.WriteLine("Database Contexts found: ");
+            foreach (var dbContext in databaseContexts)
+            {
+                Console.WriteLine(dbContext.Name);
+            }
 
             if (!Args.TryGetValue(RootNamespaceOption, out var rootNamespace))
             {
