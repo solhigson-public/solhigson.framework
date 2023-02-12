@@ -140,6 +140,7 @@ internal abstract class CommandBase
                 return (false, $"No database Contexts found");
             }
 
+            Console.WriteLine($"Using databaseContext: {databaseContext}");
 
             Models = databaseContext.GetProperties(BindingFlags.DeclaredOnly |
                                                    BindingFlags.Public |
