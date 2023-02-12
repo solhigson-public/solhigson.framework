@@ -24,24 +24,27 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     }
 
     public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter> parameters = null,
-        bool isStoredProcedure = true)
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
     {
         return await AdoNetUtils.ExecuteNonQueryAsync(ConnectionString,
-            spName, parameters, isStoredProcedure);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider);
     }
     
     public async Task<TK> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter> parameters = null,
-        bool isStoredProcedure = true)
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
     {
         return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(ConnectionString,
-            spName, parameters, isStoredProcedure);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider);
     }
 
     public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter> parameters = null,
-        bool isStoredProcedure = true)
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
     {
         return await AdoNetUtils.ExecuteListAsync<TK>(ConnectionString,
-            spName, parameters, isStoredProcedure);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider);
     }
     
     protected SqlParameter GetParameter(string name, object value)
