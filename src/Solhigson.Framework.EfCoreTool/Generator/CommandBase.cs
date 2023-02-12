@@ -17,7 +17,7 @@ internal abstract class CommandBase
     private const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
     protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
     private const string AssemblyPathOption = "-a";
-    private const string DatabaseContextName = "-d";
+    private const string DatabaseContextName = "-dc";
     protected const string RootNamespaceOption = "-rn";
     internal string RepositoryNamespace { get; set; }
     internal string CachedEntityNamespace { get; set; }
