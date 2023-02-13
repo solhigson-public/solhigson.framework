@@ -87,6 +87,7 @@ public class ConfigurationWrapper
         }
         */
             
+        this.ELogWarn($"Fetching AppSetting [{configKey}] from db");
         var appSetting = query.FirstOrDefault();
         if (appSetting is not null)
         {
