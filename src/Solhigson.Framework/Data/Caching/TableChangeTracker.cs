@@ -33,7 +33,7 @@ public class TableChangeTracker : IDisposable
             if (ce.ChangeIds.TryGetValue(key, out var changeId) && _changeIds[key] != changeId)
             {
                 _changeIds[key] = changeId;
-                this.ELogTrace($"Change tracker changed for [{key}]");
+                this.ELogInfo($"Change tracker changed for [{key}]");
                 OnChanged?.Invoke(null, EventArgs.Empty);
             }
         }
