@@ -5,12 +5,13 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Attributes;
+using Solhigson.Framework.Data.Caching;
 
 namespace Solhigson.Framework.Identity;
 
 [Table(ScriptsManager.RoleGroupInfo.TableName)]
 [Index(nameof(Name), IsUnique = true)]
-public record SolhigsonRoleGroup
+public record SolhigsonRoleGroup : ICachedEntity
 {
     public SolhigsonRoleGroup()
     {

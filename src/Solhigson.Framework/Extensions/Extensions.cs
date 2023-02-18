@@ -563,7 +563,7 @@ public static class Extensions
                 return customCacheEntry.Value as TK;
             }
 
-            Logger.Warn($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
+            Logger.Trace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             var result = func(query) as TK;
                 
             CacheManager.AddToCache(key, result, GetQueryBaseTypeList(query, iCachedEntityType));
