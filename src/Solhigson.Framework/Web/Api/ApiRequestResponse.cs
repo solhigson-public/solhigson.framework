@@ -15,7 +15,7 @@ public class ApiRequestResponse
 
     public string Request { get; set; }
     public DateTime StartTime { get; set; }
-    public DateTime EndTime { get; set; }
+    public DateTime? EndTime { get; set; }
 
     public bool IsSuccessful => IsSuccessfulStatusCode((int) HttpStatusCode);
 

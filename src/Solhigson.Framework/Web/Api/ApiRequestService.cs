@@ -261,12 +261,14 @@ public sealed class ApiRequestService : IApiRequestService
             serviceType = Constants.ServiceType.External;
         }
 
-        var apiRequestHelperResponse = new ApiRequestResponse<T>();
+        var apiRequestHelperResponse = new ApiRequestResponse<T>
+        {
+            StartTime = DateTime.UtcNow
+        };
         var client = _httpClientFactory.CreateClient(apiRequestDetails.NamedHttpClient ?? "");
         client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
         var request = new HttpRequestMessage();
 
-        apiRequestHelperResponse.StartTime = DateTime.UtcNow;
         try
         {
             request.Method = method;
@@ -305,6 +307,7 @@ public sealed class ApiRequestService : IApiRequestService
 
             apiRequestHelperResponse.StartTime = DateTime.UtcNow;
             apiRequestHelperResponse.HttpResponseMessage = await client.SendAsync(request);
+            apiRequestHelperResponse.EndTime = DateTime.UtcNow;
             apiRequestHelperResponse.Response =
                 await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
 
@@ -358,8 +361,8 @@ public sealed class ApiRequestService : IApiRequestService
         {
             try
             {
-                apiRequestHelperResponse.EndTime = DateTime.UtcNow;
-                apiRequestHelperResponse.TimeTaken = apiRequestHelperResponse.EndTime - apiRequestHelperResponse.StartTime;
+                apiRequestHelperResponse.EndTime ??= DateTime.UtcNow;
+                apiRequestHelperResponse.TimeTaken = apiRequestHelperResponse.EndTime.Value - apiRequestHelperResponse.StartTime;
 
                 var responseFormat = format;
                 JObject responseHeaders = null;
@@ -387,11 +390,12 @@ public sealed class ApiRequestService : IApiRequestService
 
                 if (_apiConfiguration.LogOutBoundApiRequests)
                 {
-                    SaveApiTraceData(url, method.ToString(), apiRequestDetails.Headers, apiRequestHelperResponse.EndTime, apiRequestHelperResponse.EndTime,
+                    _ = Task.Run(() => SaveApiTraceData(url, method.ToString(), apiRequestDetails.Headers, apiRequestHelperResponse.StartTime, 
+                        apiRequestHelperResponse.EndTime ?? DateTime.UtcNow,
                         apiRequestHelperResponse.Request,
                         apiRequestHelperResponse.Response, responseHeaders,
                         apiRequestHelperResponse.HttpStatusCode,
-                        apiRequestDetails.ServiceDescription, serviceName, serviceType);
+                        apiRequestDetails.ServiceDescription, serviceName, serviceType));
                 }
             }
             catch (Exception e)
@@ -440,11 +444,10 @@ public sealed class ApiRequestService : IApiRequestService
 
     }
 
-    private void GetStatusCode(WebException we, ApiRequestResponse apiRequestResponse)
+    private static void GetStatusCode(WebException we, ApiRequestResponse apiRequestResponse)
     {
         if (we.Message.ToLower().Contains("timed out")
-            || we.Status == WebExceptionStatus.Timeout
-            || we.Status == WebExceptionStatus.Pending)
+            || we.Status is WebExceptionStatus.Timeout or WebExceptionStatus.Pending)
         {
             apiRequestResponse.HttpStatusCode = HttpStatusCode.RequestTimeout;
         }
