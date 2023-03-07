@@ -94,6 +94,7 @@ public class ConfigurationWrapper
             value = appSetting.IsSensitive
                 ? SolhigsonConfigurationService.DecryptSetting(appSetting.Value)
                 : appSetting.Value;
+            this.ELogWarn($"Adding AppSetting [{configKey}] to memory cache");
             query.AddCustomResultToCache(value);
             return value;
         }
@@ -128,6 +129,7 @@ public class ConfigurationWrapper
             };
             _dbContext.AppSettings.Add(setting);
             _dbContext.SaveChanges();
+            this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
             //CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
             /*
             }
