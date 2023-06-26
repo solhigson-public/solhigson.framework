@@ -61,7 +61,7 @@ public class PagedSearchParameters
             {
                 return _fromDate.Value;
             }
-            _fromDate = DateTime.UtcNow.Date.AddMinutes(LocaleUtil.GetTimeZoneOffset());
+            _fromDate = DateTime.UtcNow.Date.AddMinutes(LocaleUtil.GetTimeZoneOffset() * -1);
             _convertedFromDateToUniversalTime = true;
             return _fromDate.Value;
         }
@@ -77,7 +77,7 @@ public class PagedSearchParameters
             {
                 return _toDate.Value;
             }
-            _toDate = FromDate.AddDays(1).AddMilliseconds(-1);
+            _toDate = FromDate.AddDays(1);
             _convertedToDateToUniversalTime = true;
             return _toDate.Value;
         }

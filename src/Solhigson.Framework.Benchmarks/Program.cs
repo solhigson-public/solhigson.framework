@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using BenchmarkDotNet.Running;
+using CommunityToolkit.HighPerformance.Buffers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -24,5 +25,13 @@ var config = new ConfigurationBuilder()
     .Build();
 
 BuildDi(config);
-BenchmarkRunner.Run(typeof(Program).Assembly);
+
+void Stuff()
+{
+    var SessionId = "000014230321095911236616516562";
+    Console.WriteLine(SessionId[..6]);
+    Console.WriteLine(StringPool.Shared.GetOrAdd(SessionId.AsSpan(0,6)));
+}
+
+Stuff(); BenchmarkRunner.Run(typeof(Program).Assembly);
 
