@@ -9,12 +9,32 @@ internal static class ServiceProviderWrapper
 {
     internal static IServiceProvider ServiceProvider { get; set; }
 
-    internal static IHttpContextAccessor HttpContextAccessor => ServiceProvider?.GetService<IHttpContextAccessor>();
+    internal static IHttpContextAccessor GetHttpContextAccessor()
+    {
+        try
+        {
+            return ServiceProvider?.GetService<IHttpContextAccessor>();
+        }
+        catch (Exception e)
+        {
+            //
+        }
+
+        return null;
+    }
 
     private static ScopedProperties GetScopedProperties()
     {
-        var serviceProvider = HttpContextAccessor?.HttpContext?.RequestServices ?? ServiceProvider;
-        var accessor = serviceProvider?.GetService<CurrentLogScopedPropertiesAccessor>();
+        var serviceProvider = GetHttpContextAccessor()?.HttpContext?.RequestServices ?? ServiceProvider;
+        CurrentLogScopedPropertiesAccessor accessor = null;
+        try
+        {
+            accessor = serviceProvider?.GetService<CurrentLogScopedPropertiesAccessor>();
+        }
+        catch (Exception e)
+        {
+            //
+        }
         if (accessor is null)
         {
             return null;
@@ -26,7 +46,7 @@ internal static class ServiceProviderWrapper
     private const string ChainId = "::solhigson::framework::LogItems::chainid::";
     internal static void SetCurrentLogChainId(string chainId)
     {
-        var httpContext = HttpContextAccessor?.HttpContext;
+        var httpContext = GetHttpContextAccessor()?.HttpContext;
         if (httpContext is not null)
         {
             SetItem(httpContext, ChainId, chainId);
@@ -41,7 +61,7 @@ internal static class ServiceProviderWrapper
     private const string Email = "::solhigson::framework::LogItems::email::";
     internal static void SetCurrentLogUserEmail(string email)
     {
-        var httpContext = HttpContextAccessor?.HttpContext;
+        var httpContext = GetHttpContextAccessor()?.HttpContext;
         if (httpContext is not null)
         {
             SetItem(httpContext, Email, email);
@@ -56,7 +76,7 @@ internal static class ServiceProviderWrapper
     
     internal static string GetCurrentLogChainId()
     {
-        if (HttpContextAccessor?.HttpContext?.Items.TryGetValue(ChainId, out var chainId) == true)
+        if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(ChainId, out var chainId) == true)
         {
             return chainId as string;
         }
@@ -64,7 +84,7 @@ internal static class ServiceProviderWrapper
     }
     internal static string GetCurrentLogUserEmail()
     {
-        if (HttpContextAccessor?.HttpContext?.Items.TryGetValue(Email, out var email) == true)
+        if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(Email, out var email) == true)
         {
             return email as string;
         }

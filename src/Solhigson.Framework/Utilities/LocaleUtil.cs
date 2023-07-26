@@ -14,7 +14,7 @@ public static class LocaleUtil
     public static int GetTimeZoneOffset()
     {
         var timeOffSet = HelperFunctions.SafeGetSessionData(Constants.TimeZoneCookieName,
-            ServiceProviderWrapper.HttpContextAccessor) ?? ServiceProviderWrapper.HttpContextAccessor?.HttpContext?.Request?.Cookies[Constants.TimeZoneCookieName];
+            ServiceProviderWrapper.GetHttpContextAccessor()) ?? ServiceProviderWrapper.GetHttpContextAccessor()?.HttpContext?.Request?.Cookies[Constants.TimeZoneCookieName];
 
         if (timeOffSet != null && int.TryParse(timeOffSet, out var offset))
         {
