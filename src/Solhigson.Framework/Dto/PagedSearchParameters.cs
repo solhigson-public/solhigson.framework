@@ -12,7 +12,7 @@ public class PagedSearchParameters
     public string DateColumnName { get; set; }
     public PagedSearchParameters()
     {
-        OtherParameters = new Dictionary<string, string>();
+        OtherParameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         PageSize = 20;
         Page = 1;
         _convertedFromDateToUniversalTime = false;

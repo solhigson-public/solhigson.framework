@@ -945,18 +945,6 @@ public static class Extensions
         }
 
         return result.ToString();
-        /*
-        if (bytes == null)
-        {
-            return null;
-        }
-        var output = new StringBuilder(bytes.Length);
-        foreach (var t in bytes)
-        {
-            output.Append(t.ToString("x2"));
-        }
-        return output.ToString();
-    */
     }
 
     public static byte[] FromHexString(this string hexString)
