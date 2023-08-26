@@ -14,7 +14,7 @@ using Solhigson.Framework.Utilities;
 
 namespace Solhigson.Framework.Web.Api;
 
-public sealed class ApiRequestService : IApiRequestService
+public class ApiRequestService : IApiRequestService
 {
     public const string ContentTypePlain = "text/plain";
     public const string ContentTypeJson = "application/json";
@@ -235,7 +235,7 @@ public sealed class ApiRequestService : IApiRequestService
         return await SendRequestInternalAsync<T>(apiRequestDetails);
     }
 
-    private async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
+    protected virtual async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
         ApiRequestDetails apiRequestDetails)
     {
         _configuration?.Invoke(_apiConfiguration);
