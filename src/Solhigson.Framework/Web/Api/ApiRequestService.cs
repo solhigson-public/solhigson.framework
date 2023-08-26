@@ -306,7 +306,7 @@ public class ApiRequestService : IApiRequestService
             apiRequestHelperResponse.ResponseHeaders = new Dictionary<string, string>();
 
             apiRequestHelperResponse.StartTime = DateTime.UtcNow;
-            apiRequestHelperResponse.HttpResponseMessage = await client.SendAsync(request);
+            apiRequestHelperResponse.HttpResponseMessage = await SendAsync(client, request);// client.SendAsync(request);
             apiRequestHelperResponse.EndTime = DateTime.UtcNow;
             apiRequestHelperResponse.Response =
                 await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
@@ -485,5 +485,9 @@ public class ApiRequestService : IApiRequestService
         }
     }
 
+    protected virtual async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpRequestMessage request)
+    {
+        return await client.SendAsync(request);
+    }
     #endregion
 }
