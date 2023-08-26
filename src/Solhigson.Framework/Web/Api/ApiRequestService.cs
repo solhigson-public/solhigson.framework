@@ -235,7 +235,7 @@ public class ApiRequestService : IApiRequestService
         return await SendRequestInternalAsync<T>(apiRequestDetails);
     }
 
-    protected virtual async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
+    protected async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
         ApiRequestDetails apiRequestDetails)
     {
         _configuration?.Invoke(_apiConfiguration);
@@ -306,7 +306,7 @@ public class ApiRequestService : IApiRequestService
             apiRequestHelperResponse.ResponseHeaders = new Dictionary<string, string>();
 
             apiRequestHelperResponse.StartTime = DateTime.UtcNow;
-            apiRequestHelperResponse.HttpResponseMessage = await SendAsync(client, request);// client.SendAsync(request);
+            apiRequestHelperResponse.HttpResponseMessage = await MakeHttpCall<T>(apiRequestDetails, client, request);// client.SendAsync(request);
             apiRequestHelperResponse.EndTime = DateTime.UtcNow;
             apiRequestHelperResponse.Response =
                 await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
@@ -485,7 +485,7 @@ public class ApiRequestService : IApiRequestService
         }
     }
 
-    protected virtual async Task<HttpResponseMessage> SendAsync(HttpClient client, HttpRequestMessage request)
+    protected virtual async Task<HttpResponseMessage> MakeHttpCall<T>(ApiRequestDetails apiRequestDetails, HttpClient client, HttpRequestMessage request)
     {
         return await client.SendAsync(request);
     }
