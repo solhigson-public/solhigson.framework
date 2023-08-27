@@ -8,7 +8,7 @@ namespace [PersistenceProjectRootNamespace].[Folder]
     {
         public static void RegisterDependencies(Autofac.ContainerBuilder builder)
         {
-            [RepositoryDependencies]
+[RepositoryDependencies]
 
             RegisterDependenciesCustom(builder);
         }
