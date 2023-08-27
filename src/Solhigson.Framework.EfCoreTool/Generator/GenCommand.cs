@@ -171,8 +171,8 @@ internal class GenCommand : CommandBase
         GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", false, true); //generated class
         GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", false, false); //custom class
         
-        GenerateFile(persistenceProjectPath, RepositoryNamespace, "DependencyRegister", "", "", false, true, repositoryDependencies: GetRepositoryDependencies(Models)); //generated class
-        GenerateFile(persistenceProjectPath, RepositoryNamespace, "DependencyRegister", "", "", false, false, repositoryDependencies: GetRepositoryDependencies(Models)); //custom class
+        GenerateFile(persistenceProjectPath, RepositoryNamespace, "DependencyRegister", ApplicationName, "", false, true, repositoryDependencies: GetRepositoryDependencies(Models)); //generated class
+        GenerateFile(persistenceProjectPath, RepositoryNamespace, "DependencyRegister", ApplicationName, "", false, false, repositoryDependencies: GetRepositoryDependencies(Models)); //custom class
         Console.WriteLine("Completed");
     }
 
