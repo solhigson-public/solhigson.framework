@@ -266,7 +266,8 @@ internal class GenCommand : CommandBase
             var className = entity.Name + RepositoryClassType;
             sBuilder.AppendLine($"{GetTabSpace(2)}private {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className} {fieldName};");
             sBuilder.AppendLine($"{GetTabSpace(2)}public {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className} {className}");
-            sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= new {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{className}(DbContext);" + " } }");
+            sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= ServiceProvider.GetService<{PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className}>();" + " } }");
+//            sBuilder.AppendLine(GetTabSpace(2) + "{ get { " + $"return {fieldName} ??= new {PersistenceProjectRootNamespace}.{RepositoryNamespace}.{className}(DbContext);" + " } }");
             sBuilder.AppendLine();
         }
 
@@ -474,7 +475,7 @@ internal class GenCommand : CommandBase
         bool isInterface, bool returnProjectedType)
     {
         var propertyName = indexAttr.PropertyNames[0];
-        var qualifier = isInterface ? "" : "public ";
+        var qualifier = isInterface ? "" : "public virtual ";
         var props = type.GetProperties();
 
         var propertyInfo = props.FirstOrDefault(t => t.Name == indexAttr.PropertyNames[0]);
