@@ -53,17 +53,6 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     }
 
         
-    public T New(object identifier = null)
-    {
-        var entity = new T();
-        if (identifier != null)
-        {
-            entity.GetType().GetProperties()
-                .FirstOrDefault(t => t.GetAttribute<KeyAttribute>() != null)?.SetValue(entity, identifier);
-        }
-        return Add(entity);
-    }
-
     [ObsoleteAttribute("This property is obsolete. Use Where() instead.")]
     public IQueryable<T> Get(Expression<Func<T, bool>> expression)
     {
@@ -93,11 +82,6 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     }
 
     #region Add
-    public T Add(T entity)
-    {
-        return DbContext.Set<T>().Add(entity).Entity;
-    }
-        
     public async Task<T> AddAndSaveChangesAsync(T entity)
     {
         return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Add, entity);
