@@ -1,5 +1,5 @@
 ﻿using System;
-using Autofac;
+
 
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
