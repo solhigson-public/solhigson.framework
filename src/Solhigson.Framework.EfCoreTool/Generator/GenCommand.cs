@@ -170,9 +170,6 @@ internal class GenCommand : CommandBase
         GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", true, false); //custom interface
         GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", false, true); //generated class
         GenerateFile(persistenceProjectPath, RepositoryNamespace, "CachedRepositoryBase", ApplicationName, "", false, false); //custom class
-        
-        GenerateFile(persistenceProjectPath, RepositoryNamespace, "DependencyRegister", ApplicationName, "", false, true, repositoryDependencies: GetRepositoryDependencies(Models)); //generated class
-        GenerateFile(persistenceProjectPath, RepositoryNamespace, "DependencyRegister", ApplicationName, "", false, false, repositoryDependencies: GetRepositoryDependencies(Models)); //custom class
         Console.WriteLine("Completed");
     }
 
@@ -276,22 +273,6 @@ internal class GenCommand : CommandBase
 
         return sBuilder.ToString();
     }
-    
-    private string GetRepositoryDependencies(IList<Type> entities)
-    {
-        var sBuilder = new StringBuilder();
-
-        foreach (var entity in entities)
-        {
-            var className = entity.Name + RepositoryClassType;
-            sBuilder.AppendLine(
-                $"{GetTabSpace(3)}builder.RegisterType<{PersistenceProjectRootNamespace}.{RepositoryNamespace}.{className}>().As<{PersistenceProjectRootNamespace}.{RepositoryNamespace}.{AbstractionsFolderName}.I{className}>().InstancePerLifetimeScope();");
-            sBuilder.AppendLine();
-        }
-
-        return sBuilder.ToString();
-    }
-
 
     private static bool Same(IReadOnlyList<string> first, IReadOnlyList<string> second)
     {

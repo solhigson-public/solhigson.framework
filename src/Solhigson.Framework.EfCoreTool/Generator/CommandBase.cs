@@ -208,7 +208,7 @@ internal abstract class CommandBase
 
     protected void GenerateFile(string rootPath, string folder, string type,
         string entityName, string entityNamespace,
-        bool isInterface, bool isGenerated, string properties = "", bool isCachedEntity = false, string repositoryDependencies = "")
+        bool isInterface, bool isGenerated, string properties = "", bool isCachedEntity = false)
     {
         var interfaceIndicator = isInterface ? "I" : "";
         var abstractionsFolder = isInterface ? $"/{AbstractionsFolderName}" : "";
@@ -271,7 +271,6 @@ internal abstract class CommandBase
             .Replace("[DtoProjectNamespace]", DtoProjectNamespace)
             .Replace("[ContractsProjectNamespace]", ContractsProjectNamespace)
             .Replace("[Cached]", cachedRepositoryIndicator)
-            .Replace("[RepositoryDependencies]", repositoryDependencies)
             .Replace("[CachedEntityModel]", cachedRepositoryClassPrefix)
             .Replace("[CustomFileComment]", GetComment("This file is never overwritten, place custom code here"))
             .Replace("[GeneratedFileComment]",

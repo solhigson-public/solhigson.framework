@@ -10,7 +10,7 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <Version>6.0.48</Version>
+        <Version>6.0.47</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>10</LangVersion>
@@ -64,10 +64,6 @@
         <EmbeddedResource Include="Templates\PlaceholderServiceBase.generated.cs" />
         <EmbeddedResource Include="Templates\PlaceholderServiceBase.cs" />
         <Compile Remove="Templates\PlaceholderBaseTest.generated.cs" />
-        <EmbeddedResource Include="Templates\PlaceholderDependencyRegister.cs" />
-        <EmbeddedResource Include="Templates\PlaceholderDependencyRegister.generated.cs" />
-        <Compile Remove="Templates\PlaceholderDependencyRegister.generated.cs" />
-        <Compile Remove="Templates\PlaceholderDependencyRegister.cs" />
     </ItemGroup>
 
     <ItemGroup>
