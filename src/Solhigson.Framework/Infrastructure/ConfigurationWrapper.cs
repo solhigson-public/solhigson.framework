@@ -129,7 +129,7 @@ public class ConfigurationWrapper
             };
             _dbContext.AppSettings.Add(setting);
             _dbContext.SaveChanges();
-            this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
+            //this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
             //CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
             /*
             }

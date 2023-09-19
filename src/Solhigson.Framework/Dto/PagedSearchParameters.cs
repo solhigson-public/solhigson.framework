@@ -25,6 +25,8 @@ public class PagedSearchParameters
         _convertedToDateToUniversalTime = true;
     }
 
+    public bool IsUniversalTime => _convertedFromDateToUniversalTime && _convertedToDateToUniversalTime;
+
     public void SetToDateToEndOfDay()
     {
         _toDate = _toDate?.Date.AddDays(1).AddMilliseconds(-1);
