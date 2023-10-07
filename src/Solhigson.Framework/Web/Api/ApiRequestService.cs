@@ -372,15 +372,15 @@ public class ApiRequestService : IApiRequestService
                         apiRequestHelperResponse.HttpResponseMessage.StatusCode;
                     responseHeaders =
                         HelperFunctions.ToJsonObject(apiRequestHelperResponse.HttpResponseMessage.Headers);
-                    if (responseHeaders.ContainsKey("Content-Type"))
+                    if (responseHeaders.TryGetValue("Content-Type", out var header))
                     {
-                        responseFormat = responseHeaders["Content-Type"].ToString();
+                        responseFormat = header.ToString();
                     }
                     if (apiRequestHelperResponse.HttpResponseMessage.Headers != null)
                     {
                         foreach (var (key, value) in apiRequestHelperResponse.HttpResponseMessage.Headers)
                         {
-                            apiRequestHelperResponse.ResponseHeaders.Add(key, value.ToString());
+                            apiRequestHelperResponse.ResponseHeaders.Add(key, string.Join(",", value));
                         }
                     }
                 }
