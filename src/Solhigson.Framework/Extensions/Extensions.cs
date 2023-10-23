@@ -527,9 +527,9 @@ public static class Extensions
         return GetCacheData<T, T>(query, ResolveToSingle, iCachedEntityTypesToMonitor);
     }
 
-    public static void AddCustomResultToCache<T>(this IQueryable<T> query, object result, params Type [] types) where T : class
+    public static bool AddCustomResultToCache<T>(this IQueryable<T> query, object result, params Type [] types) where T : class
     {
-        CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
+        return CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
     }
         
     public static T GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class

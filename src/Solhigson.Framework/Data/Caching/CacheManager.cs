@@ -105,20 +105,19 @@ public static class CacheManager
         return 0;
     }
 
-    internal static void AddToCache(string key, object value, IList<Type> types)
+    internal static bool AddToCache(string key, object value, IList<Type> types)
     {
         if (!_initialized || string.IsNullOrWhiteSpace(key))
         {
-            return;
+            return false;
         }
 
         if (types == null || !types.Any())
         {
-            InsertItem(key, value);
-            return;
+            return InsertItem(key, value);
         }
 
-        InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
+        return InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
     }
 
     internal static IList<Type> GetValidICacheEntityTypes(params Type [] types)
@@ -131,12 +130,12 @@ public static class CacheManager
         return validTypes;
     }
 
-    public static void InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
+    private static bool InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
     {
         if (string.IsNullOrWhiteSpace(key))// || value == null)
         {
             changeMonitor?.Dispose();
-            return;
+            return false;
         }
 
         var entry = new CustomCacheEntry{ Value = value };
@@ -155,10 +154,12 @@ public static class CacheManager
             }
 
             DefaultMemoryCache.Set(key, entry, policy);
+            return true;
         }
         catch (Exception e)
         {
             Logger.Error(e, "Adding item to cache", value);
+            return false;
         }
     }
 

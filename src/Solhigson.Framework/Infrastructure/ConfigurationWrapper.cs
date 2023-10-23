@@ -69,23 +69,14 @@ public class ConfigurationWrapper
         }
 
         // ReSharper disable once InconsistentlySynchronizedField
-        var query = _dbContext.AppSettings.Where(t => t.Name == configKey)
-            .Select(t => t);
+        var query = _dbContext.AppSettings.Where(t => t.Name == configKey);//
 
-        var cacheValue = query.GetCustomResultFromCache<string, AppSetting>();
+        //var cacheValue = query.GetCustomResultFromCache<string, AppSetting>();
+        var cacheValue = GetFromCache(configKey);
         if (cacheValue is not null)
         {
             return cacheValue;
         }
-
-        /*
-        if (value is not null) //give preference to value from appSettings
-        {
-            query.AddCustomResultToCache(value);
-            AddSettingToDb(configKey, value);
-            return value;
-        }
-        */
             
         this.ELogWarn($"Fetching AppSetting [{configKey}] from db");
         var appSetting = query.FirstOrDefault();
@@ -94,8 +85,11 @@ public class ConfigurationWrapper
             value = appSetting.IsSensitive
                 ? SolhigsonConfigurationService.DecryptSetting(appSetting.Value)
                 : appSetting.Value;
-            this.ELogWarn($"Adding AppSetting [{configKey}] to memory cache");
-            query.AddCustomResultToCache(value);
+            // if (!query.AddCustomResultToCache(value))
+            if (!AddToCache(configKey, value))
+            {
+                this.ELogWarn($"Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL");
+            }
             return value;
         }
 
@@ -108,6 +102,18 @@ public class ConfigurationWrapper
         return defaultValue;
 
     }
+
+    private static string GetFromCache(string key)
+    {
+        var result = CacheManager.GetFromCache(key);
+        return result?.Value as string;
+    }
+    
+    private static bool AddToCache(string key, string value)
+    {
+        return CacheManager.AddToCache(key, value, new [] { typeof(AppSetting)});
+    }
+
 
     private void AddSettingToDb(string key, string value)
     {
