@@ -60,6 +60,10 @@ public record CosmosDbLog : CosmosDocumentBase
     [JsonProperty("ChainId")]
     public string ChainId { get; set; }
 
+    [JsonPropertyName("MachineName")]
+    [JsonProperty("MachineName")]
+    public string MachineName { get; set; }
+
     [Newtonsoft.Json.JsonIgnore]
     public DateTime Date
     {
