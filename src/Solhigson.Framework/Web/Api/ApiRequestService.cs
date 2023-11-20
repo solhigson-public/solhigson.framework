@@ -407,7 +407,7 @@ public class ApiRequestService : IApiRequestService
         return apiRequestHelperResponse;
     }
 
-    private void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string requestMessage,
+    protected virtual void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string requestMessage,
         string responseMessage, JObject responseHeaders, HttpStatusCode statusCode, string serviceDescription,
         string serviceName, string serviceType)
     {
@@ -453,7 +453,7 @@ public class ApiRequestService : IApiRequestService
         }
     }
 
-    private void ExtractObject<T>(ApiRequestResponse<T> apiRequestResponse, string format)
+    protected virtual void ExtractObject<T>(ApiRequestResponse<T> apiRequestResponse, string format)
     {
         try
         {
