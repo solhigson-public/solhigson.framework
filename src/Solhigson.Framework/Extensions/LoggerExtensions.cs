@@ -102,6 +102,11 @@ public static class LoggerExtensions
         ServiceProviderWrapper.SetCurrentLogChainId(chainId);
     }
 
+    public static void GetCurrentLogChainId(this object obj)
+    {
+        ServiceProviderWrapper.GetCurrentLogChainId();
+    }
+
     public static void SetCurrentLogUserEmail(this object obj, string email)
     {
         ServiceProviderWrapper.SetCurrentLogUserEmail(email);
