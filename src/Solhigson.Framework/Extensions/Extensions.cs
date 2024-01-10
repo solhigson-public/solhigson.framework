@@ -127,9 +127,10 @@ public static class Extensions
     }
         
     public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-        int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null)
+        int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null, bool continueOnError = true)
     {
-        CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly);
+        CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly,
+            continueOnError);
         return app;
     }
 

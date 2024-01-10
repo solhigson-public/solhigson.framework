@@ -32,7 +32,8 @@ public static class CacheManager
 
     internal static void Initialize(string connectionString,
         int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-        int cacheExpirationPeriodMinutes = 1440, Assembly dbContextAssembly = null)
+        int cacheExpirationPeriodMinutes = 1440, Assembly dbContextAssembly = null,
+        bool continueOnError = true)
     {
         try
         {
@@ -40,14 +41,32 @@ public static class CacheManager
             _cacheExpirationPeriodMinutes = cacheExpirationPeriodMinutes;
             _cacheDependencyChangeTrackerTimerIntervalMilliseconds =
                 cacheDependencyChangeTrackerTimerIntervalMilliseconds;
-            ScriptsManager.SetUpDatabaseObjects(dbContextAssembly, connectionString);
-            StartCacheTimer();
+            if (!SetupDbObjects(dbContextAssembly, connectionString, continueOnError))
+            {
+                return;
+            }
             _initialized = true;
+            StartCacheTimer();
         }
         catch (Exception e)
         {
             Logger.Error(e);
         }
+    }
+
+    private static bool SetupDbObjects(Assembly dbContextAssembly, string connectionString, bool continueOnError)
+    {
+        try
+        {
+            ScriptsManager.SetUpDatabaseObjects(dbContextAssembly, connectionString);
+            return true;
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e);
+        }
+
+        return continueOnError;
     }
 
     private static void StartCacheTimer()
