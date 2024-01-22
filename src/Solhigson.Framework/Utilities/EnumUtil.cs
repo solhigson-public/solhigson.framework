@@ -43,14 +43,14 @@ public static class EnumUtil
         if (useNameAsValue)
         {
             enumList = separateCamelCase 
-                ? enumValues.Select(value => new KeyValuePair<string, string>(Enum.GetName(typeof(T), value), FromCamelCase(Enum.GetName(typeof(T), value)))).ToList() 
+                ? enumValues.Select(value => new KeyValuePair<string, string>(FromCamelCase(Enum.GetName(typeof(T), value)), Enum.GetName(typeof(T), value))).ToList() 
                 : enumValues.Select(value => new KeyValuePair<string, string>(Enum.GetName(typeof(T), value), Enum.GetName(typeof(T), value))).ToList();
         }
         else
         {
             enumList = separateCamelCase 
-                ? enumValues.Select(value => new KeyValuePair<string, string>(value.ToString(), FromCamelCase(Enum.GetName(typeof(T), value)))).ToList() 
-                : enumValues.Select(value => new KeyValuePair<string, string>(value.ToString(), Enum.GetName(typeof(T), value))).ToList();
+                ? enumValues.Select(value => new KeyValuePair<string, string>(FromCamelCase(Enum.GetName(typeof(T), value)), value.ToString())).ToList() 
+                : enumValues.Select(value => new KeyValuePair<string, string>(Enum.GetName(typeof(T), value), value.ToString())).ToList();
         }
 
         return enumList.OrderBy(kvp => kvp.Value).ToList();
@@ -75,7 +75,7 @@ public static class EnumUtil
 
     public static List<SelectListItem> GetEnumSelectList<T>(bool separateCamelCase = true, bool useNameAsValue = false) where T : struct
     {
-        return GetEnumList<T>(separateCamelCase, useNameAsValue).Select(keypair => new SelectListItem { Text = keypair.Value, Value = keypair.Value }).ToList();
+        return GetEnumList<T>(separateCamelCase, useNameAsValue).Select(keypair => new SelectListItem { Text = keypair.Key, Value = keypair.Value }).ToList();
     }
 
     /// <summary>
