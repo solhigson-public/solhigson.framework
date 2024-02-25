@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
-using Solhigson.Framework.Benchmarks;
 
 IServiceProvider BuildDi(IConfiguration config)
 {
@@ -36,13 +35,13 @@ BuildDi(config);
 
 //Stuff(); 
 //BenchmarkRunner.Run(typeof(Program).Assembly);
-var s = new StringTest();
-Console.Write("Using HashSET.....");
-s.UsingHashSet();
-Console.WriteLine(Environment.NewLine);
-Console.Write("Using Regex.....");
-s.UsingRegex();
-Console.ReadLine();
+// var s = new StringTest();
+// Console.Write("Using HashSET.....");
+// s.UsingHashSet();
+// Console.WriteLine(Environment.NewLine);
+// Console.Write("Using Regex.....");
+// s.UsingRegex();
+// Console.ReadLine();
 
 
 
