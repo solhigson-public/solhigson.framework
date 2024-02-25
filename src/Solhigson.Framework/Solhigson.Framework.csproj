@@ -10,7 +10,7 @@
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>6.1.11</PackageVersion>
+        <PackageVersion>6.1.12</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>10</LangVersion>

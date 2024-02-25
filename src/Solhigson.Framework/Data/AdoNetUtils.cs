@@ -15,7 +15,8 @@ public static class AdoNetUtils
     public static async Task<int> ExecuteNonQueryAsync(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
+        int? commandTimeout = null)
     {
         await using var conn = new SqlConnection(connectionString);
         if (retryLogicBaseProvider is not null)
@@ -23,6 +24,10 @@ public static class AdoNetUtils
             conn.RetryLogicProvider = retryLogicBaseProvider;
         }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
+        if (commandTimeout is not null)
+        {
+            cmd.CommandTimeout = commandTimeout.Value;
+        }
         if (isStoredProcedure) cmd.CommandType = CommandType.StoredProcedure;
         if (parameters is { Count: > 0 }) cmd.Parameters.AddRange(parameters.ToArray());
         await conn.OpenAsync();
@@ -31,7 +36,8 @@ public static class AdoNetUtils
 
     public static async Task<T> ExecuteSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null, bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
+        int? commandTimeout = null)
     {
         await using var conn = new SqlConnection(connectionString);
         if (retryLogicBaseProvider is not null)
@@ -39,6 +45,10 @@ public static class AdoNetUtils
             conn.RetryLogicProvider = retryLogicBaseProvider;
         }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
+        if (commandTimeout is not null)
+        {
+            cmd.CommandTimeout = commandTimeout.Value;
+        }
         await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure);
         await reader.ReadAsync();
         return ReadSingle<T>(reader);
@@ -46,7 +56,8 @@ public static class AdoNetUtils
         
     public static async Task<List<T>> ExecuteListAsync<T>(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null, bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
+        int? commandTimeout = null)
     {
         await using var conn = new SqlConnection(connectionString);
         if (retryLogicBaseProvider is not null)
@@ -54,6 +65,10 @@ public static class AdoNetUtils
             conn.RetryLogicProvider = retryLogicBaseProvider;
         }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
+        if (commandTimeout is not null)
+        {
+            cmd.CommandTimeout = commandTimeout.Value;
+        }
         await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure);
         return await ReadCollectionAsync<T>(reader);
     }

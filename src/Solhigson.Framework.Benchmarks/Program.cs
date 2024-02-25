@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
+using Solhigson.Framework.Benchmarks;
 
 IServiceProvider BuildDi(IConfiguration config)
 {
@@ -26,12 +27,22 @@ var config = new ConfigurationBuilder()
 
 BuildDi(config);
 
-void Stuff()
-{
-    var SessionId = "000014230321095911236616516562";
-    Console.WriteLine(SessionId[..6]);
-    Console.WriteLine(StringPool.Shared.GetOrAdd(SessionId.AsSpan(0,6)));
-}
+// void Stuff()
+// {
+//     var SessionId = "000014230321095911236616516562";
+//     Console.WriteLine(SessionId[..6]);
+//     Console.WriteLine(StringPool.Shared.GetOrAdd(SessionId.AsSpan(0,6)));
+// }
 
-Stuff(); BenchmarkRunner.Run(typeof(Program).Assembly);
+//Stuff(); 
+//BenchmarkRunner.Run(typeof(Program).Assembly);
+var s = new StringTest();
+Console.Write("Using HashSET.....");
+s.UsingHashSet();
+Console.WriteLine(Environment.NewLine);
+Console.Write("Using Regex.....");
+s.UsingRegex();
+Console.ReadLine();
+
+
 
