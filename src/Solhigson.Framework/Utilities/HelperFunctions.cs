@@ -250,7 +250,7 @@ public static class HelperFunctions
 
     public static string CheckForProtectedFields(string data, List<string> protectedFields)
     {
-        if (!IsValidJson(data)) //json only
+        if (!IsValidJson(data) || protectedFields?.Any() == false) //json only
         {
             return data;
         }
@@ -274,7 +274,7 @@ public static class HelperFunctions
 
     public static JObject CheckForProtectedFields(JObject jObject, List<string> protectedFields)
     {
-        if (jObject == null)
+        if (jObject == null || protectedFields?.Any() == false)
         {
             return null;
         }
@@ -299,6 +299,10 @@ public static class HelperFunctions
 
     public static object CheckForProtectedFields(object data, List<string> protectedFields)
     {
+        if(protectedFields?.Any() == false)
+        {
+            return data;
+        }
         switch (data)
         {
             case null:
