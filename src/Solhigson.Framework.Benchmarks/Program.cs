@@ -34,7 +34,7 @@ BuildDi(config);
 // }
 
 //Stuff(); 
-//BenchmarkRunner.Run(typeof(Program).Assembly);
+BenchmarkRunner.Run(typeof(Program).Assembly);
 // var s = new StringTest();
 // Console.Write("Using HashSET.....");
 // s.UsingHashSet();

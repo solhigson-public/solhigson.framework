@@ -322,6 +322,11 @@ public static class HelperFunctions
 
     private static void MaskProtectedProperties(JObject jObject, JProperty jProperty, List<string> protectedFields)
     {
+        if(jObject is null || string.IsNullOrWhiteSpace(jProperty?.Name))
+        {
+            return;
+        }
+        
         if (protectedFields.Contains(jProperty.Name, StringComparer.OrdinalIgnoreCase))
         {
             jObject.Property(jProperty.Name).Value = "******";
