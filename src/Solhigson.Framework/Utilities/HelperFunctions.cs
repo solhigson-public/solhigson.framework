@@ -276,7 +276,7 @@ public static class HelperFunctions
     {
         if (jObject == null || protectedFields?.Any() == false)
         {
-            return null;
+            return jObject;
         }
 
         try
