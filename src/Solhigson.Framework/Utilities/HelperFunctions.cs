@@ -120,7 +120,14 @@ public static class HelperFunctions
         var determinePlural = true;
         if (timeSpan.TotalMinutes < 1)
         {
-            value = Math.Round(timeSpan.TotalSeconds, 2, MidpointRounding.AwayFromZero);
+            if (timeSpan.TotalSeconds < 1)
+            {
+                value = 1;
+            }
+            else
+            {
+                value = Math.Round(timeSpan.TotalSeconds, 2, MidpointRounding.AwayFromZero);
+            }
             postfix = " sec";
         }
         else if (timeSpan.TotalHours < 1)
