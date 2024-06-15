@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Threading;
 using System.Threading.Tasks;
+using Hangfire.Common;
 using Microsoft.Data.SqlClient;
 using Solhigson.Framework.Logging;
 
@@ -16,7 +18,8 @@ public static class AdoNetUtils
         List<SqlParameter> parameters = null,
         bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
-        int? commandTimeout = null)
+        int? commandTimeout = null,
+        CancellationToken cancellationToken = new())
     {
         await using var conn = new SqlConnection(connectionString);
         if (retryLogicBaseProvider is not null)
@@ -30,14 +33,15 @@ public static class AdoNetUtils
         }
         if (isStoredProcedure) cmd.CommandType = CommandType.StoredProcedure;
         if (parameters is { Count: > 0 }) cmd.Parameters.AddRange(parameters.ToArray());
-        await conn.OpenAsync();
-        return await cmd.ExecuteNonQueryAsync();
+        await conn.OpenAsync(cancellationToken);
+        return await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
     public static async Task<T> ExecuteSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null, bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
-        int? commandTimeout = null)
+        int? commandTimeout = null,
+        CancellationToken cancellationToken = new())
     {
         await using var conn = new SqlConnection(connectionString);
         if (retryLogicBaseProvider is not null)
@@ -49,15 +53,16 @@ public static class AdoNetUtils
         {
             cmd.CommandTimeout = commandTimeout.Value;
         }
-        await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure);
-        await reader.ReadAsync();
+        await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure, cancellationToken);
+        await reader.ReadAsync(cancellationToken);
         return ReadSingle<T>(reader);
     }
         
     public static async Task<List<T>> ExecuteListAsync<T>(string connectionString, string spNameOrCommand,
         List<SqlParameter> parameters = null, bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
-        int? commandTimeout = null)
+        int? commandTimeout = null,
+        CancellationToken cancellationToken = new())
     {
         await using var conn = new SqlConnection(connectionString);
         if (retryLogicBaseProvider is not null)
@@ -69,19 +74,20 @@ public static class AdoNetUtils
         {
             cmd.CommandTimeout = commandTimeout.Value;
         }
-        await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure);
-        return await ReadCollectionAsync<T>(reader);
+        await using var reader = await ExecuteReaderAsync(cmd, parameters, isStoredProcedure, cancellationToken);
+        return await ReadCollectionAsync<T>(reader, cancellationToken);
     }
 
         
     private static async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, List<SqlParameter> parameters = null,
-        bool isStoredProcedure = false)
+        bool isStoredProcedure = false,
+        CancellationToken cancellationToken = new())
     {
         if (cmd == null) throw new Exception("Command cannot be null, in execute reader");
         if (isStoredProcedure) cmd.CommandType = CommandType.StoredProcedure;
-        if (parameters != null && parameters.Count > 0) cmd.Parameters.AddRange(parameters.ToArray());
-        await cmd.Connection.OpenAsync();
-        return await cmd.ExecuteReaderAsync();
+        if (parameters is { Count: > 0 }) cmd.Parameters.AddRange(parameters.ToArray());
+        await cmd.Connection.OpenAsync(cancellationToken);
+        return await cmd.ExecuteReaderAsync(cancellationToken);
     }
 
 
@@ -153,10 +159,14 @@ public static class AdoNetUtils
         return !type.IsPrimitive && type != typeof(string) && type != typeof(decimal) && !type.IsArray;
     }
 
-    private static async Task<List<TK>> ReadCollectionAsync<TK>(DbDataReader reader)
+    private static async Task<List<TK>> ReadCollectionAsync<TK>(DbDataReader reader,
+        CancellationToken cancellationToken = new())
     {
         var list = new List<TK>();
-        while (await reader.ReadAsync()) list.Add(ReadSingle<TK>(reader));
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            list.Add(ReadSingle<TK>(reader));
+        }
         return list;
     }
 

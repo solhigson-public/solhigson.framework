@@ -128,6 +128,7 @@ public static class HelperFunctions
             {
                 value = Math.Round(timeSpan.TotalSeconds, 2, MidpointRounding.AwayFromZero);
             }
+
             postfix = " sec";
         }
         else if (timeSpan.TotalHours < 1)
@@ -157,6 +158,7 @@ public static class HelperFunctions
             {
                 postfix += $" {remainingDays} day{dayPostfix}";
             }
+
             determinePlural = false;
         }
         else
@@ -169,6 +171,7 @@ public static class HelperFunctions
                 remainingMonths = Math.Truncate(remainingDays / 31);
                 remainingDays -= (remainingMonths * 31);
             }
+
             value = years;
             var yearsPostfix = years > 1 ? "s" : "";
             var monthsPostfix = remainingMonths > 1 ? "s" : "";
@@ -183,6 +186,7 @@ public static class HelperFunctions
             {
                 postfix += $" {remainingDays} day{dayPostfix}";
             }
+
             determinePlural = false;
         }
 
