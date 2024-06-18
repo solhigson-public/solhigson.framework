@@ -27,23 +27,7 @@ var config = new ConfigurationBuilder()
 
 BuildDi(config);
 
-// void Stuff()
-// {
-//     var SessionId = "000014230321095911236616516562";
-//     Console.WriteLine(SessionId[..6]);
-//     Console.WriteLine(StringPool.Shared.GetOrAdd(SessionId.AsSpan(0,6)));
-// }
 
-//Stuff(); 
-BenchmarkRunner.Run<MiscTest>();
 //BenchmarkRunner.Run<StringTest>();
-// var s = new StringTest();
-// Console.Write("Using HashSET.....");
-// s.UsingHashSet();
-// Console.WriteLine(Environment.NewLine);
-// Console.Write("Using Regex.....");
-// s.UsingRegex();
-// Console.ReadLine();
-
 
 
