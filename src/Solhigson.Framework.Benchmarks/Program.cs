@@ -27,7 +27,7 @@ var config = new ConfigurationBuilder()
 
 BuildDi(config);
 
+new TestsRunner().RunTests();
 
-//BenchmarkRunner.Run<StringTest>();
 
 
