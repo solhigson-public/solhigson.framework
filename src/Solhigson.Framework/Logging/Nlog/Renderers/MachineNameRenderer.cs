@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using NLog;
 using NLog.LayoutRenderers;
 
@@ -11,6 +12,13 @@ public class MachineNameRenderer : LayoutRenderer
 
     protected override void Append(StringBuilder builder, LogEventInfo logEvent)
     {
-        builder.Append(System.Environment.MachineName);
+        try
+        {
+            builder.Append(Environment.MachineName);
+        }
+        catch
+        {
+            //
+        }
     }
 }

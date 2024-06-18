@@ -78,7 +78,7 @@ public class ConfigurationWrapper
             return cacheValue;
         }
             
-        this.ELogWarn($"Fetching AppSetting [{configKey}] from db");
+        this.ELogDebug($"Fetching AppSetting [{configKey}] from db");
         var appSetting = query.FirstOrDefault();
         if (appSetting is not null)
         {
