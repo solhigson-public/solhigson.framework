@@ -17,7 +17,7 @@ public static class LogManager
     public static void SetLogLevel(string level)
     {
         level ??= "info";
-        Logger.Info($"Setting log level to {level}");
+        Logger.Debug($"Setting log level to {level}");
 
         var logLevel = level.ToLower() switch
         {

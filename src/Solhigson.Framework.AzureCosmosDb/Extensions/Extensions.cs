@@ -60,12 +60,12 @@ public static class Extensions
             var containerResponse = parameters.Database
                 .CreateContainerIfNotExistsAsync(parameters.Container, "/id").Result;
 
-            Logger.Info(
+            Logger.Debug(
                 $"{parameters.Container} on database {parameters.Database.Id} create status: {containerResponse.StatusCode}");
 
             if (containerResponse.StatusCode == HttpStatusCode.Created)
             {
-                Logger.Info($"{parameters.Container} created, updating indexes");
+                Logger.Debug($"{parameters.Container} created, updating indexes");
                 containerResponse.Resource.IndexingPolicy.IndexingMode = IndexingMode.Consistent;
                 containerResponse.Resource.IndexingPolicy.IncludedPaths.Clear();
 
@@ -128,7 +128,7 @@ public static class Extensions
             {
                 return true;
             }
-            Logger.Info($"{parameters.Container} created, setting ttl");
+            Logger.Debug($"{parameters.Container} created, setting ttl");
             containerResponse.Resource.DefaultTimeToLive = (int)parameters.AuditLogExpireAfter.Value.TotalSeconds;
 
             AsyncTools.RunSync(() =>
