@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
@@ -28,6 +30,25 @@ public class LogWrapper
         string group = Constants.Group.AppLog, string status = null, string endPointUrl = null,
         string chainId = null)
     {
+        try
+        {
+            if (exception is TaskCanceledException)
+            {
+                var configurationWrapper = ServiceProviderWrapper.ServiceProvider.GetService<ConfigurationWrapper>();
+                if (configurationWrapper is not null)
+                {
+                    if (configurationWrapper.GetConfig<bool>("appSettings", "IgnoreTaskCancelledException", "false"))
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            //
+        }
+
         if (!_logger.IsEnabled(logLevel))
         {
             return;
