@@ -22,10 +22,11 @@ public class SolhigsonMvcControllerBase : Controller
         {
             return false;
         }
+
         var isChecked = Request.Form[name];
         return isChecked.Any(t => string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0);
     }
-        
+
     protected string IsChecked(bool value)
     {
         return value ? "checked" : "";
@@ -36,7 +37,8 @@ public class SolhigsonMvcControllerBase : Controller
         this.SetDisplayMessage(message, PageMessageType.Error, closeOnClick, encodeHtml: encodeHtml);
     }
 
-    protected void SetInfoMessage(string message, bool closeOnClick = true, bool clearBeforeAdd = false, bool encodeHtml = true)
+    protected void SetInfoMessage(string message, bool closeOnClick = true, bool clearBeforeAdd = false,
+        bool encodeHtml = true)
     {
         this.SetDisplayMessage(message, PageMessageType.Info, closeOnClick, clearBeforeAdd, encodeHtml);
     }
@@ -53,11 +55,14 @@ public class SolhigsonMvcControllerBase : Controller
         {
             vals = Request.Query[name];
         }
+
         if (!vals.Any())
         {
             return defaultValue;
         }
-        var requestValue = vals.FirstOrDefault(); ;
+
+        var requestValue = vals.FirstOrDefault();
+        
         return int.TryParse(requestValue, out int tryValue) ? tryValue : defaultValue;
     }
 
@@ -74,7 +79,7 @@ public class SolhigsonMvcControllerBase : Controller
     protected int PageSize => TryGetPageSize();
 
     protected int CurrentPage => TryGetPageIndex();
-        
+
     protected static int GetTimeZoneOffset()
     {
         return LocaleUtil.GetTimeZoneOffset();
@@ -87,6 +92,7 @@ public class SolhigsonMvcControllerBase : Controller
             HelperFunctions.SafeSetSessionData(Constants.TimeZoneCookieName,
                 HttpContext.Request.Cookies[Constants.TimeZoneCookieName], HttpContext);
         }
+
         base.OnActionExecuting(filterContext);
     }
 
@@ -96,7 +102,8 @@ public class SolhigsonMvcControllerBase : Controller
         var page = Request.Query[Constants.PaginationPage];
         return int.TryParse(page, out var pageVal) ? pageVal : 1;
     }
-        
+
+    [NonAction]
     public void AddPaginationParameters(PagedSearchParameters parameters)
     {
         TempData[Constants.PaginationParameters] = parameters?.SerializeToJson();
@@ -109,9 +116,10 @@ public class SolhigsonMvcControllerBase : Controller
         {
             message = successMessage;
         }
+
         SetMessage(message, !response.IsSuccessful);
     }
-        
+
     protected void SetMessage<T>(ResponseInfo<T> response, string successMessage = null)
     {
         var message = response.Message;
@@ -119,7 +127,7 @@ public class SolhigsonMvcControllerBase : Controller
             message = successMessage;
         SetMessage(message, !response.IsSuccessful);
     }
-        
+
     protected void SetMessage(string message, bool isError)
     {
         var messageType = isError ? PageMessageType.Error : PageMessageType.Info;
@@ -127,10 +135,10 @@ public class SolhigsonMvcControllerBase : Controller
     }
 
 
-        
     protected IEnumerable<SelectListItem> GetCheckBoxItems(string namePrefix)
     {
-        return (from string key in Request.Form.Keys where key.StartsWith(namePrefix) select new SelectListItem { Selected = true, Value = Request.Form[key] });
+        return (from string key in Request.Form.Keys
+            where key.StartsWith(namePrefix)
+            select new SelectListItem { Selected = true, Value = Request.Form[key] });
     }
-
 }
