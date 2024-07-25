@@ -143,7 +143,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogError(this object obj, Exception e, string message, params object?[] args)
+    public static void LogError(this object obj, Exception e, string message = null, params object?[] args)
     {
         if (LoggerInternal.IsErrorEnabled)
         {
