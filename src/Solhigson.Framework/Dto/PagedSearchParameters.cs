@@ -54,6 +54,7 @@ public class PagedSearchParameters
         
     public string OrderBy { get; set; }
 
+    public bool HasData { get; set; }
     private DateTime? _fromDate;
     public DateTime FromDate 
     {
