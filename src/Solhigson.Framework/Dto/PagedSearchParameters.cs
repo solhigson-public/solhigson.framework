@@ -50,7 +50,19 @@ public class PagedSearchParameters
 
     public int Page { get; set; }
 
-    public long TotalRecords { get; set; }
+    private long _totalRecords;
+    public long TotalRecords
+    {
+        get => _totalRecords;
+        set
+        {
+            _totalRecords = value;
+            if (_totalRecords > 0)
+            {
+                HasData = true;
+            }
+        }
+    }
         
     public string OrderBy { get; set; }
 
