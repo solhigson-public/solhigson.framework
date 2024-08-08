@@ -38,7 +38,7 @@ public static class LoggerExtensions
             Constants.Group.ServiceStatus, status, endPointUrl, chainId);
     }
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogTrace() instead")]
     public static void ELogTrace(this object obj, string message, object data = null)
     {
         if (LoggerInternal.IsTraceEnabled)
@@ -57,7 +57,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogDebug() instead")]
     public static void ELogDebug(this object obj, string message, object data = null)
     {
         if (LoggerInternal.IsDebugEnabled)
@@ -76,7 +76,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogInfo() instead")]
     public static void ELogInfo(this object obj, string message, object data = null)
     {
         if (LoggerInternal.IsInfoEnabled)
@@ -94,7 +94,7 @@ public static class LoggerExtensions
         }
     }
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogWarn() instead")]
     public static void ELogWarn(this object obj, string message, object data = null)
     {
         if (LoggerInternal.IsWarnEnabled)
@@ -113,7 +113,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogError() instead")]
     public static void ELogError(this object obj, string message, object data = null)
     {
         if (LoggerInternal.IsErrorEnabled)
@@ -132,7 +132,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogError() instead")]
     public static void ELogError(this object obj, Exception e, string message = null, object data = null,
         string userEmail = null)
     {
@@ -152,7 +152,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases")]
+    [Obsolete("This will be depreciated in future releases, use LogFatal() instead")]
     public static void ELogFatal(this object obj, string message, Exception e = null, object data = null,
         string userEmail = null)
     {
