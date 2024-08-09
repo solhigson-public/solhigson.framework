@@ -40,7 +40,7 @@ public class LogWrapper
     {
         try
         {
-            if (exception is TaskCanceledException)
+            if (exception is TaskCanceledException or OperationCanceledException)
             {
                 var configurationWrapper = ServiceProviderWrapper.ServiceProvider.GetService<ConfigurationWrapper>();
                 if (configurationWrapper is not null)
@@ -82,7 +82,7 @@ public class LogWrapper
     {
         try
         {
-            if (exception is TaskCanceledException)
+            if (exception is TaskCanceledException or OperationCanceledException)
             {
                 var configurationWrapper = ServiceProviderWrapper.ServiceProvider.GetService<ConfigurationWrapper>();
                 if (configurationWrapper is not null)
