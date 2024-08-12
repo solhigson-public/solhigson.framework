@@ -16,7 +16,7 @@
     <ItemGroup>
       <PackageReference Include="Audit.NET.AzureCosmos" Version="26.0.0" />
       <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.42.0" />
-      <PackageReference Include="Solhigson.Framework" Version="6.1.29" />
+      <PackageReference Include="Solhigson.Framework" Version="8.0.0" />
     </ItemGroup>
 
 </Project>
