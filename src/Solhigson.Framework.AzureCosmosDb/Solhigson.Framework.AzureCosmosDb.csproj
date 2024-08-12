@@ -1,22 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <PackageId>Solhigson.Framework.AzureCosmosDb</PackageId>
         <Authors>Solhigson</Authors>
         <Description>Azure Cosmos Db Client and NLog Target</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>6.1.5</PackageVersion>
+        <PackageVersion>8.0.0</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Audit.NET.AzureCosmos" Version="19.0.7" />
-      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.23.0" />
-      <PackageReference Include="Solhigson.Framework" Version="6.1.5" />
+      <PackageReference Include="Audit.NET.AzureCosmos" Version="26.0.0" />
+      <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.42.0" />
+      <PackageReference Include="Solhigson.Framework" Version="6.1.29" />
     </ItemGroup>
 
 </Project>

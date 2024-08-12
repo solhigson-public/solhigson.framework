@@ -2,19 +2,20 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
-      <PackageReference Include="ClosedXML" Version="0.102.2" />
-      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.1.0" />
-      <PackageReference Include="EPPlus" Version="7.2.1" />
-      <PackageReference Include="NLog.Schema" Version="4.7.14" />
-      <PackageReference Include="Open.Text" Version="6.3.0" />
-      <PackageReference Include="PgpCore" Version="5.9.0" />
+      <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+      <PackageReference Include="ClosedXML" Version="0.102.3" />
+      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
+      <PackageReference Include="EPPlus" Version="7.2.2" />
+      <PackageReference Include="NLog.Schema" Version="5.3.2" />
+      <PackageReference Include="Open.Text" Version="8.0.0" />
+      <PackageReference Include="PgpCore" Version="6.5.0" />
     </ItemGroup>
 
     <ItemGroup>

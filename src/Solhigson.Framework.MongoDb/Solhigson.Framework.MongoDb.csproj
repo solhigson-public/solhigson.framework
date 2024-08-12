@@ -1,21 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net8.0</TargetFramework>
         <Authors>Solhigson</Authors>
         <Description>Mongo Db Client and NLog Target</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>6.1.5</PackageVersion>
+        <PackageVersion>8.0.0</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <LangVersion>10</LangVersion>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Audit.NET.MongoDB" Version="19.0.7" />
-      <PackageReference Include="MongoDB.Driver" Version="2.14.1" />
-      <PackageReference Include="Solhigson.Framework" Version="6.1.5" />
+      <PackageReference Include="Audit.NET.MongoDB" Version="26.0.0" />
+      <PackageReference Include="MongoDB.Driver" Version="2.23.0" />
+      <PackageReference Include="Solhigson.Framework" Version="6.1.29" />
     </ItemGroup>
 
 </Project>
