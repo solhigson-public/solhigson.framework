@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <PackageId>Solhigson.Framework.Utilities</PackageId>
+        <Authors>Solhigson</Authors>
+        <Description>Utility Library</Description>
+        <IsPackable>true</IsPackable>
+        <Version>1.0.0</Version>
+        <PackageVersion>8.0.0</PackageVersion>
+        <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <LangVersion>12</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Solhigson.Framework.Utilities</AssemblyName>
+        <RootNamespace>Solhigson.Framework.Utilities</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+      <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.1.2" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+</Project>
