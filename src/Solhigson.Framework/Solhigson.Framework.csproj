@@ -51,9 +51,9 @@
         <PackageReference Include="System.Text.Json" Version="8.0.4" />
     </ItemGroup>
 
-<!--    <Target Name="solhigson" AfterTargets="AfterBuild">-->
-<!--        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />-->
-<!--        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -d &quot;SolhigsonDbContext&quot; -a &quot;$(TargetDir)$(ProjectName).dll&quot; -rn &quot;Solhigson.Framework&quot; -rd &quot;Persistence&quot;" />-->
-<!--    </Target>-->
+    <Target Name="solhigson" AfterTargets="AfterBuild">
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
+        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -d &quot;SolhigsonDbContext&quot; -a &quot;$(TargetDir)$(ProjectName).dll&quot; -rn &quot;Solhigson.Framework&quot; -rd &quot;Persistence&quot;" />
+    </Target>
 
 </Project>

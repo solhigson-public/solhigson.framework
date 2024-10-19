@@ -20,7 +20,7 @@ internal class GenCommand : CommandBase
     private const string DtoProjectPathOption = "-cp";
     private const string ContractsProjectPathOption = "-cc";
     private const string TestsProjectPathOption = "-tp";
-    private const string RepositoryClassType = "Repository";
+    private const string? RepositoryClassType = "Repository";
     private static readonly CSharpCodeProvider CSharpCodeProvider = new ();
 
 
@@ -51,9 +51,9 @@ internal class GenCommand : CommandBase
 
     internal override void Run()
     {
-        const string dtoFolder = "Dto";
+        const string? dtoFolder = "Dto";
         ServicesFolder = "Services";
-        const string dtoClassType = "Dto";
+        const string? dtoClassType = "Dto";
 
         Console.WriteLine("Running...");
             
@@ -61,9 +61,9 @@ internal class GenCommand : CommandBase
         {
             persistenceProjectPath = Environment.CurrentDirectory;
         }
-#if DEBUG
-        persistenceProjectPath = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
-#endif
+// #if DEBUG
+//         persistenceProjectPath = "C:/Users/eawag/source/repos/solhigson-framework/src/Solhigson.Framework.Playground";
+// #endif
 
         if (persistenceProjectPath.Contains('*'))
         {
@@ -242,7 +242,7 @@ internal class GenCommand : CommandBase
         return GetFriendlyName(propertyType) + nullableIndicator;
     }
         
-    private string GetIRepositoryWrapperProperties(IList<Type> entities)
+    private string GetIRepositoryWrapperProperties(IList<Type>? entities)
     {
         var sBuilder = new StringBuilder();
 
@@ -255,7 +255,7 @@ internal class GenCommand : CommandBase
         return sBuilder.ToString();
     }
         
-    private string GetRepositoryWrapperProperties(IList<Type> entities)
+    private string GetRepositoryWrapperProperties(IList<Type>? entities)
     {
         var sBuilder = new StringBuilder();
 

@@ -17,7 +17,7 @@ internal abstract class CommandBase
     internal const string AbstractionsFolderName = "Abstractions";
     internal const string RepositoriesFolder = "Repositories";
     private const string ResourceNamePrefix = "Solhigson.Framework.EfCoreTool.Templates.";
-    protected static readonly List<string> ValidOptions = new() { AssemblyPathOption, DatabaseContextName };
+    protected static readonly List<string> ValidOptions = [AssemblyPathOption, DatabaseContextName];
     private const string AssemblyPathOption = "-a";
     private const string DatabaseContextName = "-dc";
     protected const string RootNamespaceOption = "-rn";
@@ -26,7 +26,7 @@ internal abstract class CommandBase
 
     protected string PersistenceProjectRootNamespace { get; private set; }
     protected string ApplicationName { get; private set; }
-    protected string ProjectRootNamespace { get; private set; }
+    protected string ProjectRootNamespace { get; set; }
     private string DbContextNamespace { get; set; }
     private string DbContextName { get; set; }
 
@@ -210,7 +210,7 @@ internal abstract class CommandBase
     protected abstract (bool IsValid, string ErrorMessage) Validate();
 
     protected void GenerateFile(string rootPath, string folder, string type,
-        string entityName, string entityNamespace,
+        string? entityName, string entityNamespace,
         bool isInterface, bool isGenerated, string properties = "", bool isCachedEntity = false)
     {
         var interfaceIndicator = isInterface ? "I" : "";

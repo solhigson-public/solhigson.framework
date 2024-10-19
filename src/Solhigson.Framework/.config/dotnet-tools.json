@@ -3,10 +3,11 @@
   "isRoot": true,
   "tools": {
     "solhigson.framework.efcoretool": {
-      "version": "6.0.39",
+      "version": "8.0.1",
       "commands": [
         "solhigson"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }
