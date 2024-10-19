@@ -15,7 +15,7 @@ public static class AuditHelper
         await AuditInternalAsync(eventType, new AuditInfo
         {
             Entries = entries
-        }); 
+        });
     }
 
     public static async Task AuditAsync(string eventType)
