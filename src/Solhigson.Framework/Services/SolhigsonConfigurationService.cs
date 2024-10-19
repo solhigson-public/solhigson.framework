@@ -10,6 +10,7 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
+using Solhigson.Framework.Utilities.Extensions;
 using Solhigson.Framework.Utilities.Security;
 
 namespace Solhigson.Framework.Services;

@@ -10,6 +10,7 @@ using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Persistence.EntityModels;
+using Solhigson.Framework.Utilities.Extensions;
 
 namespace Solhigson.Framework.Data;
 

@@ -16,13 +16,15 @@ variables:
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
   azureCosmosProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.AzureCosmosDb.csproj'
   mongoDbProj: '**/Solhigson.Framework.MongoDb/Solhigson.Framework.MongoDb.csproj'
+  utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Framework.Utilities.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
   packageFramework: false
-  packageTool: true
-  packageAzureCosmosDb: true
-  packageMongoDb: true
+  packageTool: false
+  packageAzureCosmosDb: false
+  packageMongoDb: false
+  packageUtilities: true
 
 stages:
   - stage: build
@@ -208,6 +210,47 @@ stages:
             inputs:
               command: 'pack'
               packagesToPack: '$(mongoDbProj)'
+              versioningScheme: 'off'
+
+          - task: NuGetCommand@2
+            displayName: 'Push'
+            inputs:
+              command: 'push'
+              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+              nuGetFeedType: 'external'
+              publishFeedCredentials: 'nuget'
+
+
+  - stage: nuget_package_utilities
+    condition:  and(eq(variables.isMaster, true), eq(variables.packageUtilities, true))
+    displayName: Deploy Solhigson MongoDb package to Nuget.Org
+    jobs:
+      - job:
+        displayName: Package & Push Solhigson Utilities
+        steps:
+          - task: NuGetToolInstaller@1
+            displayName: Install Nuget Tool
+
+          - task: NuGetCommand@2
+            displayName: Restore Nuget Packages
+            inputs:
+              command: 'restore'
+              restoreSolution: '$(solution)'
+              feedsToUse: 'config'
+
+          - task: VSBuild@1
+            displayName: Build Project
+            inputs:
+              solution: '$(solution)'
+              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
+              platform: '$(buildPlatform)'
+              configuration: '$(buildConfiguration)'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Package Utilities'
+            inputs:
+              command: 'pack'
+              packagesToPack: '$(utilitiesProj)'
               versioningScheme: 'off'
 
           - task: NuGetCommand@2

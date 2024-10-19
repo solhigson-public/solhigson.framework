@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Solhigson.Framework.Extensions;
+using Solhigson.Framework.Utilities.Extensions;
+
+//using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.EfCoreTool.Generator;
 
@@ -183,6 +185,7 @@ internal abstract class CommandBase
     private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
     {
         var path = $"{AssemblyFolderPath}\\{args.Name.Split(',')[0] + ".dll".ToLower()}";
+        Console.WriteLine($"Resolving & loading assembly: {path}");
         return Assembly.LoadFile(path);
     }
 
@@ -321,4 +324,7 @@ internal abstract class CommandBase
      * {comment}
      */";
     }
+    
+
+
 }

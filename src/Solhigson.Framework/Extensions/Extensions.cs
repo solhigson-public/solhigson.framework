@@ -46,6 +46,7 @@ using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Utilities;
+using Solhigson.Framework.Utilities.Extensions;
 using Solhigson.Framework.Utilities.Linq;
 using Solhigson.Framework.Utilities.Security;
 using Solhigson.Framework.Web;
@@ -434,14 +435,7 @@ public static class Extensions
 
     #region EntityFramework Data Extensions (Caching & Paging)
 
-    public static bool IsDbSetType(this Type type)
-    {
-        if (type is null)
-        {
-            return false;
-        }
-        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DbSet<>);
-    }
+
     public static string GetCacheKey<T>(this IQueryable<T> query, bool hash = true) where T : class
     {
         var expression = query.Expression;
@@ -650,29 +644,6 @@ public static class Extensions
 
     #region Misc
 
-    public static string ToConcatenatedString<T>(this IEnumerable<T> source, Func<T, string> selector,
-        string separator)
-    {
-        var b = new StringBuilder();
-        bool needSeparator = false;
-
-        foreach (var item in source)
-        {
-            if (needSeparator)
-                b.Append(separator);
-
-            b.Append(selector(item));
-            needSeparator = true;
-        }
-
-        return b.ToString();
-    }
-
-    public static LinkedList<T> ToLinkedList<T>(this IEnumerable<T> source)
-    {
-        return new LinkedList<T>(source);
-    }
-
     public static string CallerIp(this HttpContext httpContext)
     {
         return HelperFunctions.GetCallerIp(httpContext);
@@ -680,68 +651,7 @@ public static class Extensions
 
     #endregion
         
-    #region Attributes 
         
-    public static T GetAttribute<T>(this Type type, bool includeBaseTypes = true) where T : Attribute
-    {
-        return type?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
-    }
-        
-    public static T GetAttribute<T>(this ParameterInfo parameterInfo, bool includeBaseTypes = true) where T : Attribute
-    {
-        return parameterInfo?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
-    }
-
-    public static T GetAttribute<T>(this MethodInfo methodInfo, bool includeBaseTypes = true) where T : Attribute
-    {
-        return methodInfo?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
-    }
-
-    public static T GetAttribute<T>(this PropertyInfo propertyInfo, bool includeBaseTypes = true) where T : Attribute
-    {
-        return propertyInfo?.GetCustomAttributes<T>(includeBaseTypes).FirstOrDefault();
-    }
-
-
-    public static bool HasAttribute<T>(this Type type, bool includeInheritance = true) where T : Attribute
-    {
-        return type.GetAttribute<T>(includeInheritance) != null;
-    }
-        
-    public static bool HasAttribute<T>(this ParameterInfo type, bool includeInheritance = true) where T : Attribute
-    {
-        return type.GetAttribute<T>(includeInheritance) != null;
-    }
-        
-    public static bool HasAttribute<T>(this MethodInfo type, bool includeInheritance = true) where T : Attribute
-    {
-        return type.GetAttribute<T>(includeInheritance) != null;
-    }
-
-    public static bool HasAttribute<T>(this PropertyInfo type, bool includeInheritance = true) where T : Attribute
-    {
-        return type.GetAttribute<T>(includeInheritance) != null;
-    }
-        
-    #endregion
-        
-    #region String
-        
-    public static string ToCamelCase(this string str) =>
-        string.IsNullOrEmpty(str) || str.Length < 2
-            ? str
-            : char.ToLowerInvariant(str[0]) + str[1..];
-
-    public static bool IsValidEmailAddress(this string email, bool ignoreEmpty = false)
-    {
-        return HelperFunctions.IsValidEmailAddress(email, ignoreEmpty);
-    }
-        
-    public static bool IsValidPhoneNumber(this string phoneNumber, bool ignoreEmpty = false)
-    {
-        return HelperFunctions.IsValidPhoneNumber(phoneNumber, ignoreEmpty);
-    }
-    #endregion
         
     #region DateTime
         
@@ -930,72 +840,6 @@ public static class Extensions
         return dateTime != DateTime.MinValue && dateTime != DateTime.MaxValue;
     }
         
-    #region Crypto
-
-    private const string HexAlphabetLower = "0123456789abcdef";
-    private const string HexAlphabetUpper = "0123456789ABCDEF";
-    public static string Hex(this byte[] bytes, bool useUpper = false)
-    {
-        var result = new StringBuilder(bytes.Length);
-        var hexAlphabet = useUpper ? HexAlphabetUpper : HexAlphabetLower;
-
-        foreach (var b in bytes)
-        {
-            result.Append(hexAlphabet[b >> 4]);
-            result.Append(hexAlphabet[b & 0xF]);
-        }
-
-        return result.ToString();
-    }
-
-    public static byte[] FromHexString(this string hexString)
-    {
-        if (hexString.Length % 2 != 0)
-        {
-            throw new ArgumentException(string.Format(CultureInfo.InvariantCulture, "The binary key cannot have an odd number of digits: {0}", hexString));
-        }
-
-        var hexAsBytes = new byte[hexString.Length / 2];
-        for (var index = 0; index < hexAsBytes.Length; index++)
-        {
-            var byteValue = hexString.Substring(index * 2, 2);
-            hexAsBytes[index] = byte.Parse(byteValue, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-        }
-
-        return hexAsBytes;
-    }
-
-    public static string Base64(this byte[] data)
-    {
-        return Convert.ToBase64String(data);
-    }
-        
-    public static byte[] Base64(this string data)
-    {
-        return Convert.FromBase64String(data);
-    }
-    
-    public static string Md5(this string s)
-    {
-        return CryptoHelper.HashData(s, HashAlgorithmType.Md5);
-    }
-        
-    public static string Sha256(this string s)
-    {
-        return CryptoHelper.HashData(s, HashAlgorithmType.Sha256);
-    }
-        
-    public static string Sha512(this string s)
-    {
-        return CryptoHelper.HashData(s, HashAlgorithmType.Sha512);
-    }
-    
-    public static string Hash(this string s, HashAlgorithmType hashAlgorithmType)
-    {
-        return CryptoHelper.HashData(s, hashAlgorithmType);
-    }
-
-    #endregion
     
     public static string Truncate(this string text, int length)
     {

@@ -8,12 +8,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Net.Http.Headers;
-using Solhigson.Framework.Data;
-using Solhigson.Framework.Data.Attributes;
-using Solhigson.Framework.Data.Caching;
-using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.Utilities.Extensions;
 
 namespace Solhigson.Framework.EfCoreTool.Generator;
 
@@ -114,8 +109,9 @@ internal class GenCommand : CommandBase
             {
                 continue;
             }
-            var isCached = typeof(ICachedEntity).IsAssignableFrom(entity)
-                           || entity.GetInterface("Solhigson.Framework.Data.Caching.ICachedEntity") != null;
+            var isCached = entity.GetInterface("Solhigson.Framework.Data.Caching.ICachedEntity") != null;
+            // var isCached = typeof(ICachedEntity).IsAssignableFrom(entity)
+            //                || entity.GetInterface("Solhigson.Framework.Data.Caching.ICachedEntity") != null;
 
             GenerateFile(persistenceProjectPath, RepositoryNamespace, RepositoryClassType, entity.Name,
                 entity.Namespace, true, true, GetRepositoryMethods(entity, isCached, true), isCached); //generated interface
@@ -179,9 +175,12 @@ internal class GenCommand : CommandBase
         var properties = entity.GetProperties().Where(t => t.CanRead && t.CanWrite);
         if (getPropertiesWithCachedPropertyAttributeOnly)
         {
+            // var propertiesWithCachedPropertyAttribute = properties
+            //     .Where(t => t.GetAttribute<CachedPropertyAttribute>() != null
+            //                 || t.GetCustomAttributes().Any(s => $"{s.TypeId}" == "Solhigson.Framework.Data.Attributes.CachedPropertyAttribute"))
+            //     .ToList();
             var propertiesWithCachedPropertyAttribute = properties
-                .Where(t => t.GetAttribute<CachedPropertyAttribute>() != null
-                            || t.GetCustomAttributes().Any(s => $"{s.TypeId}" == "Solhigson.Framework.Data.Attributes.CachedPropertyAttribute"))
+                .Where(t => t.GetCustomAttributes().Any(s => $"{s.TypeId}" == "Solhigson.Framework.Data.Attributes.CachedPropertyAttribute"))
                 .ToList();
             if (!propertiesWithCachedPropertyAttribute.Any())
             {

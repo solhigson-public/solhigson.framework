@@ -9,6 +9,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Solhigson.Framework.Extensions;
+using Solhigson.Framework.Utilities.Extensions;
 
 namespace Solhigson.Framework.Data.Repository;
 
@@ -53,7 +54,7 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     }
 
         
-    public T New(object identifier = null)
+    public T New(object? identifier = null)
     {
         var entity = new T();
         if (identifier != null)

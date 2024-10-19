@@ -8,8 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
-using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.Utilities.Extensions;
 
 namespace Solhigson.Framework.Utilities.Security;
 
@@ -104,22 +103,13 @@ public static class CryptoHelper
     public static bool ValidateMac(string receivedMac,
         HashAlgorithmType hashAlgorithmType = HashAlgorithmType.Sha512,
         StringEncodingType stringEncodingType = StringEncodingType.Hex,
-        bool throwExceptionIfValidationFails = true,
         params object[] dataToMac)
     {
         var concatenatedData = dataToMac.Aggregate("", (current, data) => current + data);
 
         var computedMac = HashData(concatenatedData, hashAlgorithmType, stringEncodingType);
 
-        if (string.Compare(computedMac, receivedMac, StringComparison.OrdinalIgnoreCase) != 0)
-        {
-            if(throwExceptionIfValidationFails)
-            {
-                throw new Exception(StatusCode.MessageIntegrityValidationFailed + $"[{concatenatedData}]");
-            }
-            return false;
-        }
-        return true;
+        return string.Compare(computedMac, receivedMac, StringComparison.OrdinalIgnoreCase) == 0;
     }
 
     public static byte[] GenerateRandomBytes(int length)

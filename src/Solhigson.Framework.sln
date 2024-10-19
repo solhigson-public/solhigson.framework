@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Whiteboard", "Whiteboard", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Benchmarks", "Solhigson.Framework.Benchmarks\Solhigson.Framework.Benchmarks.csproj", "{75B3DB70-148C-41AD-9E48-13676CF00A7E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Utilities", "Solhigson.Framework.Utilities\Solhigson.Framework.Utilities.csproj", "{FCF3CAC7-5125-450E-9497-9EE5347845B4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75B3DB70-148C-41AD-9E48-13676CF00A7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA} = {DAC45FC3-14AD-4864-A26B-67BE7A3E0575}
