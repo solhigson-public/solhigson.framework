@@ -184,7 +184,7 @@ internal abstract class CommandBase
 
     private Assembly CurrentDomainOnAssemblyResolve(object sender, ResolveEventArgs args)
     {
-        var path = $"{AssemblyFolderPath}\\{args.Name.Split(',')[0] + ".dll".ToLower()}";
+        var path = $"{AssemblyFolderPath}/{args.Name.Split(',')[0] + ".dll".ToLower()}";
         Console.WriteLine($"Resolving & loading assembly: {path}");
         return Assembly.LoadFile(path);
     }
