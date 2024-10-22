@@ -20,7 +20,7 @@ public class ConfigurationWrapper
     private readonly SolhigsonDbContext _dbContext;
     private static readonly object SyncHelper = new();
 
-    public ConfigurationWrapper(IConfiguration configuration, DbContextOptionsBuilder<SolhigsonDbContext> optionsBuilder)
+    public ConfigurationWrapper(IConfiguration configuration, DbContextOptionsBuilder<SolhigsonDbContext>? optionsBuilder)
     {
         Configuration = configuration;
         if (optionsBuilder is not null)
@@ -29,20 +29,20 @@ public class ConfigurationWrapper
         }
     }
 
-    public T GetFromAppSettingFileOnly<T>(string group, string key = null, string defaultValue = null)
+    public T GetFromAppSettingFileOnly<T>(string group, string? key = null, string? defaultValue = null)
     {
         var setting = GetConfigInternal(group, key, defaultValue, true);
         return VerifySetting<T>(setting, key, group, defaultValue);
     }
         
-    public T GetConfig<T>(string groupName, string key = null, string defaultValue = null,
+    public T GetConfig<T>(string groupName, string? key = null, string? defaultValue = null,
         bool useAppSettingsFileOnly = false)
     {
         var setting = GetConfigInternal(groupName, key, defaultValue);
         return VerifySetting<T>(setting, key, groupName, defaultValue);
     }
 
-    private string GetConfigInternal(string group, string key = null, string defaultValue = null,
+    private string GetConfigInternal(string group, string? key = null, string? defaultValue = null,
         bool useAppSettingsFileOnly = false)
     {
         var configKey = group;
@@ -78,7 +78,7 @@ public class ConfigurationWrapper
             return cacheValue;
         }
             
-        this.ELogDebug($"Fetching AppSetting [{configKey}] from db");
+        this.LogDebug($"Fetching AppSetting [{configKey}] from db");
         var appSetting = query.FirstOrDefault();
         if (appSetting is not null)
         {

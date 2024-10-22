@@ -13,17 +13,17 @@ namespace Solhigson.Framework.Infrastructure;
 
 public class SolhigsonAutofacModule : Module
 {
-    private readonly string _connectionString;
+    private readonly string? _connectionString;
     private readonly IConfiguration _configuration;
 
-    public SolhigsonAutofacModule(IConfiguration configuration, string connectionString)
+    public SolhigsonAutofacModule(IConfiguration configuration, string? connectionString)
     {
         _connectionString = connectionString;
         _configuration = configuration;
     }
 
     public static void LoadDbSupport(ContainerBuilder builder, IConfiguration configuration,
-        DbContextOptionsBuilder<SolhigsonDbContext> optionsBuilder = null)
+        DbContextOptionsBuilder<SolhigsonDbContext>? optionsBuilder = null)
     {
         builder.RegisterType<RepositoryWrapper>().As<IRepositoryWrapper>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);

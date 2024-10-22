@@ -7,8 +7,6 @@ using System.Text;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data.Caching;
-using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Identity;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Utilities.Extensions;
 
@@ -17,7 +15,7 @@ namespace Solhigson.Framework.Data;
 public static class ScriptsManager
 {
     private const string TableCacheTriggerNamePrefix = "Solhigson_UTrig_";
-    internal static void SetUpDatabaseObjects(Assembly dbContextAssembly, string connectionString)
+    internal static void SetUpDatabaseObjects(Assembly? dbContextAssembly, string connectionString)
     {
         var sBuilder = new StringBuilder();
         var getAllChangeTrackerBuilder = new StringBuilder();

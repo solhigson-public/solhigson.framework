@@ -19,7 +19,7 @@ namespace Solhigson.Framework.Logging;
 
 public class LogWrapper
 {
-    internal LogWrapper(string name)
+    internal LogWrapper(string? name)
     {
         InternalLogger = NLog.LogManager.GetLogger(name);
     }

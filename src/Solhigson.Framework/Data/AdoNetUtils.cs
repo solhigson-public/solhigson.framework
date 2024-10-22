@@ -4,7 +4,6 @@ using System.Data;
 using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
-using Hangfire.Common;
 using Microsoft.Data.SqlClient;
 using Solhigson.Framework.Logging;
 
@@ -15,9 +14,9 @@ public static class AdoNetUtils
     private static readonly LogWrapper Logger = new(typeof(AdoNetUtils).FullName);
 
     public static async Task<int> ExecuteNonQueryAsync(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null,
+        List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
         CancellationToken cancellationToken = new())
     {
@@ -37,9 +36,9 @@ public static class AdoNetUtils
         return await cmd.ExecuteNonQueryAsync(cancellationToken);
     }
 
-    public static async Task<T> ExecuteSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null, bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
+    public static async Task<T?> ExecuteSingleOrDefaultAsync<T>(string connectionString, string spNameOrCommand,
+        List<SqlParameter>? parameters = null, bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
         CancellationToken cancellationToken = new())
     {
@@ -59,8 +58,8 @@ public static class AdoNetUtils
     }
         
     public static async Task<List<T>> ExecuteListAsync<T>(string connectionString, string spNameOrCommand,
-        List<SqlParameter> parameters = null, bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null,
+        List<SqlParameter>? parameters = null, bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
         CancellationToken cancellationToken = new())
     {
@@ -79,7 +78,7 @@ public static class AdoNetUtils
     }
 
         
-    private static async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, List<SqlParameter> parameters = null,
+    private static async Task<SqlDataReader> ExecuteReaderAsync(SqlCommand cmd, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = false,
         CancellationToken cancellationToken = new())
     {
@@ -91,9 +90,9 @@ public static class AdoNetUtils
     }
 
 
-    private static T SafeReturnValue<T>(object value)
+    private static T? SafeReturnValue<T>(object? value)
     {
-        if (value == null || value is DBNull) return default;
+        if (value is null or DBNull) return default;
         var returnType = typeof(T);
         var dataType = value.GetType();
         if (returnType != dataType)
@@ -111,7 +110,7 @@ public static class AdoNetUtils
         return (T) value;
     }
 
-    private static T ReadSingle<T>(DbDataReader reader)
+    private static T? ReadSingle<T>(DbDataReader reader)
     {
         if (!reader.HasRows) return default;
         var type = typeof(T);
@@ -119,6 +118,10 @@ public static class AdoNetUtils
         {
             //    _logger.Debug("Type is class...");
             var obj = Activator.CreateInstance<T>();
+            if (obj is null)
+            {
+                return default;
+            }
             var objectType = obj.GetType();
             var objProperties = objectType.GetProperties();
             foreach(var pInfo in objProperties)
@@ -165,7 +168,11 @@ public static class AdoNetUtils
         var list = new List<TK>();
         while (await reader.ReadAsync(cancellationToken))
         {
-            list.Add(ReadSingle<TK>(reader));
+            var item = ReadSingle<TK>(reader);
+            if (item is not null)
+            {
+                list.Add(item);
+            }
         }
         return list;
     }

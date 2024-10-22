@@ -58,7 +58,7 @@ public static class LogManager
         NLog.LogManager.ReconfigExistingLoggers();
     }
 
-    private static LogWrapper GetLoggerInternal(string name)
+    private static LogWrapper GetLoggerInternal(string? name)
     {
         if (string.IsNullOrEmpty(name)) name = "MISC";
 
@@ -70,12 +70,12 @@ public static class LogManager
         return logWrapper;
     }
     
-    internal static LogWrapper GetLogger(object obj)
+    internal static LogWrapper GetLogger(object? obj)
     {
-        return obj == null ? null : GetLoggerInternal(obj.GetType().FullName);
+        return GetLoggerInternal(obj?.GetType().FullName);
     }
     
-    public static LogWrapper GetLogger(string loggerName)
+    public static LogWrapper GetLogger(string? loggerName)
     {
         return GetLoggerInternal(loggerName);
     }

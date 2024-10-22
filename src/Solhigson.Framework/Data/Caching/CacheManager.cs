@@ -1,30 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
-using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
-using Microsoft.Data.SqlClient;
-using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Data.Caching;
 
 public static class CacheManager
 {
-    private static Timer _timer;
+    private static Timer? _timer;
 
     private static bool _initialized;
-    private static string _connectionString;
+    private static string _connectionString = string.Empty;
     private static readonly LogWrapper Logger = new LogWrapper(typeof(CacheManager).FullName);
     private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
     private static int _cacheExpirationPeriodMinutes;
-    public static event EventHandler OnTableChangeTimerElapsed;
+    public static event EventHandler? OnTableChangeTimerElapsed;
     private static readonly ConcurrentDictionary<string, TableChangeTracker> ChangeTrackers = new();
 
     private static MemoryCache DefaultMemoryCache { get; } = new ("Solhigson::Data::Cache::Manager");
@@ -32,7 +27,7 @@ public static class CacheManager
 
     internal static void Initialize(string connectionString,
         int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-        int cacheExpirationPeriodMinutes = 1440, Assembly dbContextAssembly = null,
+        int cacheExpirationPeriodMinutes = 1440, Assembly? dbContextAssembly = null,
         bool continueOnError = true)
     {
         try
@@ -54,7 +49,7 @@ public static class CacheManager
         }
     }
 
-    private static bool SetupDbObjects(Assembly dbContextAssembly, string connectionString, bool continueOnError)
+    private static bool SetupDbObjects(Assembly? dbContextAssembly, string connectionString, bool continueOnError)
     {
         try
         {
@@ -76,19 +71,20 @@ public static class CacheManager
         _timer.Start();
     }
 
-    private static void TimerOnElapsed(object sender, ElapsedEventArgs e)
+    private static void TimerOnElapsed(object? sender, ElapsedEventArgs e)
     {
         var changes = GetAllChangeTrackerIds().Result;
-        if (changes != null)
+        if (changes == null)
         {
-            var changeTrackers = changes.ToDictionary(changeTracker => changeTracker.TableName,
-                changeTracker => changeTracker.ChangeId);
-            OnTableChangeTimerElapsed?.Invoke(null, new ChangeTrackerEventArgs(changeTrackers));
+            return;
         }
+        var changeTrackers = changes.ToDictionary(changeTracker => changeTracker.TableName,
+            changeTracker => changeTracker.ChangeId);
+        OnTableChangeTimerElapsed?.Invoke(null, new ChangeTrackerEventArgs(changeTrackers));
     }
 
        
-    private static async Task<List<ChangeTrackerDto>> GetAllChangeTrackerIds()
+    private static async Task<List<ChangeTrackerDto>?> GetAllChangeTrackerIds()
     {
         try
         {
@@ -124,7 +120,7 @@ public static class CacheManager
         return 0;
     }
 
-    internal static bool AddToCache(string key, object value, IList<Type> types)
+    internal static bool AddToCache(string key, object value, IList<Type>? types)
     {
         if (!_initialized || string.IsNullOrWhiteSpace(key))
         {
@@ -139,17 +135,17 @@ public static class CacheManager
         return InsertItem(key, value, new TableChangeMonitor(GetTableChangeTracker(types)));
     }
 
-    internal static IList<Type> GetValidICacheEntityTypes(params Type [] types)
+    internal static IList<Type> GetValidICacheEntityTypes(params Type []? types)
     {
         var validTypes = new List<Type>();
-        if (types is not null && types.Any())
+        if (types is not null && types.Length != 0)
         {
             validTypes.AddRange(types.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)));
         }
         return validTypes;
     }
 
-    private static bool InsertItem(string key, object value, ChangeMonitor changeMonitor = null)
+    private static bool InsertItem(string key, object value, ChangeMonitor? changeMonitor = null)
     {
         if (string.IsNullOrWhiteSpace(key))// || value == null)
         {
@@ -182,7 +178,7 @@ public static class CacheManager
         }
     }
 
-    internal static CustomCacheEntry GetFromCache(string key)// where T : class
+    internal static CustomCacheEntry? GetFromCache(string key)// where T : class
     {
         return DefaultMemoryCache.Get(key) as CustomCacheEntry;
     }
@@ -235,5 +231,5 @@ public static class CacheManager
     
 internal class CustomCacheEntry
 {
-    public object Value { get; set; }
+    public object? Value { get; set; }
 }

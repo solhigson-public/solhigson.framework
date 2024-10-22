@@ -76,7 +76,7 @@ public static class Extensions
     #region Application Startup
 
       
-    public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration, string connectionString = null)
+    public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration, string? connectionString = null)
     {
         builder.RegisterModule(new SolhigsonAutofacModule(configuration, connectionString));
         return builder;
@@ -89,14 +89,14 @@ public static class Extensions
     /// <param name="builder"></param>
     /// <param name="assembly"></param>
     /// <returns></returns>
-    public static ContainerBuilder RegisterIndicatedDependencies(this ContainerBuilder builder, [NotNull]Assembly assembly)
+    public static ContainerBuilder RegisterIndicatedDependencies(this ContainerBuilder builder, Assembly? assembly)
     {
         if (assembly is null)
         {
             return builder;
         }
         var coreServicesAssemblyTypes = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract);
+            .Where(t => t is { IsClass: true, IsAbstract: false });
         var injectType = typeof(IDependencyInject);
         foreach (var type in coreServicesAssemblyTypes)
         {
@@ -128,7 +128,7 @@ public static class Extensions
     }
         
     public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-        int cacheExpirationPeriodMinutes = 1440, Assembly databaseModelsAssembly = null, bool continueOnError = true)
+        int cacheExpirationPeriodMinutes = 1440, Assembly? databaseModelsAssembly = null, bool continueOnError = true)
     {
         CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly,
             continueOnError);
