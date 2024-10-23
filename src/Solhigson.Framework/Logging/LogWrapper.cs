@@ -1,13 +1,5 @@
 ﻿using System;
-using System.Buffers;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
@@ -33,10 +25,10 @@ public class LogWrapper
 
     public bool IsDebugEnabled => InternalLogger.IsDebugEnabled;
 
-    internal void Log(string message, LogLevel logLevel, object data = null,
-        Exception exception = null, string serviceName = null, string serviceType = null,
-        string group = Constants.Group.AppLog, string status = null, string endPointUrl = null,
-        string chainId = null)
+    internal void Log(string? message, LogLevel logLevel, object? data = null,
+        Exception? exception = null, string? serviceName = null, string? serviceType = null,
+        string group = Constants.Group.AppLog, string? status = null, string? endPointUrl = null,
+        string? chainId = null)
     {
         try
         {
@@ -78,7 +70,7 @@ public class LogWrapper
         InternalLogger.Log(eventInfo);
     }
 
-    private void Log(LogLevel logLevel, string message, Exception exception, params object[] args)
+    private void Log(LogLevel logLevel, string message, Exception? exception, params object?[]? args)
     {
         try
         {
@@ -116,7 +108,8 @@ public class LogWrapper
     }
 
 
-    public void Debug(string message, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogDebug() instead")]
+    public void Debug(string message, object? data = null)
     {
         if (InternalLogger.IsDebugEnabled)
         {
@@ -124,6 +117,7 @@ public class LogWrapper
         }
     }
 
+    [MessageTemplateFormatMethod("message")]
     public void LogDebug(string message, params object?[] args)
     {
         if (!InternalLogger.IsDebugEnabled)
@@ -143,7 +137,8 @@ public class LogWrapper
     }
 
 
-    public void Info(string message, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogInformation() instead")]
+    public void Info(string message, object? data = null)
     {
         if (InternalLogger.IsInfoEnabled)
         {
@@ -151,6 +146,7 @@ public class LogWrapper
         }
     }
 
+    [MessageTemplateFormatMethod("message")]
     public void LogInformation(string message, params object?[] args)
     {
         if (!InternalLogger.IsInfoEnabled)
@@ -170,7 +166,8 @@ public class LogWrapper
     }
 
 
-    public void Warn(string message, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogWarn() instead")]
+    public void Warn(string message, object? data = null)
     {
         if (InternalLogger.IsWarnEnabled)
         {
@@ -178,6 +175,7 @@ public class LogWrapper
         }
     }
 
+    [MessageTemplateFormatMethod("message")]
     public void LogWarn(string message, params object?[] args)
     {
         if (!InternalLogger.IsWarnEnabled)
@@ -197,7 +195,8 @@ public class LogWrapper
     }
 
 
-    public void Error(Exception e, string message = null, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogError) instead")]
+    public void Error(Exception e, string? message = null, object? data = null)
     {
         if (InternalLogger.IsErrorEnabled)
         {
@@ -205,7 +204,8 @@ public class LogWrapper
         }
     }
 
-    public void LogError(Exception e, string message = null, params object?[] args)
+    [MessageTemplateFormatMethod("message")]
+    public void LogError(Exception e, string? message = null, params object?[] args)
     {
         if (!InternalLogger.IsErrorEnabled)
         {
@@ -225,7 +225,8 @@ public class LogWrapper
     }
 
 
-    public void Fatal(string message, Exception e = null, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogFatal() instead")]
+    public void Fatal(string message, Exception? e = null, object? data = null)
     {
         if (InternalLogger.IsFatalEnabled)
         {
@@ -233,7 +234,8 @@ public class LogWrapper
         }
     }
 
-    public void LogFatal(Exception e, string message = null, params object?[] args)
+    [MessageTemplateFormatMethod("message")]
+    public void LogFatal(Exception e, string? message = null, params object?[] args)
     {
         if (!InternalLogger.IsFatalEnabled)
         {
@@ -253,7 +255,8 @@ public class LogWrapper
     }
 
 
-    public void Trace(string message, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogTrace() instead")]
+    public void Trace(string message, object? data = null)
     {
         if (InternalLogger.IsTraceEnabled)
         {
@@ -261,6 +264,7 @@ public class LogWrapper
         }
     }
 
+    [MessageTemplateFormatMethod("message")]
     public void LogTrace(string message, params object?[] args)
     {
         if (!InternalLogger.IsTraceEnabled)
@@ -279,7 +283,7 @@ public class LogWrapper
         Log(LogLevel.Trace, message, null, args);
     }
 
-    private static object[] Combine(object?[] args, params object?[] otherArgs)
+    private static object?[]? Combine(object?[]? args, params object?[]? otherArgs)
     {
         if (args is null || args.Length == 0)
         {

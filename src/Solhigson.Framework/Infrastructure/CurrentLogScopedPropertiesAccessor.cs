@@ -6,7 +6,7 @@ internal class CurrentLogScopedPropertiesAccessor
 {
     private static readonly AsyncLocal<ScopedPropertiesHolder> CurrentScopedProperties = new();
 
-    internal ScopedProperties ScopedProperties
+    internal ScopedProperties? ScopedProperties
     {
         get => CurrentScopedProperties.Value?.ScopedProperties;
         set
@@ -44,13 +44,13 @@ internal class CurrentLogScopedPropertiesAccessor
 
     private class ScopedPropertiesHolder
     {
-        public ScopedProperties ScopedProperties;
+        public ScopedProperties? ScopedProperties;
     }
 
 
 }
 internal class ScopedProperties
 {
-    public string LogChainId { get; set; }
-    public string UserEmail { get; set; }
+    public string? LogChainId { get; set; }
+    public string? UserEmail { get; set; }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,15 +6,15 @@ namespace Solhigson.Framework.Infrastructure;
 
 internal static class ServiceProviderWrapper
 {
-    internal static IServiceProvider ServiceProvider { get; set; }
+    internal static IServiceProvider? ServiceProvider { get; set; }
 
-    internal static IHttpContextAccessor GetHttpContextAccessor()
+    internal static IHttpContextAccessor? GetHttpContextAccessor()
     {
         try
         {
             return ServiceProvider?.GetService<IHttpContextAccessor>();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //
         }
@@ -23,15 +22,15 @@ internal static class ServiceProviderWrapper
         return null;
     }
 
-    private static ScopedProperties GetScopedProperties()
+    private static ScopedProperties? GetScopedProperties()
     {
         var serviceProvider = GetHttpContextAccessor()?.HttpContext?.RequestServices ?? ServiceProvider;
-        CurrentLogScopedPropertiesAccessor accessor = null;
+        CurrentLogScopedPropertiesAccessor? accessor = null;
         try
         {
             accessor = serviceProvider?.GetService<CurrentLogScopedPropertiesAccessor>();
         }
-        catch (Exception e)
+        catch (Exception)
         {
             //
         }
@@ -74,7 +73,7 @@ internal static class ServiceProviderWrapper
         }
     }
     
-    internal static string GetCurrentLogChainId()
+    internal static string? GetCurrentLogChainId()
     {
         if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(ChainId, out var chainId) == true)
         {
@@ -82,7 +81,7 @@ internal static class ServiceProviderWrapper
         }
         return GetScopedProperties()?.LogChainId;
     }
-    internal static string GetCurrentLogUserEmail()
+    internal static string? GetCurrentLogUserEmail()
     {
         if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(Email, out var email) == true)
         {
@@ -91,7 +90,7 @@ internal static class ServiceProviderWrapper
         return GetScopedProperties()?.UserEmail;
     }
 
-    private static void SetItem(HttpContext context, string key, string value)
+    private static void SetItem(HttpContext? context, string key, string value)
     {
         if (context is null)
         {
