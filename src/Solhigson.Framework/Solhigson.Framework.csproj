@@ -10,7 +10,7 @@
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>8.0.4</PackageVersion>
+        <PackageVersion>8.0.5</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>12</LangVersion>
@@ -50,10 +50,5 @@
         <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
         <PackageReference Include="System.Text.Json" Version="8.0.5" />
     </ItemGroup>
-
-    <Target Name="solhigson" AfterTargets="AfterBuild">
-        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />
-        <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet solhigson gen -d &quot;SolhigsonDbContext&quot; -a &quot;$(TargetDir)$(ProjectName).dll&quot; -rn &quot;Solhigson.Framework&quot; -rd &quot;Persistence&quot;" />
-    </Target>
 
 </Project>

@@ -76,7 +76,7 @@ public class LogWrapper
         {
             if (exception is TaskCanceledException or OperationCanceledException)
             {
-                var configurationWrapper = ServiceProviderWrapper.ServiceProvider.GetService<ConfigurationWrapper>();
+                var configurationWrapper = ServiceProviderWrapper.ServiceProvider?.GetService<ConfigurationWrapper>();
                 if (configurationWrapper is not null)
                 {
                     if (configurationWrapper.GetConfig<bool>("appSettings", "IgnoreTaskCancelledException", "false"))
@@ -118,7 +118,7 @@ public class LogWrapper
     }
 
     [MessageTemplateFormatMethod("message")]
-    public void LogDebug(string message, params object?[] args)
+    public void LogDebug(string message, params object?[]? args)
     {
         if (!InternalLogger.IsDebugEnabled)
         {
@@ -147,7 +147,7 @@ public class LogWrapper
     }
 
     [MessageTemplateFormatMethod("message")]
-    public void LogInformation(string message, params object?[] args)
+    public void LogInformation(string message, params object?[]? args)
     {
         if (!InternalLogger.IsInfoEnabled)
         {
@@ -176,7 +176,7 @@ public class LogWrapper
     }
 
     [MessageTemplateFormatMethod("message")]
-    public void LogWarn(string message, params object?[] args)
+    public void LogWarn(string message, params object?[]? args)
     {
         if (!InternalLogger.IsWarnEnabled)
         {
@@ -205,7 +205,7 @@ public class LogWrapper
     }
 
     [MessageTemplateFormatMethod("message")]
-    public void LogError(Exception e, string? message = null, params object?[] args)
+    public void LogError(Exception e, string? message = null, params object?[]? args)
     {
         if (!InternalLogger.IsErrorEnabled)
         {
@@ -235,7 +235,7 @@ public class LogWrapper
     }
 
     [MessageTemplateFormatMethod("message")]
-    public void LogFatal(Exception e, string? message = null, params object?[] args)
+    public void LogFatal(Exception e, string? message = null, params object?[]? args)
     {
         if (!InternalLogger.IsFatalEnabled)
         {
@@ -265,7 +265,7 @@ public class LogWrapper
     }
 
     [MessageTemplateFormatMethod("message")]
-    public void LogTrace(string message, params object?[] args)
+    public void LogTrace(string message, params object?[]? args)
     {
         if (!InternalLogger.IsTraceEnabled)
         {
