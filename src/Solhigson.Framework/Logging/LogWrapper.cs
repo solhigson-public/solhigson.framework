@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -60,18 +61,29 @@ public class LogWrapper
             //
         }
 
-        var name = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
+        var email = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
                                                   ServiceProviderWrapper.GetCurrentLogUserEmail();
         var chainId = ServiceProviderWrapper.GetCurrentLogChainId();
 
-        if (args is null)
+
+        if (!string.IsNullOrWhiteSpace(email) || !string.IsNullOrEmpty(chainId))
         {
-            InternalLogger.Log(logLevel, exception, message);
+            var dic = new Dictionary<string, object?>();
+            if (!string.IsNullOrEmpty(email))
+            {
+                dic.Add("Email", email);
+            }
+
+            if (!string.IsNullOrEmpty(chainId))
+            {
+                dic.Add("ChainId", chainId);
+            }
+            using var scope = InternalLogger.BeginScope(dic);
+            InternalLogger.Log(logLevel, exception, message, args!);
         }
         else
-        {
-            InternalLogger.Log(logLevel, exception, message, args);
-
+        {   
+            InternalLogger.Log(logLevel, exception, message, args!);
         }
     }
     
