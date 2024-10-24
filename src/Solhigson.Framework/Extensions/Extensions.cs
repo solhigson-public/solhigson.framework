@@ -60,7 +60,7 @@ namespace Solhigson.Framework.Extensions;
 
 public static class Extensions
 {
-    private static readonly LogWrapper Logger = new LogWrapper(typeof(Extensions).FullName);
+    private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
         
     #region Api Extensions
 
@@ -286,7 +286,7 @@ public static class Extensions
                 onRetry: (outcome, timespan, retryAttempt, context) =>
                 {
                     LogManager.GetLogger("HttpPollyService")
-                        .Warn($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
+                        .LogWarning($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
                 });
 
         services.AddHttpClient(AzureLogAnalyticsService.AzureLogAnalyticsNamedHttpClient)
@@ -296,7 +296,7 @@ public static class Extensions
     }
 
     private static IServiceCollection AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
-        Action<IdentityOptions> setupAction = null) 
+        Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<TKey, TRole>
         where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
         where TRole : SolhigsonAspNetRole<TKey>, new()
@@ -398,9 +398,9 @@ public static class Extensions
 
 
 
-    public static ClaimsPrincipal GetPrincipal(string jwtTokenString, string secret,
-        TokenValidationParameters validationParameters,
-        string issuer, string audience = null)
+    public static ClaimsPrincipal? GetPrincipal(string jwtTokenString, string secret,
+        TokenValidationParameters? validationParameters,
+        string? issuer, string? audience = null)
     {
         try
         {
@@ -425,7 +425,7 @@ public static class Extensions
         }
         catch(Exception e)
         {
-            Logger.Error(e);
+            Logger.LogError(e);
         }
 
         return null;
@@ -527,26 +527,26 @@ public static class Extensions
         return CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
     }
         
-    public static T GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class
+    public static T? GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class
     {
         var result = CacheManager.GetFromCache(query.GetCacheKey());
         if (result == null)
         {
             return null;
         }
-        Logger.Trace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+        Logger.LogTrace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
         return result.Value as T;
     }
 
 
-    private static TK GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func, params Type [] iCachedEntityType)
+    private static TK? GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func, params Type [] iCachedEntityType)
         where TK : class where T : class
     {
         var key = query.GetCacheKey();
         var customCacheEntry = CacheManager.GetFromCache(key);
         if (customCacheEntry != null)
         {
-            Logger.Trace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
+            Logger.LogTrace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
             return customCacheEntry.Value as TK;
         }
 
@@ -558,7 +558,7 @@ public static class Extensions
                 return customCacheEntry.Value as TK;
             }
 
-            Logger.Trace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
+            Logger.LogTrace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             var result = func(query) as TK;
                 
             CacheManager.AddToCache(key, result, GetQueryBaseTypeList(query, iCachedEntityType));
@@ -582,7 +582,7 @@ public static class Extensions
         }
         catch (Exception e)
         {
-            Logger.Error(e);
+            Logger.LogError(e);
         }
 
         return type;

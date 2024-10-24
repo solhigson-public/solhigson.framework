@@ -1,23 +1,28 @@
 ﻿using System.Collections.Concurrent;
-using NLog;
+using Microsoft.Extensions.Logging;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using LogLevel = NLog.LogLevel;
+
+// using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Solhigson.Framework.Logging;
 
 public static class LogManager
 {
-    private static readonly LogWrapper Logger = new (typeof(LogManager).FullName);
+    private static ILoggerFactory? _loggerFactory;
     private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
         new ();
+    private static ILogger? _logger;
     
-    internal static bool IsLoggerEnabled(LogLevel logLevel)
-    {
-        return Logger.IsEnabled(logLevel);
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory)
+    {   
+        _loggerFactory = loggerFactory;
+        _logger = _loggerFactory.CreateLogger("Solhigson.LogManager");
     }
-
-    public static void SetLogLevel(string level)
+    
+    public static void SetLogLevel(string? level)
     {
         level ??= "info";
-        Logger.Debug($"Setting log level to {level}");
 
         var logLevel = level.ToLower() switch
         {
@@ -29,6 +34,7 @@ public static class LogManager
             _ => LogLevel.Info
         };
 
+        _logger?.LogDebug("Setting log level to {level}", level);
         SetLoggingLevel(logLevel);
     }
 
@@ -41,11 +47,11 @@ public static class LogManager
 
         if (level == LogLevel.Off)
         {
-            NLog.LogManager.DisableLogging();
+            NLog.LogManager.SuspendLogging();
         }
         else
         {
-            if (!NLog.LogManager.IsLoggingEnabled()) NLog.LogManager.EnableLogging();
+            if (!NLog.LogManager.IsLoggingEnabled()) NLog.LogManager.ResumeLogging();
 
             foreach (var rule in NLog.LogManager.Configuration.LoggingRules)
             {
@@ -58,26 +64,29 @@ public static class LogManager
         NLog.LogManager.ReconfigExistingLoggers();
     }
 
-    private static LogWrapper GetLoggerInternal(string? name)
+    private static LogWrapper GetLoggerInternal(string? name, ILoggerFactory? factory = null)
     {
+        factory ??= _loggerFactory;   
         if (string.IsNullOrEmpty(name)) name = "MISC";
 
         LogWrappers.TryGetValue(name, out var logWrapper);
 
         if (logWrapper != null) return logWrapper;
-        logWrapper = new LogWrapper(name);
+        logWrapper = new LogWrapper(name, factory);
         LogWrappers.TryAdd(name, logWrapper);
         return logWrapper;
     }
     
-    internal static LogWrapper GetLogger(object? obj)
+    internal static LogWrapper GetLogger(object? obj, ILoggerFactory? factory = null)
     {
-        return GetLoggerInternal(obj?.GetType().FullName);
+        factory ??= _loggerFactory;   
+        return GetLoggerInternal(obj?.GetType().FullName, factory);
     }
     
-    public static LogWrapper GetLogger(string? loggerName)
+    public static LogWrapper GetLogger(string? loggerName, ILoggerFactory? factory = null)
     {
-        return GetLoggerInternal(loggerName);
+        factory ??= _loggerFactory;   
+        return GetLoggerInternal(loggerName, factory);
     }
 
 

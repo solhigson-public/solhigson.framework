@@ -16,7 +16,7 @@ public static class CacheManager
 
     private static bool _initialized;
     private static string _connectionString = string.Empty;
-    private static readonly LogWrapper Logger = new LogWrapper(typeof(CacheManager).FullName);
+    private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(CacheManager).FullName);
     private static int _cacheDependencyChangeTrackerTimerIntervalMilliseconds;
     private static int _cacheExpirationPeriodMinutes;
     public static event EventHandler? OnTableChangeTimerElapsed;
@@ -45,7 +45,7 @@ public static class CacheManager
         }
         catch (Exception e)
         {
-            Logger.Error(e);
+            Logger.LogError(e);
         }
     }
 
@@ -58,7 +58,7 @@ public static class CacheManager
         }
         catch (Exception e)
         {
-            Logger.Error(e);
+            Logger.LogError(e);
         }
 
         return continueOnError;
@@ -93,7 +93,7 @@ public static class CacheManager
         }
         catch (Exception e)
         {
-            Logger.Error(e, "Unable to get Cache Change Tracker Id");
+            Logger.LogError(e, "Unable to get Cache Change Tracker Id");
         }
 
         return null;
@@ -114,7 +114,7 @@ public static class CacheManager
         }
         catch (Exception e)
         {
-            Logger.Error(e, "Unable to get Cache Change Tracker Id");
+            Logger.LogError(e, "Unable to get Cache Change Tracker Id");
         }
 
         return 0;
@@ -173,7 +173,7 @@ public static class CacheManager
         }
         catch (Exception e)
         {
-            Logger.Error(e, "Adding item to cache", value);
+            Logger.LogError(e, "Adding item to cache", value);
             return false;
         }
     }
@@ -204,7 +204,7 @@ public static class CacheManager
         }
         catch (Exception e)
         {
-            Logger.Error(e);
+            Logger.LogError(e);
         }
 
         return tableChangeTracker;

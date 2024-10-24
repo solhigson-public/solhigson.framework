@@ -18,7 +18,7 @@ namespace Solhigson.Framework.Web.Middleware;
 
 public sealed class ApiTraceMiddleware : IMiddleware
 {
-    private static readonly LogWrapper Logger = new (nameof(ApiTraceMiddleware));
+    private static readonly LogWrapper Logger = Logging.LogManager.GetLogger(nameof(ApiTraceMiddleware));
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
 
     public ApiTraceMiddleware()
@@ -61,9 +61,8 @@ public sealed class ApiTraceMiddleware : IMiddleware
             : HelperFunctions.SeparatePascalCaseWords(action);
 
         this.SetCurrentLogUserEmail(traceData.GetUserIdentity());
-        Logger.Log(desc, LogLevel.Info, traceData, null,
-            null, Constants.ServiceType.Self,
-            Constants.Group.ServiceStatus, status, traceData.Url);
+        Logger.LogInformation("{description}, {url}, {serviceName}, {serviceType}, {status}, {traceData}", desc, traceData.Url, 
+            Constants.ServiceType.Self, Constants.Group.ServiceStatus, status, traceData);
 
         //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
         await responseBody.CopyToAsync(originalBodyStream);

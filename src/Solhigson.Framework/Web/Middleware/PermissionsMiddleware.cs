@@ -20,7 +20,7 @@ public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMi
     where TRole : SolhigsonAspNetRole<TKey>
     where TKey : IEquatable<TKey>
 {
-    private static readonly LogWrapper Logger = new LogWrapper(nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>));
+    private static readonly LogWrapper Logger = LogManager.GetLogger(nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>));
     private readonly PermissionManager<TUser, TRole, TContext, TKey> _permissionManager;
     public PermissionsMiddleware(PermissionManager<TUser, TRole, TContext, TKey> permissionManager)
     {
@@ -91,7 +91,7 @@ public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMi
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Exception thrown in {nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>)}");
+            Logger.LogError(e, $"Exception thrown in {nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>)}");
         }
 
     }
