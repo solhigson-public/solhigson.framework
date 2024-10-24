@@ -20,7 +20,7 @@ public class ApiRequestService : IApiRequestService
     public const string ContentTypeJson = "application/json";
     public const string ContentTypeXml = "application/xml";
     public const string ContentTypeXWwwFormUrlencoded = "application/x-www-form-urlencoded";
-    private readonly LogWrapper _logger = new LogWrapper("ApiRequestHelper");
+    private readonly LogWrapper _logger = Logging.LogManager.GetLogger("ApiRequestHelper");
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ApiConfiguration _apiConfiguration;
     private Action<ApiConfiguration> _configuration;
@@ -217,7 +217,7 @@ public class ApiRequestService : IApiRequestService
         }
         catch (Exception e)
         {
-            _logger.Error(e);
+            _logger.LogError(e);
         }
 
         return new ApiRequestResponse<T>();
@@ -318,7 +318,7 @@ public class ApiRequestService : IApiRequestService
             var hResponse = (HttpWebResponse) we.Response;
             if (hResponse == null)
             {
-                _logger.Error(we, $"While sending request to url: {url}");
+                _logger.LogError(we, $"While sending request to url: {url}");
                 GetStatusCode(we, apiRequestHelperResponse);
 
                 apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
@@ -348,7 +348,7 @@ public class ApiRequestService : IApiRequestService
         catch (Exception e)
         {
             apiRequestHelperResponse.Response = e.Message;
-            _logger.Error(e, $"While sending request to url: {url}");
+            _logger.LogError(e, $"While sending request to url: {url}");
             apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;
             if ((DateTime.UtcNow - apiRequestHelperResponse.StartTime).TotalMilliseconds >= apiRequestDetails.TimeOut)
             {
@@ -400,7 +400,7 @@ public class ApiRequestService : IApiRequestService
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.LogError(e);
             }
         }
 
@@ -408,7 +408,7 @@ public class ApiRequestService : IApiRequestService
     }
 
     protected virtual void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string requestMessage,
-        string responseMessage, JObject responseHeaders, HttpStatusCode statusCode, string serviceDescription,
+        string responseMessage, JObject? responseHeaders, HttpStatusCode statusCode, string serviceDescription,
         string serviceName, string serviceType)
     {
         var timeTaken = endTime - startTime;
@@ -438,9 +438,7 @@ public class ApiRequestService : IApiRequestService
             ? "Outbound"
             : serviceDescription;
 
-        _logger.Log(desc, LogLevel.Info, traceData, null,
-            serviceName, serviceType,
-            Constants.Group.ServiceStatus, status, traceData.Url);
+        _logger.LogInformation("{description}, {url}, {serviceName}, {serviceType}, {status}, {traceData}", desc, traceData.Url, serviceName, serviceType, status, traceData);
 
     }
 
@@ -480,8 +478,8 @@ public class ApiRequestService : IApiRequestService
         }
         catch (Exception e)
         {
-            _logger.Error(e, $"While deserializing response: " +
-                             $"{apiRequestResponse.Response} from: {format}");
+            _logger.LogError(e, $"While deserializing response: " +
+                                $"{apiRequestResponse.Response} from: {format}");
         }
     }
 

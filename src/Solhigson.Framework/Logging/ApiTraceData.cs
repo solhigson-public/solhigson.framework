@@ -20,7 +20,7 @@ public class ApiTraceData
     public string RequestMessage { get; set; }
     public JObject RequestHeaders { get; set; }
     public string ResponseMessage { get; set; }
-    public JObject ResponseHeaders { get; set; }
+    public JObject? ResponseHeaders { get; set; }
     public DateTime RequestTime { get; set; }
     public DateTime ResponseTime { get; set; }
     public string TimeTaken { get; set; }

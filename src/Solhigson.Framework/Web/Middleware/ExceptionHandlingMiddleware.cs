@@ -12,7 +12,7 @@ namespace Solhigson.Framework.Web.Middleware;
 
 public class ExceptionHandlingMiddleware : IMiddleware
 {
-    private static readonly LogWrapper Logger = new LogWrapper(typeof(ExceptionHandlingMiddleware).FullName);
+    private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(ExceptionHandlingMiddleware).FullName);
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         try
@@ -25,7 +25,7 @@ public class ExceptionHandlingMiddleware : IMiddleware
             {
                 await HandleExceptionAsync(context, StatusCodes.Status401Unauthorized);
             }
-            Logger.Error(e);
+            Logger.LogError(e);
             await HandleExceptionAsync(context);
         }
     }
@@ -52,7 +52,7 @@ public class ExceptionHandlingMiddleware : IMiddleware
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Exception thrown in {nameof(ExceptionHandlingMiddleware)}");
+            Logger.LogError(e, $"Exception thrown in {nameof(ExceptionHandlingMiddleware)}");
         }
     }
 }

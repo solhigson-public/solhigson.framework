@@ -11,7 +11,7 @@ namespace Solhigson.Framework.Data;
 
 public static class AdoNetUtils
 {
-    private static readonly LogWrapper Logger = new(typeof(AdoNetUtils).FullName);
+    private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(AdoNetUtils).FullName);
 
     public static async Task<int> ExecuteNonQueryAsync(string connectionString, string spNameOrCommand,
         List<SqlParameter>? parameters = null,
@@ -103,7 +103,7 @@ public static class AdoNetUtils
             }
             catch (Exception e)
             {
-                Logger.Error(e);
+                Logger.LogError(e);
             }
         }
 
@@ -146,7 +146,7 @@ public static class AdoNetUtils
                 }
                 catch (Exception e)
                 {
-                    Logger.Error(e, $"While reading property values for class: {type.FullName}");
+                    Logger.LogError(e, $"While reading property values for class: {type.FullName}");
                 }
             }
 

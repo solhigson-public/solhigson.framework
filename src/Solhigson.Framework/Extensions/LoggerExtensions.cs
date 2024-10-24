@@ -1,177 +1,112 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using NLog;
 using Solhigson.Framework.Infrastructure;
-using Solhigson.Framework.Logging;
-using ILogger = NLog.ILogger;
-using LogLevel = NLog.LogLevel;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogManager = Solhigson.Framework.Logging.LogManager;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Solhigson.Framework.Extensions;
 
 public static class LoggerExtensions
 {
-    private static readonly Logger LoggerInternal = NLog.LogManager.GetLogger(nameof(LoggerExtensions));
-    public static void EServiceStatus(this object obj, string serviceName, string serviceDescription,
-        string serviceType,
-        bool isUp, string endPointUrl, object data = null,
-        string userEmail = null, Exception exception = null, string chainId = null)
+    private static void Log(object obj, LogLevel level, string? message, params object?[]? args)
     {
-        if (!LoggerInternal.IsInfoEnabled)
-        {
-            return;
-        }
-
-        if (exception != null)
-        {
-            isUp = false;
-        }
-
-        var desc = string.IsNullOrWhiteSpace(serviceDescription)
-            ? "Outbound"
-            : serviceDescription;
-
-        var status = isUp ? Constants.ServiceStatus.Up : Constants.ServiceStatus.Down;
-        LogManager.GetLogger(obj)?.Log(desc, LogLevel.Info, data, exception, serviceName, serviceType,
-            Constants.Group.ServiceStatus, status, endPointUrl, chainId);
+        LogManager.GetLogger(obj).Log(level, message, args);
     }
-
+    
     [Obsolete("This will be depreciated in future releases, use LogTrace() instead")]
-    public static void ELogTrace(this object obj, string message, object data = null)
+    public static void ELogTrace(this object obj, string message, object? data = null)
     {
-        if (LoggerInternal.IsTraceEnabled)
-        {
-            LogManager.GetLogger(obj)?.Trace(message, data);
-        }
+        Log(obj, LogLevel.Trace, message, data);
     }
     
     [MessageTemplateFormatMethod("message")]
     public static void LogTrace(this object obj, string message, params object?[] args)
     {
-        if (LoggerInternal.IsTraceEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogTrace(message, args);
-        }
+        Log(obj, LogLevel.Trace, message, args);
     }
 
 
     [Obsolete("This will be depreciated in future releases, use LogDebug() instead")]
     public static void ELogDebug(this object obj, string message, object data = null)
     {
-        if (LoggerInternal.IsDebugEnabled)
-        {
-            LogManager.GetLogger(obj)?.Debug(message, data);
-        }
+        Log(obj, LogLevel.Debug, message, data);
     }
     
     [MessageTemplateFormatMethod("message")]
     public static void LogDebug(this object obj, string message, params object[] args)
     {
-        if (LoggerInternal.IsDebugEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogDebug(message, args);
-        }
+        Log(obj, LogLevel.Debug, message, args);
     }
 
 
     [Obsolete("This will be depreciated in future releases, use LogInfo() instead")]
-    public static void ELogInfo(this object obj, string message, object data = null)
+    public static void ELogInfo(this object obj, string message, object? data = null)
     {
-        if (LoggerInternal.IsInfoEnabled)
-        {
-            LogManager.GetLogger(obj)?.Info(message, data);
-        }
+        Log(obj, LogLevel.Information, message, data);
     }
     
     [MessageTemplateFormatMethod("message")]
     public static void LogInformation(this object obj, string message, params object[] args)
     {
-        if (LoggerInternal.IsInfoEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogInformation(message, args);
-        }
+        Log(obj, LogLevel.Information, message, args);
     }
 
-    [Obsolete("This will be depreciated in future releases, use LogWarn() instead")]
-    public static void ELogWarn(this object obj, string message, object data = null)
+    [Obsolete("This will be depreciated in future releases, use LogWarning() instead")]
+    public static void ELogWarn(this object obj, string message, object? data = null)
     {
-        if (LoggerInternal.IsWarnEnabled)
-        {
-            LogManager.GetLogger(obj)?.Warn(message, data);
-        }
+        Log(obj, LogLevel.Warning, message, data);
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogWarn(this object obj, string message, params object[] args)
+    public static void LogWarning(this object obj, string message, params object[] args)
     {
-        if (LoggerInternal.IsWarnEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogWarn(message, args);
-        }
+        Log(obj, LogLevel.Warning, message, args);
     }
 
 
     [Obsolete("This will be depreciated in future releases, use LogError() instead")]
-    public static void ELogError(this object obj, string message, object data = null)
+    public static void ELogError(this object obj, string message, object? data = null)
     {
-        if (LoggerInternal.IsErrorEnabled)
-        {
-            LogManager.GetLogger(obj)?.Error(null, message, data);
-        }
+        Log(obj, LogLevel.Error, message, data);
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogError(this object obj, string message, params object[] args)
+    public static void ELogError(this object obj, string message, params object[] args)
     {
-        if (LoggerInternal.IsErrorEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogError(null, message, args);
-        }
+        Log(obj, LogLevel.Error, message, args);
     }
 
 
     [Obsolete("This will be depreciated in future releases, use LogError() instead")]
-    public static void ELogError(this object obj, Exception e, string message = null, object data = null,
-        string userEmail = null)
+    public static void ELogError(this object obj, Exception e, string? message = null, object? data = null,
+        string? userEmail = null)
     {
-        if (LoggerInternal.IsErrorEnabled)
-        {
-            LogManager.GetLogger(obj)?.Error(e, message ?? e.Message, data);
-        }
+        LogManager.GetLogger(obj).Log(LogLevel.Error, message, e, data);
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogError(this object obj, Exception e, string message = null, params object?[] args)
+    public static void ELogError(this object obj, Exception e, string? message = null, params object?[] args)
     {
-        if (LoggerInternal.IsErrorEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogError(e, message, args);
-        }
+        Log(obj, LogLevel.Error, message, args);
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LogFatal() instead")]
-    public static void ELogFatal(this object obj, string message, Exception e = null, object data = null,
-        string userEmail = null)
+    [Obsolete("This will be depreciated in future releases, use LCritical() instead")]
+    public static void ELogFatal(this object obj, string message, Exception? e = null, object? data = null,
+        string? userEmail = null)
     {
-        if (LoggerInternal.IsFatalEnabled)
-        {
-            LogManager.GetLogger(obj)?.Fatal(message, e, data);
-        }
+        LogManager.GetLogger(obj).Log(LogLevel.Critical, message, e, data);
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogFatal(this object obj, string message, params object[] args)
+    public static void Critical(this object obj, string message, params object[] args)
     {
-        if (LoggerInternal.IsFatalEnabled)
-        {
-            LogManager.GetLogger(obj)?.LogFatal(null, message, args);
-        }
+        Log(obj, LogLevel.Critical, message, args);
     }
 
-    public static Logger Logger(this object obj) => LogManager.GetLogger(obj)?.InternalLogger;
+    public static ILogger? Logger(this object obj) => LogManager.GetLogger(obj)?.InternalLogger;
 
     
 
@@ -180,7 +115,7 @@ public static class LoggerExtensions
         ServiceProviderWrapper.SetCurrentLogChainId(chainId);
     }
 
-    public static string GetCurrentLogChainId(this object obj)
+    public static string? GetCurrentLogChainId(this object obj)
     {
         return ServiceProviderWrapper.GetCurrentLogChainId();
     }

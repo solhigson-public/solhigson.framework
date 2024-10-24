@@ -53,7 +53,7 @@ public static class AuditHelper
         }
         catch (Exception e)
         {
-            Logger.Error(e);
+            Logger.LogError(e);
         }
     }
 }
