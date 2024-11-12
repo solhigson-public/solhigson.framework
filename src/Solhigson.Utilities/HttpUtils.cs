@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Solhigson.Framework.Utilities;
+namespace Solhigson.Utilities;
 
 public static class HttpUtils
 {
-    public static string UrlRoot(HttpContext httpContext)
+    public static string UrlRoot(HttpContext? httpContext)
     {
         if (httpContext == null)
         {
@@ -12,7 +12,7 @@ public static class HttpUtils
         }
 
         var scheme = httpContext.Request.Scheme;
-        if (httpContext.Request.IsHttps && !scheme.Contains("s"))
+        if (httpContext.Request.IsHttps && !scheme.Contains('s'))
         {
             scheme = "https";
         }

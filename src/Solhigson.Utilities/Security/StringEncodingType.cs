@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Utilities.Security;
+﻿namespace Solhigson.Utilities.Security;
 
 public enum StringEncodingType
 {

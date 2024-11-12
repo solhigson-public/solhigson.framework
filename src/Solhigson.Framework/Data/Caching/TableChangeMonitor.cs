@@ -10,21 +10,21 @@ public class TableChangeMonitor : ChangeMonitor
     public TableChangeMonitor(TableChangeTracker tableChangeTracker)
     {
         UniqueId = $"{tableChangeTracker.TableNames}_{Guid.NewGuid().ToString()}";
-        this.ELogTrace($"New Change monitor: {UniqueId}");
+        this.LogTrace($"New Change monitor: {UniqueId}");
         _tableChangeTracker = tableChangeTracker;
         _tableChangeTracker.OnChanged += TableChangeTrackerOnChanged;
         InitializationComplete();
     }
 
-    private void TableChangeTrackerOnChanged(object sender, EventArgs e)
+    private void TableChangeTrackerOnChanged(object? sender, EventArgs e)
     {
-        this.ELogTrace($"Monitor changed for {UniqueId}");
+        this.LogTrace($"Monitor changed for {UniqueId}");
         OnChanged(UniqueId);
     }
 
     protected override void Dispose(bool disposing)
     {
-        this.ELogTrace($"Dispose called for {UniqueId}");
+        this.LogTrace($"Dispose called for {UniqueId}");
         _tableChangeTracker.OnChanged -= TableChangeTrackerOnChanged;
     }
 

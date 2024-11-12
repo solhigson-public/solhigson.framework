@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Linq.Expressions;
 
-namespace Solhigson.Framework.Utilities.Linq;
+namespace Solhigson.Utilities.Linq;
 
 public class LocalCollectionExpander : ExpressionVisitor
 {

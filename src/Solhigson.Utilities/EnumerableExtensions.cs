@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Solhigson.Framework.Utilities;
+namespace Solhigson.Utilities;
 
 public static class EnumerableExtensions
 {

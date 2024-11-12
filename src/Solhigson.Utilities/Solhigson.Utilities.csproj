@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
-        <PackageId>Solhigson.Framework.Utilities</PackageId>
+        <PackageId>Solhigson.Utilities</PackageId>
         <Authors>Solhigson</Authors>
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
@@ -13,8 +13,6 @@
         <LangVersion>12</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <AssemblyName>Solhigson.Framework.Utilities</AssemblyName>
-        <RootNamespace>Solhigson.Framework.Utilities</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

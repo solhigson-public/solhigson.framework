@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text;
-using Solhigson.Framework.Utilities.Security;
+using Solhigson.Utilities.Security;
 
-namespace Solhigson.Framework.Utilities.Extensions;
+namespace Solhigson.Utilities.Extensions;
 
 public static class CryptoExtensions
 {

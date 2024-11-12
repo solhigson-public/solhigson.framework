@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Solhigson.Framework.Utilities.Pluralization;
+namespace Solhigson.Utilities.Pluralization;
 
 internal class StringBidirectionalDictionary : BidirectionalDictionary<string, string>
 {

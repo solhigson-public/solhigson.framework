@@ -12,7 +12,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Formatting = Newtonsoft.Json.Formatting;
 
-namespace Solhigson.Framework.Utilities;
+namespace Solhigson.Utilities;
 
 public static class Serializer
 {

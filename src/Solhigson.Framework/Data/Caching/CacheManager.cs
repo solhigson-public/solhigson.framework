@@ -120,7 +120,7 @@ public static class CacheManager
         return 0;
     }
 
-    internal static bool AddToCache(string key, object value, IList<Type>? types)
+    internal static bool AddToCache(string key, object? value, IList<Type>? types)
     {
         if (!_initialized || string.IsNullOrWhiteSpace(key))
         {
@@ -145,7 +145,7 @@ public static class CacheManager
         return validTypes;
     }
 
-    private static bool InsertItem(string key, object value, ChangeMonitor? changeMonitor = null)
+    private static bool InsertItem(string key, object? value, ChangeMonitor? changeMonitor = null)
     {
         if (string.IsNullOrWhiteSpace(key))// || value == null)
         {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace Solhigson.Framework.Utilities;
+namespace Solhigson.Utilities;
 
 public static class EnumUtil
 {

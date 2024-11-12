@@ -7,7 +7,7 @@ namespace Solhigson.Framework.Data.Caching;
 
 public class TableChangeTracker : IDisposable
 {
-    public event EventHandler OnChanged;
+    public event EventHandler? OnChanged;
 
     private readonly Dictionary<string, short> _changeIds = new();
     public TableChangeTracker(IEnumerable<string> tableNames)
@@ -21,7 +21,7 @@ public class TableChangeTracker : IDisposable
 
     internal string TableNames => CacheManager.Flatten(_changeIds.Keys.ToList());
         
-    private void OnTableChangeTimerElapsed(object sender, EventArgs e)
+    private void OnTableChangeTimerElapsed(object? sender, EventArgs e)
     {
         if (e is not ChangeTrackerEventArgs ce)
         {
@@ -30,12 +30,13 @@ public class TableChangeTracker : IDisposable
             
         foreach (var key in _changeIds.Keys)
         {
-            if (ce.ChangeIds.TryGetValue(key, out var changeId) && _changeIds[key] != changeId)
+            if (!ce.ChangeIds.TryGetValue(key, out var changeId) || _changeIds[key] == changeId)
             {
-                _changeIds[key] = changeId;
-                this.ELogTrace($"Change tracker changed for [{key}]");
-                OnChanged?.Invoke(null, EventArgs.Empty);
+                continue;
             }
+            _changeIds[key] = changeId;
+            this.LogTrace($"Change tracker changed for [{key}]");
+            OnChanged?.Invoke(null, EventArgs.Empty);
         }
 
 

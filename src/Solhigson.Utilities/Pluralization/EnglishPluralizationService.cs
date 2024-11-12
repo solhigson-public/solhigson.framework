@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Solhigson.Framework.Utilities.Pluralization;
+namespace Solhigson.Utilities.Pluralization;
 
 public class EnglishPluralizationService
 {

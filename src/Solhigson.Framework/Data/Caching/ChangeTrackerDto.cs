@@ -2,6 +2,6 @@
 
 public class ChangeTrackerDto
 {
-    public string TableName { get; set; }
+    public string? TableName { get; set; }
     public short ChangeId { get; set; }
 }

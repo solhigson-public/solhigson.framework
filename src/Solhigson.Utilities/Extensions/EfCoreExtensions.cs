@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Solhigson.Framework.Utilities.Extensions;
+namespace Solhigson.Utilities.Extensions;
 
 public static class EfCoreExtensions
 {

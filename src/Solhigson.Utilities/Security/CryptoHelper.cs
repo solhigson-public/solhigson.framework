@@ -8,9 +8,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
-using Solhigson.Framework.Utilities.Extensions;
+using Solhigson.Utilities.Extensions;
 
-namespace Solhigson.Framework.Utilities.Security;
+namespace Solhigson.Utilities.Security;
 
 public static class CryptoHelper
 {

@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Mapster;
@@ -28,6 +25,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
+using NLog;
 using NLog.Common;
 using NLog.Config;
 using NLog.Targets.Wrappers;
@@ -64,7 +62,7 @@ public static class Extensions
         
     #region Api Extensions
 
-    public static Dictionary<string, string> AddAuthorizationHeader(this Dictionary<string, string> headers,
+    public static Dictionary<string, string>? AddAuthorizationHeader(this Dictionary<string, string>? headers,
         string type, string value)
     {
         headers?.Add("Authorization", $"{type} {value}");
@@ -109,7 +107,7 @@ public static class Extensions
                 {
                     dType = attr.DependencyType.ToString();
                 }
-                Logger.ELogDebug($"Registering Dependency: {type.FullName} as {dType}");
+                Logger.LogDebug($"Registering Dependency: {type.FullName} as {dType}");
                 switch (attr?.DependencyType)
                 {
                     case DependencyType.Singleton:
@@ -136,7 +134,7 @@ public static class Extensions
     }
 
     public static IApplicationBuilder ConfigureSolhigsonNLogDefaults(this IApplicationBuilder app,
-        DefaultNLogParameters defaultNLogParameters = null)
+        DefaultNLogParameters? defaultNLogParameters = null)
     {
         defaultNLogParameters ??= new DefaultNLogParameters();
         defaultNLogParameters.ApiTraceConfiguration ??= configuration =>
@@ -154,8 +152,6 @@ public static class Extensions
 
         app.ApplicationServices.GetService<IApiRequestService>()?.UseConfiguration(defaultNLogParameters.ApiTraceConfiguration);
 
-        ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, defaultNLogParameters.ProtectedFields);
-            
         ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
         return app;
     }
@@ -517,7 +513,7 @@ public static class Extensions
     /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static T FromCacheSingle<T>(this IQueryable<T> query, params Type [] iCachedEntityTypesToMonitor) where T : class
+    public static T? FromCacheSingle<T>(this IQueryable<T> query, params Type [] iCachedEntityTypesToMonitor) where T : class
     {
         return GetCacheData<T, T>(query, ResolveToSingle, iCachedEntityTypesToMonitor);
     }
@@ -539,7 +535,7 @@ public static class Extensions
     }
 
 
-    private static TK? GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object> func, params Type [] iCachedEntityType)
+    private static TK? GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object?> func, params Type [] iCachedEntityType)
         where TK : class where T : class
     {
         var key = query.GetCacheKey();
@@ -588,9 +584,9 @@ public static class Extensions
         return type;
     }
 
-    private static IList<Type> GetQueryBaseTypeList<T>(IQueryable<T> query, params Type [] iCachedEntityTypes) where T : class
+    private static IList<Type> GetQueryBaseTypeList<T>(IQueryable<T> query, params Type []? iCachedEntityTypes) where T : class
     {
-        if (iCachedEntityTypes != null && iCachedEntityTypes.Any())
+        if (iCachedEntityTypes != null && iCachedEntityTypes.Length != 0)
         {
             return CacheManager.GetValidICacheEntityTypes(iCachedEntityTypes);
         }
@@ -598,13 +594,13 @@ public static class Extensions
         return CacheManager.GetValidICacheEntityTypes(GetQueryBaseTypeSingle(query));
     }
 
-    private static object ResolveToList<T>(IQueryable<T> query) where T : class
+    private static List<T>? ResolveToList<T>(IQueryable<T> query) where T : class
     {
         var result = query.AsNoTrackingWithIdentityResolution().ToList();
-        return result.Any() ? result : null;
+        return result.Count != 0 ? result : null;
     }
 
-    private static object ResolveToSingle<T>(IQueryable<T> query) where T : class
+    private static T? ResolveToSingle<T>(IQueryable<T> query) where T : class
     {
         return query.AsNoTrackingWithIdentityResolution().FirstOrDefault();
     }

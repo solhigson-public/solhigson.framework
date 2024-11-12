@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace Solhigson.Framework.Utilities.Linq;
+namespace Solhigson.Utilities.Linq;
 
 public static class Evaluator
 {

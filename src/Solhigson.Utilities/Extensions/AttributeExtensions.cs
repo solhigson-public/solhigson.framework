@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Solhigson.Framework.Utilities.Extensions;
+namespace Solhigson.Utilities.Extensions;
 
 public static class AttributeExtensions
 {
