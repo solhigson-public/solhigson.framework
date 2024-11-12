@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <PackageId>Solhigson.EntityFrameworkCore</PackageId>
+        <Authors>Solhigson</Authors>
+        <Description>Utility Library</Description>
+        <IsPackable>true</IsPackable>
+        <Version>1.0.0</Version>
+        <PackageVersion>8.0.2</PackageVersion>
+        <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
+        <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+        <LangVersion>12</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+</Project>
