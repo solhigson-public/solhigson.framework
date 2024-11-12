@@ -37,7 +37,7 @@ public static class Extensions
         result.LogContainerInitializationSuccess = CreateLogContainer(parameters, ttl);
         if (!result.LogContainerInitializationSuccess)
         {
-            Logger.Warn($"CreateLogContainer for container: {parameters.Container} returned null, not initializing NLogCosmosDb Target");
+            Logger.LogWarning($"CreateLogContainer for container: {parameters.Container} returned null, not initializing NLogCosmosDb Target");
             return result;
         }
         result.AuditContainerInitializationSuccess = CreateAuditContainer(parameters);
@@ -60,12 +60,12 @@ public static class Extensions
             var containerResponse = parameters.Database
                 .CreateContainerIfNotExistsAsync(parameters.Container, "/id").Result;
 
-            Logger.Debug(
+            Logger.LogDebug(
                 $"{parameters.Container} on database {parameters.Database.Id} create status: {containerResponse.StatusCode}");
 
             if (containerResponse.StatusCode == HttpStatusCode.Created)
             {
-                Logger.Debug($"{parameters.Container} created, updating indexes");
+                Logger.LogDebug($"{parameters.Container} created, updating indexes");
                 containerResponse.Resource.IndexingPolicy.IndexingMode = IndexingMode.Consistent;
                 containerResponse.Resource.IndexingPolicy.IncludedPaths.Clear();
 
@@ -97,7 +97,7 @@ public static class Extensions
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Creating CosmosDbService for Container: {parameters.Container}");
+            Logger.LogError(e, $"Creating CosmosDbService for Container: {parameters.Container}");
         }
 
         return false;
@@ -128,7 +128,7 @@ public static class Extensions
             {
                 return true;
             }
-            Logger.Debug($"{parameters.Container} created, setting ttl");
+            Logger.LogDebug($"{parameters.Container} created, setting ttl");
             containerResponse.Resource.DefaultTimeToLive = (int)parameters.AuditLogExpireAfter.Value.TotalSeconds;
 
             AsyncTools.RunSync(() =>
@@ -137,7 +137,7 @@ public static class Extensions
         }
         catch (Exception e)
         {
-            Logger.Error(e, $"Creating CosmosDbService for Container: {parameters.AuditContainer}");
+            Logger.LogError(e, $"Creating CosmosDbService for Container: {parameters.AuditContainer}");
         }
 
         return false;
