@@ -14,15 +14,14 @@ public static class Extensions
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
     public static MongoDbService<MongoDbLog>? ConfigureAuditingWithMongoDb(this IApplicationBuilder app,
-        NlogMongoDbParameters? parameters = null)
+        AuditParameters? parameters = null)
     {
         if (string.IsNullOrWhiteSpace(parameters?.AuditCollection) || string.IsNullOrWhiteSpace(parameters?.Database)
                                                                    || string.IsNullOrWhiteSpace(parameters?.ConnectionString))
         {
-            app.UseSolhigsonNLogDefaultFileTarget();
             Logger.LogError(
-                "Unable to initalize NLog Mongo Db Db Target because one or more the the required parameters are missing: {parameters}" +
-                "[ConnectionString, Database or Collection].", parameters!);
+                "Unable to initialize Mongo Db for Auditing because one or more of the required parameters are missing: {parameters}" +
+                "[ConnectionString, Database or AuditCollection].", parameters!);
             return null;
         }
 
@@ -61,7 +60,7 @@ public static class Extensions
         return service;
     }
 
-    private static void ConfigureAuditCollection(NlogMongoDbParameters parameters)
+    private static void ConfigureAuditCollection(AuditParameters loggingParameters)
     {
     }
         

@@ -3,14 +3,9 @@ using Solhigson.Framework.Logging.Nlog.Dto;
 
 namespace Solhigson.Framework.MongoDb.Dto;
 
-public class NlogMongoDbParameters
+public class AuditParameters
 {
-    public NlogMongoDbParameters()
-    {
-        EncodeChildJsonContent = true;
-    }
-
-    public bool EncodeChildJsonContent { get; set; }
+    public bool EncodeChildJsonContent { get; set; } = true;
 
     public string? ConnectionString { get; set; }
     public string? Database { get; set; }

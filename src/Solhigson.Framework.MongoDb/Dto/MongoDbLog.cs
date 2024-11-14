@@ -62,6 +62,10 @@ public record MongoDbLog : MongoDbDocumentBase
     [JsonProperty("Timestamp")]
     public double Timestamp { get; set; }
 
+    [JsonPropertyName("MachineName")]
+    [JsonProperty("MachineName")]
+    public string MachineName { get; set; }
+
 
     [Newtonsoft.Json.JsonIgnore]
     public DateTime Date
@@ -74,7 +78,7 @@ public record MongoDbLog : MongoDbDocumentBase
             }
             catch (Exception e)
             {
-                this.ELogError(e);
+                this.LogError(e);
             }
 
             return DateTime.UtcNow;
