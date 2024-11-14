@@ -13,37 +13,36 @@ namespace Solhigson.Framework.MongoDb.Extensions;
 public static class Extensions
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
-    public static MongoDbService<MongoDbLog>? ConfigureAuditingWithMongoDb(this IApplicationBuilder app,
-        AuditParameters? parameters = null)
+    public static IApplicationBuilder ConfigureAuditingWithMongoDb<T>(this IApplicationBuilder app,
+        AuditParameters? parameters = null) where T : IMongoDbDocumentBase
     {
-        if (string.IsNullOrWhiteSpace(parameters?.AuditCollection) || string.IsNullOrWhiteSpace(parameters?.Database)
-                                                                   || string.IsNullOrWhiteSpace(parameters?.ConnectionString))
+        if (string.IsNullOrWhiteSpace(parameters?.Database) || string.IsNullOrWhiteSpace(parameters?.ConnectionString))
         {
             Logger.LogError(
                 "Unable to initialize Mongo Db for Auditing because one or more of the required parameters are missing: {parameters}" +
-                "[ConnectionString, Database or AuditCollection].", parameters!);
-            return null;
+                "[ConnectionString, Database].", parameters!);
+            return app;
         }
 
-        var service = MongoDbServiceFactory.Create<MongoDbLog>(parameters.ConnectionString, parameters.Database, parameters.AuditCollection);
+        var service = MongoDbServiceFactory.Create<T>(parameters.ConnectionString, parameters.Database);
         if (service == null)
         {
             Logger.LogError("Unable to create Mongo Db service with supplied parameters: {parameters}, check log for error.", parameters);
-            return null;
+            return app;
         }
 
         var dataProvider = new MongoDataProvider
         {
             ConnectionString = parameters.ConnectionString,
             Database = parameters.Database,
-            Collection = parameters.AuditCollection
+            Collection = service.CollectionName,
         };
         
         Configuration.DataProvider = dataProvider;
 
         if (!parameters.AuditLogExpireAfter.HasValue)
         {
-            return null;
+            return app;
         }
         
         var ttlIndex = Builders<AuditEvent>.IndexKeys.Descending(t => t.StartDate);
@@ -57,11 +56,6 @@ public static class Extensions
             ));
 
 
-        return service;
+        return app;
     }
-
-    private static void ConfigureAuditCollection(AuditParameters loggingParameters)
-    {
-    }
-        
 }

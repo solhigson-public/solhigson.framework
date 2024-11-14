@@ -9,8 +9,6 @@ public class AuditParameters
 
     public string? ConnectionString { get; set; }
     public string? Database { get; set; }
-    public string? AuditCollection { get; set; }
-        
     public TimeSpan? AuditLogExpireAfter { get; set; }
 
 }
