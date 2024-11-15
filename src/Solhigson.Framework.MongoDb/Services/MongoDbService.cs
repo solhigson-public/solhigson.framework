@@ -55,6 +55,12 @@ public class MongoDbService
         var client = new MongoClient(connectionString);
         _databaseClient = client.GetDatabase(database);
     }
+    
+    public MongoDbService(IMongoDatabase database)
+    {
+        _databaseClient = database;
+    }
+
         
     public async Task<ResponseInfo<T>> AddDocumentAsync<T>(T document) where T : IMongoDbDocumentBase
     {
@@ -138,6 +144,12 @@ public class MongoDbService<T> where T : IMongoDbDocumentBase
         CollectionName = MongoDbService.GetCollectionName<T>();
     }
         
+    public MongoDbService(IMongoDatabase database)
+    {
+        _mongoDbService = new MongoDbService(database);
+        CollectionName = MongoDbService.GetCollectionName<T>();
+    }
+
     public async Task<ResponseInfo<T>> AddDocumentAsync(T document)
     {
         return await _mongoDbService.AddDocumentAsync(document);
