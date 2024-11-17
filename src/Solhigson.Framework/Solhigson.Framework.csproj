@@ -5,12 +5,12 @@
         <TargetFramework>netstandard2.1</TargetFramework>
 -->
         <TargetFramework>net8.0</TargetFramework>
-        <PackageId>Solhigson.Framework</PackageId>
+        <PackageId>Solhigson.Framework.Core</PackageId>
         <Authors>Solhigson</Authors>
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>8.0.14</PackageVersion>
+        <PackageVersion>8.0.0</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>12</LangVersion>
