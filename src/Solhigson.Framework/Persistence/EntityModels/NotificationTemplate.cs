@@ -17,5 +17,5 @@ public record NotificationTemplate : ICachedEntity
         
     [Column(ScriptsManager.NotificationTemplateInfo.TemplateColumn)]
     [CachedProperty]
-    public string Template { get; set; }
+    public string? Template { get; set; }
 }

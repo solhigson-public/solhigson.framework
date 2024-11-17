@@ -27,7 +27,7 @@ public static class Serializer
     };
 
 
-    public static IDictionary<string, string> SerializeToKeyValue(this object obj)
+    public static IDictionary<string, string>? SerializeToKeyValue(this object? obj)
     {
         while (true)
         {
@@ -65,8 +65,8 @@ public static class Serializer
         }
     }
 
-    public static string SerializeToXml(this object obj, XmlSerializerNamespaces xmlsn = null,
-        XmlWriterSettings settings = null)
+    public static string SerializeToXml(this object? obj, XmlSerializerNamespaces? xmlsn = null,
+        XmlWriterSettings? settings = null)
     {
         if (obj == null) return null;
         xmlsn ??= DefaultXmlSerializerNamespaces;
@@ -80,8 +80,8 @@ public static class Serializer
         return stream.ToString();
     }
 
-    public static string SerializeToXmlUtf8(this object obj, XmlSerializerNamespaces xmlsn = null,
-        XmlWriterSettings settings = null)
+    public static string? SerializeToXmlUtf8(this object? obj, XmlSerializerNamespaces? xmlsn = null,
+        XmlWriterSettings? settings = null)
     {
         if (obj == null) return null;
         xmlsn ??= DefaultXmlSerializerNamespaces;

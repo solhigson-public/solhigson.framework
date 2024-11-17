@@ -73,7 +73,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void ELogError(this object obj, string message, params object[] args)
+    public static void LogError(this object obj, string message, params object[] args)
     {
         Log(obj, LogLevel.Error, message, args);
     }
@@ -87,13 +87,13 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void ELogError(this object obj, Exception e, string? message = null, params object?[] args)
+    public static void LogError(this object obj, Exception e, string? message = null, params object?[] args)
     {
         Log(obj, LogLevel.Error, message, args);
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LCritical() instead")]
+    [Obsolete("This will be depreciated in future releases, use LogCritical() instead")]
     public static void ELogFatal(this object obj, string message, Exception? e = null, object? data = null,
         string? userEmail = null)
     {
@@ -101,7 +101,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void Critical(this object obj, string message, params object[] args)
+    public static void LogCritical(this object obj, string message, params object[] args)
     {
         Log(obj, LogLevel.Critical, message, args);
     }

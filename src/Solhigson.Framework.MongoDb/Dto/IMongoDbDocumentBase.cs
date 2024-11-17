@@ -4,6 +4,6 @@ namespace Solhigson.Framework.MongoDb.Dto;
 
 public interface IMongoDbDocumentBase
 {
-    string Id { get; set; }
+    string? Id { get; set; }
     DateTime Ttl { get; set; }
 }

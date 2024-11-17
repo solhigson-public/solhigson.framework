@@ -13,6 +13,7 @@ public record SolhigsonRolePermission<T> : ICachedEntity where T : IEquatable<T>
         
     [StringLength(450)]
     [Column(ScriptsManager.RolePermissionInfo.PermissionIdColumn, TypeName = "VARCHAR")]
+    [Required]
     public string PermissionId { get; set; }
         
 }

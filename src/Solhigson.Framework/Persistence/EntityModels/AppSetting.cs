@@ -16,10 +16,11 @@ public record AppSetting : ICachedEntity
         
     [StringLength(255)]
     [Column(ScriptsManager.AppSettingInfo.NameColumn)]
+    [Required]
     public string Name { get; set; }
         
     [Column(ScriptsManager.AppSettingInfo.ValueColumn)]
-    public string Value { get; set; }
+    public string? Value { get; set; }
         
     [Column(ScriptsManager.AppSettingInfo.IsSensitive)]
     public bool IsSensitive { get; set; }

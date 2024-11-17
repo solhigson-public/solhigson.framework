@@ -27,5 +27,6 @@ public record SolhigsonRoleGroup : ICachedEntity
     [StringLength(256)]
     [Column(ScriptsManager.RoleGroupInfo.NameColumn)]
     [CachedProperty]
+    [Required]
     public string Name { get; set; }
 }
