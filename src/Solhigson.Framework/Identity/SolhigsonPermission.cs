@@ -33,11 +33,11 @@ public record SolhigsonPermission : ICachedEntity
         
     [StringLength(256)]
     [Column(ScriptsManager.PermissionInfo.DescriptionColumn, TypeName = "VARCHAR")]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     [StringLength(256)]
     [Column(ScriptsManager.PermissionInfo.UrlColumn, TypeName = "VARCHAR")]
-    public string Url { get; set; }
+    public string? Url { get; set; }
         
     [Column(ScriptsManager.PermissionInfo.IsMenuColumn)]
     [Required]
@@ -49,7 +49,7 @@ public record SolhigsonPermission : ICachedEntity
         
     [StringLength(450)]
     [Column(ScriptsManager.PermissionInfo.ParentIdColumn, TypeName = "VARCHAR")]
-    public string ParentId { get; set; }
+    public string? ParentId { get; set; }
 
     [Column(ScriptsManager.PermissionInfo.MenuIndexColumn)]
     [Required]
@@ -57,11 +57,11 @@ public record SolhigsonPermission : ICachedEntity
 
     [StringLength(256)]
     [Column(ScriptsManager.PermissionInfo.IconColumn, TypeName = "VARCHAR")]
-    public string Icon { get; set; }
+    public string? Icon { get; set; }
 
     [StringLength(256)]
     [Column(ScriptsManager.PermissionInfo.OnClickFunctionColumn, TypeName = "VARCHAR")]
-    public string OnClickFunction { get; set; }
+    public string? OnClickFunction { get; set; }
         
     [Column(ScriptsManager.PermissionInfo.EnabledColumn)]
     [Required]

@@ -18,13 +18,6 @@ public class SolhigsonDbContext : DbContext
             
     }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<AppSetting>()
-            .ToTable(tb => tb.HasTrigger("Trigger"));
-        base.OnModelCreating(modelBuilder);
-    }
-
     public DbSet<AppSetting> AppSettings { get; set; }
     public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 }

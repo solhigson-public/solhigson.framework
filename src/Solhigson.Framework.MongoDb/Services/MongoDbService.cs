@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using NLog.Common;
-using Solhigson.Framework.Data;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.MongoDb.Dto;
 
@@ -83,28 +82,29 @@ public class MongoDbService
             : await coll.Find(doc => doc.Id == id).SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<List<T>> FindAsync<T>(Expression<Func<T, bool>> filter, CancellationToken cancellationToken = default) where T : IMongoDbDocumentBase
+    public async Task<List<T>> FindAsync<T>(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? sort = null, 
+        bool isSortDescending = false, int? pageNumber = null, int? pageSize = null, 
+        CancellationToken cancellationToken = default) where T : IMongoDbDocumentBase
     {
         var coll = GetCollection<T>();
         if (coll is null)
         {
             return [];
         }
-        return await coll.Find(filter).ToListAsync(cancellationToken);
-    }
 
-    public async Task<PagedList<T>> FindAsync<T>(Expression<Func<T, bool>> filter, int pageNumber, int pageSize,
-        CancellationToken cancellationToken = default) where T : IMongoDbDocumentBase
-    {
-        var coll = GetCollection<T>();
-        if (coll is null)
+        var res = coll.Find(filter);
+        if (sort is not null)
         {
-            return PagedList.Create<T>([], 0, 1, 1);
+            res = isSortDescending 
+                ? res.SortByDescending(sort)
+                : res.SortBy(sort);
         }
 
-        var count = await coll.Find(filter).CountDocumentsAsync(cancellationToken);
-        var result = await coll.Find(filter).Skip((pageNumber - 1) * pageSize).Limit(pageSize).ToListAsync(cancellationToken);
-        return PagedList.Create(result, count, pageNumber, pageSize);
+        if (pageNumber > 0 && pageSize > 1)
+        {
+            res = res.Skip((pageNumber - 1) * pageSize).Limit(pageSize);
+        }
+        return await res.ToListAsync(cancellationToken);
     }
 
     public async Task UpdateAsync<T>(T document, CancellationToken cancellationToken = default) where T : IMongoDbDocumentBase
@@ -157,13 +157,11 @@ public class MongoDbService<T> where T : IMongoDbDocumentBase
 
     public async Task<T?> FindAsync(string id, CancellationToken cancellationToken = default) => await _mongoDbService.FindAsync<T>(id, cancellationToken);
 
-    public async Task<List<T>> FindAsync(Expression<Func<T, bool>> filter, CancellationToken cancellationToken = default) 
-        => await _mongoDbService.FindAsync(filter, cancellationToken);
-    
-    public async Task<PagedList<T>> FindAsync(Expression<Func<T, bool>> filter, int pageNumber, int pageSize,
+    public async Task<List<T>> FindAsync(Expression<Func<T, bool>> filter, Expression<Func<T, object>>? sort = null, 
+        bool isSortDescending = false, int? pageNumber = null, int? pageSize = null, 
         CancellationToken cancellationToken = default)
     {
-        return await _mongoDbService.FindAsync(filter, pageNumber, pageSize, cancellationToken);
+        return await _mongoDbService.FindAsync(filter, sort, isSortDescending, pageNumber, pageSize, cancellationToken);
     }
 
     public async Task UpdateAsync(T document, CancellationToken cancellationToken = default) => await _mongoDbService.UpdateAsync(document, cancellationToken);

@@ -51,7 +51,8 @@ public static class Extensions
                 {
                     ExpireAfter = parameters.AuditLogExpireAfter,
                     Name = "LogsExpireIndex",
-                    Background = true
+                    Background = true,
+                    
                 }
             ));
 
