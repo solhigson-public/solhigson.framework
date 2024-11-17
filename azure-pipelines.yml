@@ -19,16 +19,15 @@ variables:
   utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Framework.Utilities.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  package: false
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageFramework: true
-  packageTool: false
-  packageAzureCosmosDb: false
-  packageMongoDb: false
-  packageUtilities: false
+  packageFramework: and(eq(variables.package, true), true)
+  packageTool: $[and(eq(variables.package, true), true)]
+  packageUtilities: $[and(eq(variables.package, true), true)]
 
 stages:
   - stage: build
-    condition: and(eq(variables.isMaster, true), eq(variables.packageFramework, false), eq(variables.packageAzureCosmosDb, false), eq(variables.packageTool, false), eq(variables.packageMongoDb, false))
+    condition: eq(variables.isMaster, true)
     displayName: Validate Check-in
     jobs:
       - job:
@@ -93,48 +92,6 @@ stages:
               nuGetFeedType: 'external'
               publishFeedCredentials: 'nuget'
 
-
-  - stage: nuget_package_azureCosmos
-    condition:  and(eq(variables.isMaster, true), eq(variables.packageAzureCosmosDb, true))
-    displayName: Deploy AzureCosmos Package to Nuget.Org
-    jobs:
-      - job:
-        displayName: Package & Push AzureCosmos Package
-        steps:
-          - task: NuGetToolInstaller@1
-            displayName: Install Nuget Tool
-
-          - task: NuGetCommand@2
-            displayName: Restore Nuget Packages
-            inputs:
-              command: 'restore'
-              restoreSolution: '$(solution)'
-              feedsToUse: 'config'
-
-          - task: VSBuild@1
-            displayName: Build Project
-            inputs:
-              solution: '$(solution)'
-              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
-              platform: '$(buildPlatform)'
-              configuration: '$(buildConfiguration)'
-
-          - task: DotNetCoreCLI@2
-            displayName: 'Package EfCoreTool'
-            inputs:
-              command: 'pack'
-              packagesToPack: '$(azureCosmosProj)'
-              versioningScheme: 'off'
-
-          - task: NuGetCommand@2
-            displayName: 'Push'
-            inputs:
-              command: 'push'
-              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-              nuGetFeedType: 'external'
-              publishFeedCredentials: 'nuget'
-
-
   - stage: nuget_package_efCoreTool
     condition:  and(eq(variables.isMaster, true), eq(variables.packageTool, true))
     displayName: Deploy EfCoreTool to Nuget.Org
@@ -178,48 +135,6 @@ stages:
             
             
             
-
-
-  - stage: nuget_package_mongodb
-    condition:  and(eq(variables.isMaster, true), eq(variables.packageMongoDb, true))
-    displayName: Deploy Solhigson MongoDb package to Nuget.Org
-    jobs:
-      - job:
-        displayName: Package & Push Solhigson MongoDb
-        steps:
-          - task: NuGetToolInstaller@1
-            displayName: Install Nuget Tool
-
-          - task: NuGetCommand@2
-            displayName: Restore Nuget Packages
-            inputs:
-              command: 'restore'
-              restoreSolution: '$(solution)'
-              feedsToUse: 'config'
-
-          - task: VSBuild@1
-            displayName: Build Project
-            inputs:
-              solution: '$(solution)'
-              msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:DesktopBuildPackageLocation="$(build.artifactStagingDirectory)\WebApp.zip" /p:DeployIisAppPath="Default Web Site"'
-              platform: '$(buildPlatform)'
-              configuration: '$(buildConfiguration)'
-
-          - task: DotNetCoreCLI@2
-            displayName: 'Package MongoDb'
-            inputs:
-              command: 'pack'
-              packagesToPack: '$(mongoDbProj)'
-              versioningScheme: 'off'
-
-          - task: NuGetCommand@2
-            displayName: 'Push'
-            inputs:
-              command: 'push'
-              packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
-              nuGetFeedType: 'external'
-              publishFeedCredentials: 'nuget'
-
 
   - stage: nuget_package_utilities
     condition:  and(eq(variables.isMaster, true), eq(variables.packageUtilities, true))
