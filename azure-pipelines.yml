@@ -19,11 +19,11 @@ variables:
   utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Framework.Utilities.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  package: false
+  package: true
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageFramework: and(eq(variables.package, true), true)
-  packageTool: $[and(eq(variables.package, true), true)]
-  packageUtilities: $[and(eq(variables.package, true), true)]
+  packageFramework: and(eq(variables.package, true), eq(variables.isMaster, true), true)
+  packageTool: $[and(eq(variables.package, true), eq(variables.isMaster, true), false)]
+  packageUtilities: $[and(eq(variables.package, true), eq(variables.isMaster, true), false)]
 
 stages:
   - stage: build
@@ -53,7 +53,7 @@ stages:
 
 
   - stage: nuget_package_framework
-    condition:  and(eq(variables.isMaster, true), eq(variables.packageFramework, true))
+    condition:  eq(variables.packageFramework, true)
     displayName: Deploy Solhigson Framework package to Nuget.Org
     jobs:
       - job:
@@ -93,7 +93,7 @@ stages:
               publishFeedCredentials: 'nuget'
 
   - stage: nuget_package_efCoreTool
-    condition:  and(eq(variables.isMaster, true), eq(variables.packageTool, true))
+    condition:  eq(variables.packageTool, true)
     displayName: Deploy EfCoreTool to Nuget.Org
     jobs:
       - job:
@@ -137,7 +137,7 @@ stages:
             
 
   - stage: nuget_package_utilities
-    condition:  and(eq(variables.isMaster, true), eq(variables.packageUtilities, true))
+    condition:  eq(variables.packageUtilities, true)
     displayName: Deploy Solhigson MongoDb package to Nuget.Org
     jobs:
       - job:
