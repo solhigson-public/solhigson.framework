@@ -11,15 +11,14 @@ class Program
         ShowBot();
         if (args.Length == 0)
         {
-            var versionString = Assembly.GetEntryAssembly()
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-                .InformationalVersion
-                .ToString();
+            var versionString = Assembly.GetEntryAssembly()?
+                .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+                .InformationalVersion;
 
             Console.WriteLine($"Solhigson.Tools v{versionString}");
             Console.WriteLine("-------------");
             Console.WriteLine("\nUsage:");
-            Console.WriteLine("  solhigson <command> <args>");
+            Console.WriteLine("  solhigson-ef <command> <args>");
             return;
         }
 

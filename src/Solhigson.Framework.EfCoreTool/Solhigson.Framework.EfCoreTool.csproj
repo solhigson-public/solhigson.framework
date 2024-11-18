@@ -3,14 +3,14 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <PackAsTool>true</PackAsTool>
-        <ToolCommandName>solhigson</ToolCommandName>
+        <ToolCommandName>solhigson-ef</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <OutputType>Exe</OutputType>
         <PackageId>Solhigson.Framework.EfCoreToolGen</PackageId>
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <Version>8.0.15</Version>
+        <Version>8.0.16</Version>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>12</LangVersion>
