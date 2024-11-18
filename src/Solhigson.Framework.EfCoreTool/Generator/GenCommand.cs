@@ -255,7 +255,7 @@ internal class GenCommand : CommandBase
         return sBuilder.ToString();
     }
         
-    private string GetRepositoryWrapperProperties(IList<Type>? entities)
+    private string GetRepositoryWrapperProperties(IList<Type> entities)
     {
         var sBuilder = new StringBuilder();
 
@@ -398,17 +398,17 @@ internal class GenCommand : CommandBase
             ? ".FirstOrDefaultAsync()"
             : ".ToListAsync()";
 
-        var awaitWord = "";
+        var awaitWord = "await ";
         if (isCacheEntity)
         {
             resultProjection = "";
             getMethod = indexAttr.IsUnique
-                ? $"GetSingleCached{projectedReturnType}"
-                : $"GetListCached{projectedReturnType}";
+                ? $"GetSingleCachedAsync{projectedReturnType}"
+                : $"GetListCachedAsync{projectedReturnType}";
         }
         else
         {
-            awaitWord = "await ";
+            //awaitWord = "await ";
         }
 
         var totalPropCount = propertyNames.Count;
@@ -516,15 +516,15 @@ internal class GenCommand : CommandBase
         }
 
 
-        if (string.IsNullOrWhiteSpace(cachedSuffix))
-        {
+        // if (string.IsNullOrWhiteSpace(cachedSuffix))
+        // {
             asyncPostfix = "Async";
             className = $"Task<{className}>";
             if (!isInterface)
             {
                 className = $"async {className}";
             }
-        }
+        // }
 
         return $"{GetTabSpace(2)}{qualifier}{className} GetBy{propertyName}{cachedSuffix}{asyncPostfix}{projectedTypeIndicator}({parameters}){typeRestraint}" + (isInterface ? ";" : "");
     }

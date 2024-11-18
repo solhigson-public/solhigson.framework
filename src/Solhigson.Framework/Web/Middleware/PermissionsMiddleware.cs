@@ -14,18 +14,16 @@ using Solhigson.Framework.Web.Attributes;
 
 namespace Solhigson.Framework.Web.Middleware;
 
-public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMiddleware 
-    where TUser : SolhigsonUser<TKey, TRole> 
+public class PermissionsMiddleware<TUser, TRole, TKey, TContext>(
+    PermissionManager<TUser, TRole, TContext, TKey> permissionManager)
+    : IPermissionMiddleware
+    where TUser : SolhigsonUser<TKey, TRole>
     where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
     where TRole : SolhigsonAspNetRole<TKey>
     where TKey : IEquatable<TKey>
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(nameof(PermissionsMiddleware<TUser, TRole, TKey, TContext>));
-    private readonly PermissionManager<TUser, TRole, TContext, TKey> _permissionManager;
-    public PermissionsMiddleware(PermissionManager<TUser, TRole, TContext, TKey> permissionManager)
-    {
-        _permissionManager = permissionManager;
-    }
+
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
         var endPoint = context.GetEndpoint();
@@ -37,7 +35,7 @@ public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMi
 
         if ((endPoint.Metadata.GetMetadata<AuthorizeAttribute>() == null 
              && endPoint.Metadata.GetMetadata<ControllerActionDescriptor>()?
-                 .ControllerTypeInfo?.GetCustomAttribute<AuthorizeAttribute>() == null)
+                 .ControllerTypeInfo.GetCustomAttribute<AuthorizeAttribute>() == null)
             || endPoint.Metadata.GetMetadata<AllowAnonymousAttribute>() != null)
         {
             await next(context);
@@ -53,7 +51,7 @@ public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMi
             return;
         }
 
-        var verifyResult = _permissionManager.VerifyPermission(permissionName, context.User);
+        var verifyResult = await permissionManager.VerifyPermissionAsync(permissionName, context.User);
             
         if (!verifyResult.IsSuccessful)
         {
@@ -63,7 +61,7 @@ public class PermissionsMiddleware<TUser, TRole, TKey, TContext> : IPermissionMi
         await next(context);
     }
 
-    private static async Task HandleForbidden(HttpContext httpContext, string message = null)
+    private static async Task HandleForbidden(HttpContext httpContext, string? message = null)
     {
         try
         {

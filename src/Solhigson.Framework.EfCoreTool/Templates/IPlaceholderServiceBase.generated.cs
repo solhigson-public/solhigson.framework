@@ -1,4 +1,5 @@
-﻿
+﻿#nullable enable
+
 namespace [DtoProjectNamespace].[Folder].[AbstractionsFolder]
 {
     [GeneratedFileComment]

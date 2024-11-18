@@ -16,41 +16,35 @@ using Solhigson.Framework.Utilities.Security;
 
 namespace Solhigson.Framework.Services;
 
-public class NotificationService : INotificationService
+public class NotificationService(IServiceProvider serviceProvider) : INotificationService
 {
-    private readonly IMailProvider _mailProvider;
-    private readonly ISmsProvider _smsProvider;
-    private readonly IRepositoryWrapper _repositoryWrapper;
-    public NotificationService(IServiceProvider serviceProvider)// : base(repositoryWrapper)
-    {
-        _repositoryWrapper = serviceProvider.GetService<IRepositoryWrapper>();
-        _mailProvider = serviceProvider.GetService<IMailProvider>();
-        _smsProvider = serviceProvider.GetService<ISmsProvider>();
-    }
-        
+    private readonly IMailProvider? _mailProvider = serviceProvider.GetService<IMailProvider>();
+    private readonly ISmsProvider? _smsProvider = serviceProvider.GetService<ISmsProvider>();
+    private readonly IRepositoryWrapper? _repositoryWrapper = serviceProvider.GetService<IRepositoryWrapper>();
+
     public void SendMail(EmailNotificationDetail emailNotificationDetail)
     {
-        SendEmailInternal(emailNotificationDetail);
+        SendEmailInternalAsync(emailNotificationDetail).Wait();
     }
 
     public void SendMailAsync(EmailNotificationDetail emailNotificationDetail)
     {
-        Task.Factory.StartNew(() => SendEmailInternal(emailNotificationDetail));
+        _ = SendEmailInternalAsync(emailNotificationDetail);
     }
 
-    private void SendEmailInternal(EmailNotificationDetail emailNotificationDetail)
+    private async Task SendEmailInternalAsync(EmailNotificationDetail emailNotificationDetail)
     {
         try
         {
             if (_mailProvider == null)
             {
-                this.ELogWarn($"No type of {nameof(IMailProvider)} has been registered, mail will not be sent");
+                this.LogWarning("No type of {mailProvider} has been registered, mail will not be sent", nameof(IMailProvider));
                 return;
             }
 
             if (!emailNotificationDetail.HasAddresses())
             {
-                this.ELogWarn($"No recipients, email will not be sent for template: {emailNotificationDetail.TemplateName}");
+                this.LogWarning("No recipients, email will not be sent for template: {TemplateName}", emailNotificationDetail.TemplateName);
                 return;
             }
             
@@ -59,27 +53,27 @@ public class NotificationService : INotificationService
             {
                 if (string.IsNullOrWhiteSpace(emailNotificationDetail.TemplateName))
                 {
-                    this.ELogWarn("No email template specified.");
+                    this.LogWarning("No email template specified.");
                     return;
                 }
                 if (_repositoryWrapper == null)
                 {
-                    this.ELogWarn("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string and " +
+                    this.LogWarning("Email will not be sent as SolhigsonAutofacModule was not initialized with a connection string and " +
                                   "email has a template specified");
                     return;
                 }
 
-                var template =
-                    _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(emailNotificationDetail
+                var template = await
+                    _repositoryWrapper.NotificationTemplateRepository.GetByNameCachedAsync(emailNotificationDetail
                         .TemplateName);
                 if (template is null)
                 {
-                    this.ELogWarn($"Notification Template: [{emailNotificationDetail.TemplateName}] not found. Email will not be sent");
+                    this.LogWarning("Notification Template: [{TemplateName}] not found. Email will not be sent", emailNotificationDetail.TemplateName);
                     return;
                 }
 
                 var contents = template.Template;
-                var bodyTemplate = _repositoryWrapper.NotificationTemplateRepository.GetByNameCached("EmailBody");
+                var bodyTemplate = await _repositoryWrapper.NotificationTemplateRepository.GetByNameCachedAsync("EmailBody");
                 if (bodyTemplate != null)
                 {
                     contents = bodyTemplate.Template.Replace("[[body]]", contents);
@@ -89,26 +83,26 @@ public class NotificationService : INotificationService
                     emailNotificationDetail.TemplatePlaceholders);
             }
             
-            this.ELogDebug("Validations passed - sending email");
+            this.LogDebug("Validations passed - sending email");
             _mailProvider.SendMail(emailNotificationDetail);
         }
         catch (Exception e)
         {
-            this.ELogError(e);
+            this.LogError(e);
         }
     }
 
     public void SendSms(SmsParameters parameters)
     {
-        SendSmsInternal(parameters);
+        SendSmsInternalAsync(parameters).Wait();
     }
 
     public void SendSmsAsync(SmsParameters parameters)
     {
-        Task.Factory.StartNew(() => SendSmsInternal(parameters));
+        _ = SendSmsInternalAsync(parameters);
     }
 
-    private void SendSmsInternal(SmsParameters parameters)
+    private async Task SendSmsInternalAsync(SmsParameters parameters)
     {
         try
         {
@@ -130,8 +124,8 @@ public class NotificationService : INotificationService
                                   "template was specified");
                     return;
                 }
-                var template =
-                    _repositoryWrapper.NotificationTemplateRepository.GetByNameCached(parameters.TemplateName);
+                var template = await
+                    _repositoryWrapper.NotificationTemplateRepository.GetByNameCachedAsync(parameters.TemplateName);
                 if (template == null)
                 {
                     return;
@@ -158,7 +152,7 @@ public class NotificationService : INotificationService
         }
         catch (Exception e)
         {
-            this.ELogError(e);
+            this.LogError(e);
         }
     }
 

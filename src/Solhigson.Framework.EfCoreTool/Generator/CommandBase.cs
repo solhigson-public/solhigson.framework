@@ -66,7 +66,7 @@ internal abstract class CommandBase
         return ValidateAll();
     }
 
-    internal IList<Type> Models { get; private set; }
+    internal IList<Type?> Models { get; private set; }
     internal string AssemblyFolderPath { get; set; }
 
     internal abstract void Run();
