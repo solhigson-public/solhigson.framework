@@ -49,7 +49,7 @@ public class LogWrapper
                 var configurationWrapper = ServiceProviderWrapper.ServiceProvider?.GetService<ConfigurationWrapper>();
                 if (configurationWrapper is not null)
                 {
-                    if (configurationWrapper.GetConfig<bool>("appSettings", "IgnoreTaskCancelledException", "false"))
+                    if (configurationWrapper.GetConfigAsync<bool>("appSettings", "IgnoreTaskCancelledException", "false").Result)
                     {
                         return;
                     }

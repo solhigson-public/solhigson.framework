@@ -1,9 +1,10 @@
+#nullable enable
+
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Infrastructure;
-
 namespace Solhigson.Framework.Persistence.Repositories
 {
     /*
@@ -22,40 +23,40 @@ namespace Solhigson.Framework.Persistence.Repositories
         {
         }
 
-		public async Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByIdAsync(int id)
+		public async Task<Solhigson.Framework.Persistence.EntityModels.AppSetting?> GetByIdAsync(int id)
 		{
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
 				t => t.Id == id;
-			return await Get(query).FirstOrDefaultAsync();
+			return await Where(query).FirstOrDefaultAsync();
 		}
 
-		public async Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByNameAsync(string name)
+		public async Task<Solhigson.Framework.Persistence.EntityModels.AppSetting?> GetByNameAsync(string name)
 		{
 			if (name is null) { return null; }
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
 				t => t.Name == name;
-			return await Get(query).FirstOrDefaultAsync();
+			return await Where(query).FirstOrDefaultAsync();
 		}
 
 
 		//Cached Methods
-		public Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByIdCached(int id)
+		public async Task<Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel?> GetByIdCachedAsync(int id)
 		{
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
 				t => t.Id == id;
-			return GetSingleCached(query);
+			return await GetSingleCachedAsync(query);
 		}
 
-		public Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByNameCached(string name)
+		public async Task<Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel?> GetByNameCachedAsync(string name)
 		{
 			if (name is null) { return null; }
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.AppSetting, bool>> query = 
 				t => t.Name == name;
-			return GetSingleCached(query);
+			return await GetSingleCachedAsync(query);
 		}
 
 

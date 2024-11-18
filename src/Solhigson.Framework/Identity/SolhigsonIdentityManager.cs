@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 
@@ -70,9 +71,9 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         _dbContext = dbContext;
     }
 
-    public async Task<IdentityResult> CreateRoleAsync(string roleName, string roleGroupName = null)
+    public async Task<IdentityResult> CreateRoleAsync(string roleName, string? roleGroupName = null)
     {
-        string roleGroupId = null;
+        string roleGroupId = null!;
         if (!string.IsNullOrWhiteSpace(roleGroupName))
         {
             var roleGroup = await _dbContext.RoleGroups
@@ -88,7 +89,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         var role = new TRole
         {
             Name = roleName,
-            RoleGroupId = roleGroupId,
+            RoleGroupId = roleGroupId!,
         };
         return await RoleManager.CreateAsync(role);
     }
@@ -98,41 +99,49 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         await SignInManager.SignOutAsync();
     }
         
-    public async Task<TUser> GetUserDetailsById(string id)
+    public async Task<TUser?> GetUserDetailsById(string id)
     {
         var user = await UserManager.FindByIdAsync(id);
-        GetRoles(user);
+        await GetRolesAsync(user);
         return user;
     }
 
 
-    public async Task<TUser> GetUserDetailsByUsername(string userName)
+    public async Task<TUser?> GetUserDetailsByUsername(string userName)
     {
         var user = await UserManager.FindByNameAsync(userName);
-        GetRoles(user);
+        await GetRolesAsync(user);
         return user;
     }
 
-    private void GetRoles(TUser user)
+    private async Task GetRolesAsync(TUser? user)
     {
-        var userRoles = _dbContext.UserRoles.Where(t => t.UserId.Equals(user.Id))
-            .FromCacheList();
+        if (user is null)
+        {
+            return;
+        }
+        var userRoles = await _dbContext.UserRoles.Where(t => t.UserId.Equals(user.Id))
+            .FromCacheListAsync();
             
         if (userRoles.Any())
         {
             user.Roles = new List<TRole>();
-            foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingle()).Where(role => role != null))
+            foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingleAsync().Result).Where(role => role is not null))
             {
-                role.RoleGroup = _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingle();
+                if (role is null)
+                {
+                    continue;
+                }
+                role.RoleGroup = await _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingleAsync();
                 user.Roles.Add(role);
             }
         }
     }
         
-    public async Task<TUser> GetUserDetailsByEmail(string email)
+    public async Task<TUser?> GetUserDetailsByEmail(string email)
     {
         var user = await UserManager.FindByEmailAsync(email);
-        GetRoles(user);
+        await GetRolesAsync(user);
         return user;
     }
 

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
+using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Utilities.Extensions;
@@ -32,37 +33,37 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         _actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
     }
 
-    public ResponseInfo VerifyPermission(string permissionName, ClaimsPrincipal claimsPrincipal)
+    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, ClaimsPrincipal claimsPrincipal)
     {
         if (claimsPrincipal?.Identity?.IsAuthenticated == false)
         {
             return ResponseInfo.FailedResult("User not authenticated.");
         }
 
-        return VerifyPermission(permissionName, claimsPrincipal?.FindAll(ClaimTypes.Role)
+        return await VerifyPermissionAsync(permissionName, claimsPrincipal?.FindAll(ClaimTypes.Role)
             .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList());
 
     }
         
-    public ResponseInfo VerifyPermission(string permissionName, string role)
+    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, string role)
     {
-        return VerifyPermission(permissionName, new [] { role});
+        return await VerifyPermissionAsync(permissionName, new [] { role});
     }
 
-    public ResponseInfo VerifyPermission(string permissionName, IReadOnlyCollection<string> roles)
+    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, IReadOnlyCollection<string>? roles)
     {
-        if (roles == null || !roles.Any())
+        if (!roles.HasData())
         {
             return ResponseInfo.FailedResult("User not assigned any roles in Jwt Token.");
         }
 
-        var query = (from p in _dbContext.Permissions
+        var query = await (from p in _dbContext.Permissions
             join rp in _dbContext.RolePermissions
                 on p.Id equals rp.PermissionId
             join r in _dbContext.Roles
                 on rp.RoleId equals r.Id
             where roles.Contains(r.Name) && p.Name == permissionName
-            select rp).FromCacheSingle(typeof(SolhigsonPermission),
+            select rp).FromCacheSingleAsync(typeof(SolhigsonPermission),
             typeof(SolhigsonRolePermission<TKey>), typeof(TRole));
 
         return query is not null
@@ -184,18 +185,18 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             select ar.Name).ToListAsync();
     }
         
-    public IList<SolhigsonPermission> GetAllPermissionsForRoleCached(string roleName)
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string roleName)
     {
-        return (from rolePerm in _dbContext.RolePermissions
+        return await (from rolePerm in _dbContext.RolePermissions
             join role in _dbContext.Roles
                 on rolePerm.RoleId equals role.Id
             join perm in _dbContext.Permissions
                 on rolePerm.PermissionId equals perm.Id
             where role.Name == roleName
-            select perm).FromCacheList(typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+            select perm).FromCacheListAsync(typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
     }
 
-    public IList<SolhigsonPermissionDto> GetMenuPermissionsForRoleCached(ClaimsPrincipal claimsPrincipal)
+    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(ClaimsPrincipal claimsPrincipal)
     {
         if (claimsPrincipal?.Identity?.IsAuthenticated == false)
         {
@@ -204,10 +205,10 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
 
         var role = claimsPrincipal?.FindFirstValue(ClaimTypes.Role);
             
-        return GetMenuPermissionsForRoleCached(role);
+        return await GetMenuPermissionsForRoleCachedAsync(role);
     }
 
-    public IList<SolhigsonPermissionDto> GetMenuPermissionsForRoleCached(string roleName)
+    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName)
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
@@ -222,7 +223,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
             select perm;
 
-        var result = query.GetCustomResultFromCache<List<SolhigsonPermissionDto>, SolhigsonPermission>();
+        var result = await query.GetCustomResultFromCacheAsync<List<SolhigsonPermissionDto>, SolhigsonPermission>();
         if (result != null)
         {
             return result;
@@ -231,13 +232,13 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         var topLevel = query.OrderBy(t => t.MenuIndex)
             .ThenBy(t => t.Name).AsNoTracking().ToList();
 
-        var children = (from rolePerm in _dbContext.RolePermissions
+        var children = await (from rolePerm in _dbContext.RolePermissions
             join role in _dbContext.Roles
                 on rolePerm.RoleId equals role.Id
             join perm in _dbContext.Permissions
                 on rolePerm.PermissionId equals perm.Id
             where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName && !string.IsNullOrWhiteSpace(perm.ParentId)
-            select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking().ToList();
+            select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking().ToListAsync();
             
         foreach(var parent in topLevel)
         {
@@ -270,7 +271,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                                                         || !string.IsNullOrWhiteSpace(parent.OnClickFunction)))
         {
             var permissionDto = parent.Adapt<SolhigsonPermissionDto>();
-            permissionDto.Children = new List<SolhigsonPermissionDto>();
+            permissionDto.Children = [];
             foreach (var child in parent.Children)
             {
                 permissionDto.Children.Add(child.Adapt<SolhigsonPermissionDto>());
@@ -278,7 +279,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             result.Add(permissionDto);
         }
 
-        query.AddCustomResultToCache(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+        _ = query.AddCustomResultToCacheAsync(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
         return result;
     }
 

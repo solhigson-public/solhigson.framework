@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Solhigson.Framework.Data.Caching;
+using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.EntityModels;
@@ -29,20 +31,20 @@ public class ConfigurationWrapper
         }
     }
 
-    public T GetFromAppSettingFileOnly<T>(string group, string? key = null, string? defaultValue = null)
+    public async ValueTask<T> GetFromAppSettingFileOnly<T>(string group, string? key = null, string? defaultValue = null)
     {
-        var setting = GetConfigInternal(group, key, defaultValue, true);
+        var setting = await GetConfigInternalAsync(group, key, defaultValue, true);
         return VerifySetting<T>(setting, key, group, defaultValue);
     }
         
-    public T GetConfig<T>(string groupName, string? key = null, string? defaultValue = null,
+    public async Task<T> GetConfigAsync<T>(string groupName, string? key = null, string? defaultValue = null,
         bool useAppSettingsFileOnly = false)
     {
-        var setting = GetConfigInternal(groupName, key, defaultValue);
+        var setting = await GetConfigInternalAsync(groupName, key, defaultValue);
         return VerifySetting<T>(setting, key, groupName, defaultValue);
     }
 
-    private string GetConfigInternal(string group, string? key = null, string? defaultValue = null,
+    private async ValueTask<string> GetConfigInternalAsync(string group, string? key = null, string? defaultValue = null,
         bool useAppSettingsFileOnly = false)
     {
         var configKey = group;
@@ -72,23 +74,23 @@ public class ConfigurationWrapper
         var query = _dbContext.AppSettings.Where(t => t.Name == configKey);//
 
         //var cacheValue = query.GetCustomResultFromCache<string, AppSetting>();
-        var cacheValue = GetFromCache(configKey);
+        var cacheValue = await GetFromCacheAsync(configKey);
         if (cacheValue is not null)
         {
             return cacheValue;
         }
             
-        this.LogDebug($"Fetching AppSetting [{configKey}] from db");
+        this.LogDebug("Fetching AppSetting [{configKey}] from db", configKey);
         var appSetting = query.FirstOrDefault();
         if (appSetting is not null)
         {
             value = appSetting.IsSensitive
                 ? SolhigsonConfigurationService.DecryptSetting(appSetting.Value)
                 : appSetting.Value;
-            // if (!query.AddCustomResultToCache(value))
-            if (!AddToCache(configKey, value))
+            // if (!query.AddCustomResultToCacheAsync(value))
+            if (!await AddToCacheAsync(configKey, value))
             {
-                this.ELogWarn($"Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL");
+                this.LogWarning("Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL", configKey);
             }
             return value;
         }
@@ -103,15 +105,15 @@ public class ConfigurationWrapper
 
     }
 
-    private static string GetFromCache(string key)
+    private static async Task<string?> GetFromCacheAsync(string key)
     {
-        var result = CacheManager.GetFromCache(key);
-        return result?.Value as string;
+        var result = await RedisCacheManager.GetDataAsync<string>(key);
+        return result.Data;
     }
     
-    private static bool AddToCache(string key, string value)
+    private static async Task<bool> AddToCacheAsync(string key, string value)
     {
-        return CacheManager.AddToCache(key, value, new [] { typeof(AppSetting)});
+        return await RedisCacheManager.SetDataAsync(key, value);
     }
 
 
@@ -136,18 +138,18 @@ public class ConfigurationWrapper
             _dbContext.AppSettings.Add(setting);
             _dbContext.SaveChanges();
             //this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
-            //CacheManager.AddToCache(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
+            //CacheManager.AddToCacheAsync(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
             /*
             }
         */
         }
         catch (Exception e)
         {
-            this.ELogError(e, "ConfigWrapper, saving to AppSettings", new { Value = key });
+            this.LogError(e, "ConfigWrapper, saving {key} to AppSettings", key);
         }
     }
 
-    private T VerifySetting<T>(string setting, string key, string groupName, object defaultValue = null)
+    private T VerifySetting<T>(string setting, string key, string groupName, object? defaultValue = null)
     {
         try
         {
@@ -156,7 +158,7 @@ public class ConfigurationWrapper
         catch (Exception e)
         {
             if (defaultValue == null) throw;
-            this.ELogError(e,
+            this.LogError(e,
                 $"Invalid value set for system setting, using default value of {defaultValue} instead.");
             return (T) defaultValue;
         }

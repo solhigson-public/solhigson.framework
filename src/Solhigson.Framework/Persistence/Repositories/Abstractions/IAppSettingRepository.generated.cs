@@ -1,3 +1,4 @@
+#nullable enable
 using System.Threading.Tasks;
 
 namespace Solhigson.Framework.Persistence.Repositories.Abstractions
@@ -14,12 +15,12 @@ namespace Solhigson.Framework.Persistence.Repositories.Abstractions
         : Solhigson.Framework.Persistence.Repositories.Abstractions.ISolhigsonCachedRepositoryBase<Solhigson.Framework.Persistence.EntityModels.AppSetting
             ,Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel>
     {
-		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByIdAsync(int id);
-		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting> GetByNameAsync(string name);
+		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting?> GetByIdAsync(int id);
+		Task<Solhigson.Framework.Persistence.EntityModels.AppSetting?> GetByNameAsync(string name);
 
 		//Cached Methods
-		Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByIdCached(int id);
-		Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel GetByNameCached(string name);
+		Task<Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel?> GetByIdCachedAsync(int id);
+		Task<Solhigson.Framework.Persistence.CacheModels.AppSettingCacheModel?> GetByNameCachedAsync(string name);
     
     }
 }

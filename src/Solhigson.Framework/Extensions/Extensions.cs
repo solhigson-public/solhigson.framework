@@ -125,13 +125,13 @@ public static class Extensions
         return builder;
     }
         
-    public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-        int cacheExpirationPeriodMinutes = 1440, Assembly? databaseModelsAssembly = null, bool continueOnError = true)
-    {
-        CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly,
-            continueOnError);
-        return app;
-    }
+    // public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
+    //     int cacheExpirationPeriodMinutes = 1440, Assembly? databaseModelsAssembly = null, bool continueOnError = true)
+    // {
+    //     CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly,
+    //         continueOnError);
+    //     return app;
+    // }
 
     public static IApplicationBuilder ConfigureSolhigsonNLogDefaults(this IApplicationBuilder app,
         DefaultNLogParameters? defaultNLogParameters = null)
@@ -429,214 +429,6 @@ public static class Extensions
 
     #endregion
 
-    #region EntityFramework Data Extensions (Caching & Paging)
-
-
-    public static string GetCacheKey<T>(this IQueryable<T> query, bool hash = true) where T : class
-    {
-        var expression = query.Expression;
-
-        // locally evaluate as much of the query as possible
-        expression = Evaluator.PartialEval(expression, Evaluator.CanBeEvaluatedLocallyFunc);
-
-        // support local collections
-        expression = LocalCollectionExpander.Rewrite(expression);
-
-        // use the string representation of the expression for the cache key
-        var key = $"{GetQueryBaseTypeSingle(query)}{expression}";
-
-        if (hash)
-        {
-            key = key.Sha512();
-        }
-
-        return key;
-    }
-
-    public static ResponseInfo<object> GetCacheStatus<T>(this IQueryable<T> query, params Type [] iCachedEntityType) where T : class
-    {
-        var response = new ResponseInfo<object>();
-        var validTypes = GetQueryBaseTypeList(query, iCachedEntityType);
-        var types = new List<string>();
-        if (iCachedEntityType?.Any() == true)
-        {
-            types.AddRange(iCachedEntityType.Select(t => t.FullName));
-        }
-        else
-        {
-            types.Add(GetQueryBaseTypeSingle(query).FullName);
-        }
-        var queryExpression = query.GetCacheKey(false);
-        var cacheInfo = new Dictionary<string, List<string>>
-        {
-            { "QueryTypes", types },
-            { "ValidCacheTypes", validTypes.Select(t => t.FullName).ToList() }
-        };
-        var data = new
-        {
-            CacheKey = queryExpression.Sha512(),
-            QueryExpression = queryExpression,
-            TypesInfo = cacheInfo
-        };
-        if (validTypes.Count == types.Count)
-        {
-            return response.Success(data);
-        }
-        return !validTypes.Any() 
-            ? response.Fail("No Caching", result: data) 
-            : response.Fail("Partial Caching", "90001", result: data);
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static List<T> FromCacheList<T>(this IQueryable<T> query, params Type [] iCachedEntityTypesToMonitor) where T : class
-    {
-        return GetCacheData<T, List<T>>(query, ResolveToList, iCachedEntityTypesToMonitor) ?? new List<T>();
-    }
-        
-    public static PagedList<T> FromCacheListPaged<T>(this IQueryable<T> query, int page, int itemsPerPage, params Type [] iCachedEntityTypesToMonitor) where T : class
-    {
-        var data = GetCacheData<T, List<T>>(query, ResolveToList, iCachedEntityTypesToMonitor) ?? new List<T>();
-        return data.AsQueryable().ToPagedList(page, itemsPerPage);
-    }
-
-        
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static T? FromCacheSingle<T>(this IQueryable<T> query, params Type [] iCachedEntityTypesToMonitor) where T : class
-    {
-        return GetCacheData<T, T>(query, ResolveToSingle, iCachedEntityTypesToMonitor);
-    }
-
-    public static bool AddCustomResultToCache<T>(this IQueryable<T> query, object result, params Type [] types) where T : class
-    {
-        return CacheManager.AddToCache(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
-    }
-        
-    public static T? GetCustomResultFromCache<T, TK>(this IQueryable<TK> query) where T : class where TK : class
-    {
-        var result = CacheManager.GetFromCache(query.GetCacheKey());
-        if (result == null)
-        {
-            return null;
-        }
-        Logger.LogTrace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
-        return result.Value as T;
-    }
-
-
-    private static TK? GetCacheData<T, TK>(IQueryable<T> query, Func<IQueryable<T>, object?> func, params Type [] iCachedEntityType)
-        where TK : class where T : class
-    {
-        var key = query.GetCacheKey();
-        var customCacheEntry = CacheManager.GetFromCache(key);
-        if (customCacheEntry != null)
-        {
-            Logger.LogTrace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
-            return customCacheEntry.Value as TK;
-        }
-
-        lock (key)
-        {
-            customCacheEntry = CacheManager.GetFromCache(key);
-            if (customCacheEntry != null)
-            {
-                return customCacheEntry.Value as TK;
-            }
-
-            Logger.LogTrace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
-            var result = func(query) as TK;
-                
-            CacheManager.AddToCache(key, result, GetQueryBaseTypeList(query, iCachedEntityType));
-                
-            return result;
-        }
-    }
-
-    private static Type GetQueryBaseTypeSingle<T>(IQueryable<T> query) where T : class
-    {
-        var type = typeof(T);
-        try
-        {
-            if (query.Expression is System.Linq.Expressions.MethodCallExpression me)
-            {
-                if (me.Arguments.Count > 0 && me.Arguments[0].Type.GenericTypeArguments?.Length > 0)
-                {
-                    type = me.Arguments[0].Type.GenericTypeArguments[0];
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            Logger.LogError(e);
-        }
-
-        return type;
-    }
-
-    private static IList<Type> GetQueryBaseTypeList<T>(IQueryable<T> query, params Type []? iCachedEntityTypes) where T : class
-    {
-        if (iCachedEntityTypes != null && iCachedEntityTypes.Length != 0)
-        {
-            return CacheManager.GetValidICacheEntityTypes(iCachedEntityTypes);
-        }
-
-        return CacheManager.GetValidICacheEntityTypes(GetQueryBaseTypeSingle(query));
-    }
-
-    private static List<T>? ResolveToList<T>(IQueryable<T> query) where T : class
-    {
-        var result = query.AsNoTrackingWithIdentityResolution().ToList();
-        return result.Count != 0 ? result : null;
-    }
-
-    private static T? ResolveToSingle<T>(IQueryable<T> query) where T : class
-    {
-        return query.AsNoTrackingWithIdentityResolution().FirstOrDefault();
-    }
-
-    public static async Task<PagedList<T>> ToPagedListAsync<T>(this IQueryable<T> source, int pageNumber, int itemsPerPage) where T : class
-    {
-        var count = await source.CountAsync();
-        var items = await source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * itemsPerPage).Take(itemsPerPage).ToListAsync();
-        return PagedList.Create(items, count, pageNumber, itemsPerPage);
-    }
-        
-    public static PagedList<T> ToPagedList<T>(this IQueryable<T> source, int pageNumber, int itemsPerPage) where T : class
-    {
-        var count = source.Count();
-        var items = source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * itemsPerPage).Take(itemsPerPage).ToList();
-        return PagedList.Create(items, count, pageNumber, itemsPerPage);
-    }
-
-
-    public static IQueryable<T> DateRangeQuery<T>(this IQueryable<T> source, DateTime? fromDate, DateTime? toDate)
-        where T: IDateSearchable
-    {
-        if (fromDate.HasValue)
-        {
-            source = source.Where(t => t.Date >= fromDate);
-        }
-
-        if (toDate.HasValue)
-        {
-            source = source.Where(t => t.Date <= toDate);
-        }
-        
-        return source;
-    }
-
-    #endregion
 
     #region Misc
 
@@ -852,6 +644,12 @@ public static class Extensions
         return text;
 
     }
+    
+    public static bool HasData<T>(this IEnumerable<T>? data)
+    {
+        return data is not null && data.Any();
+    }
+
 
 
 }

@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Dto;
-using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
+using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
 using Solhigson.Framework.Utilities.Extensions;
@@ -15,7 +14,7 @@ using Solhigson.Framework.Utilities.Security;
 
 namespace Solhigson.Framework.Services;
 
-public class SolhigsonConfigurationService : ServiceBase
+public class SolhigsonConfigurationService(IRepositoryWrapper repositoryWrapper) : ServiceBase(repositoryWrapper)
 {
     private static readonly byte[] EncryptionKey = ("67566B59703373367639792F423F45284" +
                                                     "82B4D6251655468576D5A7134743777").FromHexString();
@@ -23,11 +22,7 @@ public class SolhigsonConfigurationService : ServiceBase
     private static readonly byte[] EncryptionIv = "73357638792F423F4528482B4D625065".FromHexString();
 
     private const string EncryptDisplay = "@@@***Encrypted***@@@";
-    public SolhigsonConfigurationService(IRepositoryWrapper repositoryWrapper) : base(repositoryWrapper)
-    {
-            
-    }
-        
+
     public async Task<ResponseInfo> CreateApplicationSettingAsync(AppSetting appSetting)
     {
         var existing =
@@ -75,7 +70,7 @@ public class SolhigsonConfigurationService : ServiceBase
     }
         
     public async Task<ResponseInfo<PagedList<AppSetting>>> SearchAppSettingsAsync(int page = 1, int pageSize = 20,
-        string name = null)
+        string? name = null)
     {
         var response = new ResponseInfo<PagedList<AppSetting>>();
         var query = RepositoryWrapper.DbContext.AppSettings.AsNoTracking().AsQueryable();
@@ -125,7 +120,7 @@ public class SolhigsonConfigurationService : ServiceBase
     }
 
     public async Task<ResponseInfo<PagedList<NotificationTemplate>>> SearchNotificationTemplatesAsync(int page = 1, int pageSize = 20,
-        string name = null)
+        string? name = null)
     {
         var response = new ResponseInfo<PagedList<NotificationTemplate>>();
         var query = RepositoryWrapper.DbContext.NotificationTemplates.AsNoTracking().AsQueryable();
@@ -138,7 +133,7 @@ public class SolhigsonConfigurationService : ServiceBase
         return response.Success(result);
     }
 
-    internal static bool MaskForSaveIfSensitive(AppSetting setting)
+    private static bool MaskForSaveIfSensitive(AppSetting? setting)
     {
         if (setting is null)
         {
@@ -156,7 +151,7 @@ public class SolhigsonConfigurationService : ServiceBase
         return true;
     }
 
-    internal static void MaskForDisplayIfSensitive(AppSetting setting)
+    private static void MaskForDisplayIfSensitive(AppSetting? setting)
     {
         if (setting is null)
         {
@@ -168,15 +163,23 @@ public class SolhigsonConfigurationService : ServiceBase
         }
     }
 
-        
-    public static string EncryptSetting(string data)
+
+    private static string EncryptSetting(string? data)
     {
+        if (string.IsNullOrWhiteSpace(data))
+        {
+            return string.Empty;
+        }
         return Convert.ToBase64String(CryptoHelper.SymmetricEncryptAsync(Encoding.UTF8.GetBytes(data),
             EncryptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
     }
         
-    public static string DecryptSetting(string data)
+    public static string DecryptSetting(string? data)
     {
+        if (string.IsNullOrWhiteSpace(data))
+        {
+            return string.Empty;
+        }
         return Encoding.UTF8.GetString(CryptoHelper.SymmetricDecryptAsync(Convert.FromBase64String(data),
             EncryptionKey, EncryptionIv, EncryptionModes.Aes, PaddingMode.PKCS7).Result);
     }

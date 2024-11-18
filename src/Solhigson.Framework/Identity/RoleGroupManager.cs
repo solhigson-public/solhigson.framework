@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Identity;
@@ -20,9 +21,9 @@ public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> : IDispo
     {
         _dbContext = context;
     }
-        
-    public virtual DbSet<TRoleGroup> RoleGroups => _dbContext.Set<TRoleGroup>();
-    public virtual DbSet<TRole> Roles => _dbContext.Set<TRole>();
+
+    protected virtual DbSet<TRoleGroup> RoleGroups => _dbContext.Set<TRoleGroup>();
+    protected virtual DbSet<TRole> Roles => _dbContext.Set<TRole>();
         
     public async Task<SolhigsonRoleGroup> CreateAsync(string roleGroupName)
     {
@@ -117,15 +118,15 @@ public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> : IDispo
         await _dbContext.SaveChangesAsync();
     }
 
-    public bool RoleBelongsToGroupCached(string roleName, string roleGroupName)
+    public async Task<bool> RoleBelongsToGroupCached(string roleName, string roleGroupName)
     {
-        return Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingle()
+        return (await Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingleAsync())
             ?.RoleGroup.Name == roleGroupName;
     }
         
-    public string GetRoleGroupCached(string roleName)
+    public async Task<string?> GetRoleGroupCached(string roleName)
     {
-        return Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingle()
+        return (await Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingleAsync())
             ?.RoleGroup.Name;
     }
 

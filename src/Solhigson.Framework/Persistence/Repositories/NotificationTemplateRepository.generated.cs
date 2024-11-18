@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -22,24 +24,24 @@ namespace Solhigson.Framework.Persistence.Repositories
         {
         }
 
-		public async Task<Solhigson.Framework.Persistence.EntityModels.NotificationTemplate> GetByNameAsync(string name)
+		public async Task<Solhigson.Framework.Persistence.EntityModels.NotificationTemplate?> GetByNameAsync(string name)
 		{
 			if (name is null) { return null; }
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.NotificationTemplate, bool>> query = 
 				t => t.Name == name;
-			return await Get(query).FirstOrDefaultAsync();
+			return await Where(query).FirstOrDefaultAsync();
 		}
 
 
 		//Cached Methods
-		public Solhigson.Framework.Persistence.CacheModels.NotificationTemplateCacheModel GetByNameCached(string name)
+		public async Task<Solhigson.Framework.Persistence.CacheModels.NotificationTemplateCacheModel?> GetByNameCachedAsync(string? name)
 		{
 			if (name is null) { return null; }
 
 			Expression<Func<Solhigson.Framework.Persistence.EntityModels.NotificationTemplate, bool>> query = 
 				t => t.Name == name;
-			return GetSingleCached(query);
+			return await GetSingleCachedAsync(query);
 		}
 
 

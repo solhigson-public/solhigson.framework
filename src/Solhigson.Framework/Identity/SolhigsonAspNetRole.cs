@@ -26,5 +26,5 @@ public class SolhigsonAspNetRole<T> : IdentityRole<T>, ICachedEntity where T : I
     public string? StartPage { get; set; }
 
     [ForeignKey(nameof(RoleGroupId))]
-    public SolhigsonRoleGroup RoleGroup { get; set; }
+    public SolhigsonRoleGroup? RoleGroup { get; set; }
 }

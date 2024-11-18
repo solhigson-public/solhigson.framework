@@ -6,7 +6,7 @@
         <ToolCommandName>solhigson</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
         <OutputType>Exe</OutputType>
-        <PackageId>Solhigson.Framework.EfCoreTool</PackageId>
+        <PackageId>Solhigson.Framework.EfCoreToolGen</PackageId>
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
