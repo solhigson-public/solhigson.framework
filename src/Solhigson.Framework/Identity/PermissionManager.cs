@@ -163,8 +163,12 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         return await _dbContext.Permissions.ToListAsync();
     }
 
-    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleAsync(string roleName)
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleAsync(string? roleName)
     {
+        if (roleName is null)
+        {
+            return [];
+        }
         return await (from p in _dbContext.Permissions
             join rp in _dbContext.RolePermissions
                 on p.Id equals rp.PermissionId
@@ -174,8 +178,12 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             select p).ToListAsync();
     }
         
-    public async Task<IList<string>> GetAllowedRolesForPermissionAsync(string permissionName)
+    public async Task<IList<string>> GetAllowedRolesForPermissionAsync(string? permissionName)
     {
+        if (permissionName is null)
+        {
+            return [];
+        }
         return await (from ar in _dbContext.Roles
             join rp in _dbContext.RolePermissions
                 on ar.Id equals rp.RoleId
@@ -185,8 +193,12 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             select ar.Name).ToListAsync();
     }
         
-    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string roleName)
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string? roleName)
     {
+        if (roleName is null)
+        {
+            return [];
+        }
         return await (from rolePerm in _dbContext.RolePermissions
             join role in _dbContext.Roles
                 on rolePerm.RoleId equals role.Id
@@ -212,7 +224,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
-            return new List<SolhigsonPermissionDto>();
+            return [];
         }
             
         var query = from rolePerm in _dbContext.RolePermissions
@@ -283,8 +295,8 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         return result;
     }
 
-    public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly controllerAssembly,
-        Dictionary<string, string> customPermissions = null)
+    public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly? controllerAssembly,
+        Dictionary<string, string>? customPermissions = null)
     {
         var response = new ResponseInfo<int>();
         try
@@ -364,12 +376,12 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 {
                     await _dbContext.SaveChangesAsync();
                     count++;
-                    this.ELogInfo(
-                        $"Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]");
+                    this.LogInformation(
+                        "Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]", permission.Name, permission.Url);
                 }
                 catch (Exception e)
                 {
-                    this.ELogError(e, "Saving permission", permission);
+                    this.LogError(e, "While saving permission {permission}", permission);
                 }
             }
 
@@ -378,7 +390,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         }
         catch (Exception e)
         {
-            this.ELogError(e);
+            this.LogError(e);
         }
 
         return response.Fail();

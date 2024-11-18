@@ -587,7 +587,7 @@ public static class Extensions
             .GetMetadata<ControllerActionDescriptor>()?.IsApiController() == true;
     }
     
-    public static bool IsApiController(this ControllerActionDescriptor type)
+    public static bool IsApiController(this ControllerActionDescriptor? type)
     {
         return type?.ControllerTypeInfo?.GetCustomAttribute<ApiControllerAttribute>() != null;
     }

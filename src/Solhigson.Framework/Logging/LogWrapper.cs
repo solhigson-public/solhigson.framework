@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
-using Solhigson.Framework.Logging.Nlog.Renderers;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
@@ -22,11 +20,7 @@ public class LogWrapper
 
     public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
     {
-        if (InternalLogger is null)
-        {
-            return false;
-        }
-        return InternalLogger.IsEnabled(logLevel);
+        return InternalLogger is not null && InternalLogger.IsEnabled(logLevel);
     }
 
     public ILogger? InternalLogger { get; }
@@ -79,11 +73,23 @@ public class LogWrapper
                 dic.Add("ChainId", chainId);
             }
             using var scope = InternalLogger.BeginScope(dic);
-            InternalLogger.Log(logLevel, exception, message, args!);
+            LogInternal(InternalLogger, logLevel, message, exception, args);
         }
         else
         {   
-            InternalLogger.Log(logLevel, exception, message, args!);
+            LogInternal(InternalLogger, logLevel, message, exception, args);
+        }
+    }
+
+    private void LogInternal(ILogger logger, LogLevel logLevel, string? message, Exception? exception, params object?[]? args)
+    {
+        if (!args.HasData())
+        {
+            logger.Log(logLevel, exception, message);
+        }
+        else
+        {
+            logger.Log(logLevel, exception, message, args!);
         }
     }
     

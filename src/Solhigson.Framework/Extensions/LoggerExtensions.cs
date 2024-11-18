@@ -22,20 +22,20 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogTrace(this object obj, string message, params object?[] args)
+    public static void LogTrace(this object obj, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Trace, message, args);
     }
 
 
     [Obsolete("This will be depreciated in future releases, use LogDebug() instead")]
-    public static void ELogDebug(this object obj, string message, object data = null)
+    public static void ELogDebug(this object obj, string message, object? data = null)
     {
         Log(obj, LogLevel.Debug, message, data);
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogDebug(this object obj, string message, params object[] args)
+    public static void LogDebug(this object obj, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Debug, message, args);
     }
@@ -48,7 +48,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogInformation(this object obj, string message, params object[] args)
+    public static void LogInformation(this object obj, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Information, message, args);
     }
@@ -60,7 +60,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogWarning(this object obj, string message, params object[] args)
+    public static void LogWarning(this object obj, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Warning, message, args);
     }
@@ -73,7 +73,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogError(this object obj, string message, params object[] args)
+    public static void LogError(this object obj, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Error, message, args);
     }
@@ -87,7 +87,7 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogError(this object obj, Exception e, string? message = null, params object?[] args)
+    public static void LogError(this object obj, Exception e, string? message = null, params object?[]? args)
     {
         Log(obj, LogLevel.Error, message, args);
     }
@@ -101,12 +101,12 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
-    public static void LogCritical(this object obj, string message, params object[] args)
+    public static void LogCritical(this object obj, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Critical, message, args);
     }
 
-    public static ILogger? Logger(this object obj) => LogManager.GetLogger(obj)?.InternalLogger;
+    public static ILogger? Logger(this object obj) => LogManager.GetLogger(obj).InternalLogger;
 
     
 
