@@ -45,8 +45,12 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
 
     }
         
-    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, string role)
+    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, string? role)
     {
+        if (role is null)
+        {
+            return ResponseInfo.FailedResult();
+        }
         return await VerifyPermissionAsync(permissionName, new [] { role});
     }
 
@@ -78,9 +82,13 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<ResponseInfo> GiveAccessToRoleAsync(string roleName, string permissionName)
+    public async Task<ResponseInfo> GiveAccessToRoleAsync(string? roleName, string? permissionName)
     {
         var response = new ResponseInfo();
+        if (string.IsNullOrWhiteSpace(roleName) || string.IsNullOrWhiteSpace(permissionName))
+        {
+            return response.Fail("Role or Permission Name is empty.");
+        }
         var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
         if (role is null)
         {
