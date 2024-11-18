@@ -21,7 +21,7 @@ variables:
   buildConfiguration: 'Release'
   package: true
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
-  packageFramework: and(eq(variables.package, true), eq(variables.isMaster, true), true)
+  packageFramework: $[and(eq(variables.package, true), eq(variables.isMaster, true), true)]
   packageTool: $[and(eq(variables.package, true), eq(variables.isMaster, true), false)]
   packageUtilities: $[and(eq(variables.package, true), eq(variables.isMaster, true), false)]
 
