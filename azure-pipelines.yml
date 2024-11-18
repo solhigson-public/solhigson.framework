@@ -8,18 +8,16 @@ trigger:
   - "*.release"
 
 pool:
-  vmImage: 'windows-2022'
+  vmImage: 'ubuntu-latest'
 
 variables:
   solution: '**/*.sln'
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
-  azureCosmosProj: '**/Solhigson.Framework.AzureCosmosDb/Solhigson.Framework.AzureCosmosDb.csproj'
-  mongoDbProj: '**/Solhigson.Framework.MongoDb/Solhigson.Framework.MongoDb.csproj'
   utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Framework.Utilities.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  package: true
+  package: false
   isMaster: $[eq(variables['Build.SourceBranchName'], 'master')]
   packageFramework: $[and(eq(variables.package, true), eq(variables.isMaster, true), true)]
   packageTool: $[and(eq(variables.package, true), eq(variables.isMaster, true), false)]
