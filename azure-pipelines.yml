@@ -27,7 +27,7 @@ variables:
 
 stages:
   - stage: build
-    condition: eq(variables.isMaster, true)
+    condition: and(eq(variables.isMaster, true), eq(variables.package, false))
     displayName: Validate Check-in
     jobs:
       - job:
