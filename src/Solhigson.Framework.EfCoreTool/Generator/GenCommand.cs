@@ -514,6 +514,10 @@ internal class GenCommand : CommandBase
         {
             className = $"System.Collections.Generic.List<{className}>";
         }
+        else
+        {
+            className = $"{className}?";
+        }
 
 
         // if (string.IsNullOrWhiteSpace(cachedSuffix))

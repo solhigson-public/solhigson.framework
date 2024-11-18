@@ -31,7 +31,7 @@ public class ConfigurationWrapper
         }
     }
 
-    public async ValueTask<T> GetFromAppSettingFileOnly<T>(string group, string? key = null, string? defaultValue = null)
+    public async ValueTask<T> GetFromAppSettingFileOnlyAsync<T>(string group, string? key = null, string? defaultValue = null)
     {
         var setting = await GetConfigInternalAsync(group, key, defaultValue, true);
         return VerifySetting<T>(setting, key, group, defaultValue);
