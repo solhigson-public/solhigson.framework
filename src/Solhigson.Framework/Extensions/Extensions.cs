@@ -28,8 +28,6 @@ using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Infrastructure.Dependency;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Logging.Nlog;
-using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
 using Solhigson.Framework.Services;
@@ -111,31 +109,13 @@ public static class Extensions
         }
         return builder;
     }
-        
-    private static object? CreateInstance(Type type, string protectedFields)
-    {
-        if (type == typeof(CustomDataRenderer) || type.Name == nameof(CustomDataRenderer))
-        {
-            return new CustomDataRenderer(protectedFields);
-        }
-        if (type == typeof(CustomDataRenderer2) || type.Name == nameof(CustomDataRenderer2))
-        {
-            return new CustomDataRenderer2(protectedFields);
-        }
-
-        return Activator.CreateInstance(type);
-    }
-
+    
     public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
     {
-        ConfigurationItemFactory.Default?.RegisterItemsFromAssembly(typeof(CustomDataRenderer).Assembly);
-        ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, null);
-
         var config = new LoggingConfiguration();
         var testOutputHelperTarget = new XUnitTestOutputHelperTarget(outputHelper)
         {
             Name = "TestsOutput",
-            Layout = NLogDefaults.TestsLayout
         };
         config.AddRule(LogLevel.Info, LogLevel.Error, testOutputHelperTarget);
         NLog.LogManager.Configuration = config;

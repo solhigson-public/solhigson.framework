@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
@@ -10,6 +11,7 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities.Extensions;
 using Solhigson.Framework.Utilities.Linq;
+using StackExchange.Redis;
 
 namespace Solhigson.Framework.EfCore;
 
@@ -18,6 +20,37 @@ public static class Extensions
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(Extensions).FullName);
     #region EntityFramework Data Extensions (Caching & Paging)
 
+    public static void ResyncCache<T>(this T? dbContext) where T : DbContext
+    {
+        if (dbContext is null)
+        {
+            return;
+        }
+        List<Type> types = [];
+        var cachedEntityType = typeof(ICachedEntity);
+        var props = dbContext.GetType().GetProperties();
+        
+        foreach (var prop in props.Where(t => t.PropertyType.IsDbSetType()))
+        {
+            var genericArg = prop.PropertyType.GetGenericArguments().FirstOrDefault();
+            if (genericArg is not null && cachedEntityType.IsAssignableFrom(genericArg))
+            {
+                types.Add(genericArg);
+            }
+        }
+        
+        if (types.HasData())
+        {
+            _ = EfCoreCacheManager.InvalidateAsync(types.ToArray());
+        }
+    }
+    
+    public static IApplicationBuilder InitializeEfCoreCaching(this IApplicationBuilder app, IConnectionMultiplexer connectionMultiplexer,
+        string? prefix = null)
+    {
+        EfCoreCacheManager.Initialize(connectionMultiplexer, prefix);
+        return app;
+    }
     public static string GetCacheKey<T>(this IQueryable<T> query, bool hash = true) where T : class
     {
         var expression = query.Expression;
@@ -67,7 +100,7 @@ public static class Extensions
             QueryExpression = queryExpression,
             TypesInfo = cacheInfo
         };
-        if (validTypes.Count == types.Count)
+        if (validTypes.Length == types.Count)
         {
             return response.Success(data);
         }
@@ -114,16 +147,12 @@ public static class Extensions
     public static async Task<bool> AddCustomResultToCacheAsync<T>(this IQueryable<T> query, object result, params Type[] types)
         where T : class
     {
-        if (IsValidICacheEntityTypes(query, types))
-        {
-            return await RedisCacheManager.SetDataAsync(query.GetCacheKey(), result);
-        }
-        return false;
+        return await EfCoreCacheManager.SetDataAsync(query.GetCacheKey(), result, types);
     }
 
     public static async Task<T?> GetCustomResultFromCacheAsync<T, TK>(this IQueryable<TK> query) where T : class where TK : class
     {
-        var result = await RedisCacheManager.GetDataAsync<T>(query.GetCacheKey());
+        var result = await EfCoreCacheManager.GetDataAsync<T>(query.GetCacheKey());
         if (!result.IsSuccessful)
         {
             return null;
@@ -144,7 +173,7 @@ public static class Extensions
             return await func(query);
         }
         var key = query.GetCacheKey();
-        var entryResult = await RedisCacheManager.GetDataAsync<TK>(key);
+        var entryResult = await EfCoreCacheManager.GetDataAsync<TK>(key);
         if (entryResult.IsSuccessful)
         {
             Logger.LogTrace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
@@ -153,7 +182,7 @@ public static class Extensions
 
         lock (key)
         {
-            entryResult = RedisCacheManager.GetDataAsync<TK>(key).Result;
+            entryResult = EfCoreCacheManager.GetDataAsync<TK>(key).Result;
             if (entryResult.IsSuccessful)
             {
                 return entryResult.Data;
@@ -162,7 +191,7 @@ public static class Extensions
             Logger.LogTrace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             var result = func(query).Result;// as TK;
 
-            _ = RedisCacheManager.SetDataAsync(key, result, validTypes);
+            _ = EfCoreCacheManager.SetDataAsync(key, result, validTypes);
 
             return result;
         }
@@ -234,15 +263,10 @@ public static class Extensions
     //     return types?.Any(type => typeof(ICachedEntity).IsAssignableFrom(type)) == true;
     // }
 
-    private static IList<Type>? GetQueryBaseTypeList<T>(IQueryable<T> query, params Type[]? iCachedEntityTypes)
+    private static Type[]? GetQueryBaseTypeList<T>(IQueryable<T> query, params Type[]? iCachedEntityTypes)
         where T : class
     {
-        if (iCachedEntityTypes != null && iCachedEntityTypes.Length != 0)
-        {
-            return GetQueryBaseTypeList(iCachedEntityTypes);
-        }
-
-        return GetQueryBaseTypeList(GetQueryBaseTypeSingle(query));
+        return iCachedEntityTypes.HasData() ? iCachedEntityTypes : [GetQueryBaseTypeSingle(query)];
     }
 
     private static List<Type>? GetQueryBaseTypeList(params Type []? types)

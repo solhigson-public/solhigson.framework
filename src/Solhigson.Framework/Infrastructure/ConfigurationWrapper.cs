@@ -107,13 +107,13 @@ public class ConfigurationWrapper
 
     private static async Task<string?> GetFromCacheAsync(string key)
     {
-        var result = await RedisCacheManager.GetDataAsync<string>(key);
+        var result = await EfCoreCacheManager.GetDataAsync<string>(key);
         return result.Data;
     }
     
     private static async Task<bool> AddToCacheAsync(string key, string value)
     {
-        return await RedisCacheManager.SetDataAsync(key, value);
+        return await EfCoreCacheManager.SetDataAsync(key, value, [typeof(AppSetting)]);
     }
 
 
