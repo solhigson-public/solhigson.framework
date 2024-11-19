@@ -125,38 +125,7 @@ public static class Extensions
         return builder;
     }
         
-    // public static IApplicationBuilder UseSolhigsonCacheManager(this IApplicationBuilder app, string connectionString, int cacheDependencyChangeTrackerTimerIntervalMilliseconds = 5000,
-    //     int cacheExpirationPeriodMinutes = 1440, Assembly? databaseModelsAssembly = null, bool continueOnError = true)
-    // {
-    //     CacheManager.Initialize(connectionString, cacheDependencyChangeTrackerTimerIntervalMilliseconds, cacheExpirationPeriodMinutes, databaseModelsAssembly,
-    //         continueOnError);
-    //     return app;
-    // }
-
-    public static IApplicationBuilder ConfigureSolhigsonNLogDefaults(this IApplicationBuilder app,
-        DefaultNLogParameters? defaultNLogParameters = null)
-    {
-        defaultNLogParameters ??= new DefaultNLogParameters();
-        defaultNLogParameters.ApiTraceConfiguration ??= configuration =>
-        {
-            configuration.LogOutBoundApiRequests = configuration.LogInBoundApiRequests = defaultNLogParameters.LogApiTrace;
-        };
-        
-        var apiConfiguration = new ApiConfiguration();
-        defaultNLogParameters.ApiTraceConfiguration.Invoke(apiConfiguration);
-        
-        if (apiConfiguration.LogInBoundApiRequests)
-        {
-            app.UseMiddleware<ApiTraceMiddleware>();
-        }
-
-        app.ApplicationServices.GetService<IApiRequestService>()?.UseConfiguration(defaultNLogParameters.ApiTraceConfiguration);
-
-        ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
-        return app;
-    }
-
-    private static object CreateInstance(Type type, string protectedFields)
+    private static object? CreateInstance(Type type, string protectedFields)
     {
         if (type == typeof(CustomDataRenderer) || type.Name == nameof(CustomDataRenderer))
         {
@@ -170,48 +139,6 @@ public static class Extensions
         return Activator.CreateInstance(type);
     }
 
-    public static IApplicationBuilder UseSolhigsonNLogDefaultFileTarget(this IApplicationBuilder app,
-        DefaultNLogParameters defaultNLogParameters = null)
-    {
-        app.ConfigureSolhigsonNLogDefaults(defaultNLogParameters);
-        defaultNLogParameters ??= new DefaultNLogParameters();
-            
-        var config = new LoggingConfiguration();
-        config.AddRule(LogLevel.Info, LogLevel.Error, NLogDefaults.GetDefaultFileTarget(defaultNLogParameters.EncodeChildJsonContent));
-        NLog.LogManager.Configuration = config;
-        LogManager.SetLogLevel(defaultNLogParameters.LogLevel);
-        return app;
-    }
-        
-    public static IApplicationBuilder UseSolhigsonNLogCustomTarget(this IApplicationBuilder app,
-        [NotNull] CustomNLogTargetParameters customNLogTargetParameters)
-    {
-        if (customNLogTargetParameters == null)
-        {
-            app.UseSolhigsonNLogDefaultFileTarget();
-            InternalLogger.Error(
-                "Unable to initalize Custom NLog Target because one or more the the required parameters are missing: " +
-                "[WorkspaceId, Sharedkey or LogName].");
-            return app;
-        }
-
-        var config = new LoggingConfiguration();
-        var fallbackGroupTarget = new FallbackGroupTarget
-        {
-            Name = "FallBackTargets",
-        };
-
-        fallbackGroupTarget.Targets.Add(customNLogTargetParameters.Target);
-        fallbackGroupTarget.Targets.Add(NLogDefaults.GetDefaultFileTarget(customNLogTargetParameters.EncodeChildJsonContent, true));
-        config.AddRule(LogLevel.Info, LogLevel.Error, fallbackGroupTarget);
-
-        NLog.LogManager.Configuration = config;
-        LogManager.SetLogLevel(customNLogTargetParameters.LogLevel);
-
-        return app;
-    }
-
-        
     public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
     {
         ConfigurationItemFactory.Default.RegisterItemsFromAssembly(typeof(CustomDataRenderer).Assembly);
@@ -225,35 +152,6 @@ public static class Extensions
         };
         config.AddRule(LogLevel.Info, LogLevel.Error, testOutputHelperTarget);
         NLog.LogManager.Configuration = config;
-    }
-
-    public static IApplicationBuilder UseSolhigsonNLogAzureLogAnalyticsTarget(this IApplicationBuilder app,
-        DefaultNLogAzureLogAnalyticsParameters parameters = null)
-    {
-        if (string.IsNullOrWhiteSpace(parameters?.AzureAnalyticsWorkspaceId)
-            || string.IsNullOrWhiteSpace(parameters?.AzureAnalyticsSharedSecret)
-            || string.IsNullOrWhiteSpace(parameters?.AzureAnalyticsLogName))
-        {
-            app.UseSolhigsonNLogDefaultFileTarget();
-            InternalLogger.Error(
-                "Unable to initalize NLog Azure Analytics Target because one or more the the required parameters are missing: " +
-                "[WorkspaceId, Sharedkey or LogName].");
-            return app;
-        }
-        app.ConfigureSolhigsonNLogDefaults(parameters);
-
-        var customTarget = new AzureLogAnalyticsTarget(parameters.AzureAnalyticsWorkspaceId, 
-            parameters.AzureAnalyticsSharedSecret, parameters.AzureAnalyticsLogName,
-            app.ApplicationServices.GetRequiredService<IHttpClientFactory>())
-        {
-            Name = "custom document",
-            Layout = NLogDefaults.GetDefaultJsonLayout(),
-        };
-        
-        var customTargetParameters = new CustomNLogTargetParameters(customTarget);
-        parameters.Adapt(customTargetParameters);
-        app.UseSolhigsonNLogCustomTarget(customTargetParameters);
-        return app;
     }
 
     /// <summary>
@@ -309,7 +207,7 @@ public static class Extensions
     }
         
     public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
-        Action<IdentityOptions> setupAction = null) 
+        Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
         where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
     {
@@ -319,7 +217,7 @@ public static class Extensions
     }
         
     public static IServiceCollection AddSolhigsonIdentityManager<TUser, TKey, TContext>(this IServiceCollection services,
-        Action<IdentityOptions> setupAction = null) 
+        Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<TKey>
         where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
         where TKey : IEquatable<TKey>
@@ -336,7 +234,7 @@ public static class Extensions
     }
 
     public static IApplicationBuilder UseSolhigsonSmtpProvider(this IApplicationBuilder app,
-        Action<SmtpConfiguration> configuration)
+        Action<SmtpConfiguration>? configuration)
     {
         if (configuration is null)
         {
@@ -359,13 +257,13 @@ public static class Extensions
     #endregion
 
     #region Identity & Jwt
-    public static string GetClaimValue(this IIdentity identity, string claimType)
+    public static string? GetClaimValue(this IIdentity identity, string claimType)
     {
         var claimIdentity = (ClaimsIdentity) identity;
         return claimIdentity?.Claims?.FirstOrDefault(c => c.Type == claimType)?.Value;
     }
         
-    public static string GetEmailClaim(this IHttpContextAccessor httpContextAccessor)
+    public static string? GetEmailClaim(this IHttpContextAccessor httpContextAccessor)
     {
         return httpContextAccessor?.HttpContext?.User?.Identity?.GetClaimValue(ClaimTypes.Email);
     }
@@ -376,19 +274,19 @@ public static class Extensions
         return CryptoHelper.GenerateJwtToken(claims, key, expirationMinutes, algorithm);
     }
         
-    public static string Email(this ClaimsPrincipal principal)
+    public static string? Email(this ClaimsPrincipal principal)
     {
-        return principal?.Identity.GetClaimValue(ClaimTypes.Email);
+        return principal?.Identity?.GetClaimValue(ClaimTypes.Email);
     }
 
-    public static string Id(this ClaimsPrincipal principal)
+    public static string? Id(this ClaimsPrincipal principal)
     {
-        return principal?.Identity.GetClaimValue(ClaimTypes.NameIdentifier);
+        return principal?.Identity?.GetClaimValue(ClaimTypes.NameIdentifier);
     }
 
-    public static string Role(this ClaimsPrincipal principal)
+    public static string? Role(this ClaimsPrincipal principal)
     {
-        return principal?.Identity.GetClaimValue(ClaimTypes.Role);
+        return principal?.Identity?.GetClaimValue(ClaimTypes.Role);
     }
 
 
@@ -544,13 +442,13 @@ public static class Extensions
         tempData.SetDisplayMessages(messages);
     }
 
-    public static string GetHeaderValue(this ControllerBase controller, string header)
+    public static string? GetHeaderValue(this ControllerBase controller, string header)
     {
         if (string.IsNullOrWhiteSpace(header))
         {
             return null;
         }
-        string val = null;
+        string? val = null;
         if (controller.Request.Headers.TryGetValue(header, out var headerValue))
         {
             val = headerValue.FirstOrDefault();
@@ -607,7 +505,7 @@ public static class Extensions
     }
     */
         
-    private static SolhigsonMvcControllerBase GetController(this IRazorPage view)
+    private static SolhigsonMvcControllerBase? GetController(this IRazorPage view)
     {
         if (view.ViewContext.ActionDescriptor is not ControllerActionDescriptor cont)
         {

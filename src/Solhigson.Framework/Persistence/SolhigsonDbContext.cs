@@ -6,7 +6,7 @@ using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Persistence;
 
-public class SolhigsonDbContext : DbContext
+public class SolhigsonDbContext : DbContext, ISolhigsonDbContext
 {
     public SolhigsonDbContext()
     {

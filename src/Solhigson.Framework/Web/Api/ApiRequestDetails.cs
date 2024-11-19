@@ -6,7 +6,7 @@ namespace Solhigson.Framework.Web.Api;
 
 public class ApiRequestDetails
 {
-    public ApiRequestDetails(Uri uri, HttpMethod httpMethod, string payload = null)
+    public ApiRequestDetails(Uri uri, HttpMethod httpMethod, string? payload = null)
     {
         Uri = uri;
         TimeOut = 0;
@@ -22,7 +22,7 @@ public class ApiRequestDetails
     public Dictionary<string, string> Headers { get; set; }
     public string Format { get; set; }
     public int TimeOut { get; set; }
-    public string Payload { get; }
+    public string? Payload { get; }
     public string ServiceName { get; set; }
     public string ServiceType { get; set; }
     public string ServiceDescription { get; set; }

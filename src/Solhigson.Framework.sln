@@ -21,8 +21,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Framework.Benchma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.Utilities", "Solhigson.Utilities\Solhigson.Utilities.csproj", "{FCF3CAC7-5125-450E-9497-9EE5347845B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solhigson.EntityFrameworkCore", "Solhigson.EntityFrameworkCore\Solhigson.EntityFrameworkCore.csproj", "{0F9EB84D-D4AD-49F5-8A98-994AC6F9D911}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,10 +51,6 @@ Global
 		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FCF3CAC7-5125-450E-9497-9EE5347845B4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F9EB84D-D4AD-49F5-8A98-994AC6F9D911}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F9EB84D-D4AD-49F5-8A98-994AC6F9D911}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F9EB84D-D4AD-49F5-8A98-994AC6F9D911}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0F9EB84D-D4AD-49F5-8A98-994AC6F9D911}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{ECAB4089-2AD8-473C-B2B6-066AEDA87BFA} = {DAC45FC3-14AD-4864-A26B-67BE7A3E0575}

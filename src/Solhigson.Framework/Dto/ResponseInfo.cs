@@ -13,7 +13,7 @@ public struct ResponseInfo
 
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
-    public object ErrorData { get; set; }
+    public object? ErrorData { get; set; }
 
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
@@ -46,32 +46,32 @@ public struct ResponseInfo
     //for consistency in resulting json string with ResponseInfo<T> - will always be null
     [JsonProperty("data")] 
     [JsonPropertyName("data")]
-    public object Data { get; private set; }
+    public object? Data { get; private set; }
 
-    public T GetError<T>()
+    public T? GetError<T>()
     {
         return ErrorData is T error ? error : default;
     }
 
-    public static ResponseInfo SuccessResult(string message = null)
+    public static ResponseInfo SuccessResult(string message = "")
     {
         return new ResponseInfo().Success(message);
     }
 
-    public static ResponseInfo<T> SuccessResult<T>(T result, string message = null)
+    public static ResponseInfo<T> SuccessResult<T>(T result, string message = "")
     {
         return new ResponseInfo<T>().Success(result, message);
     }
 
     public static ResponseInfo FailedResult(string message = DefaultMessage,
-        string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null)
+        string responseCode = Infrastructure.StatusCode.UnExpectedError, object? errorData = null)
     {
         return new ResponseInfo().Fail(message, responseCode, errorData);
     }
 
     public static ResponseInfo<T> FailedResult<T>(string message = DefaultMessage,
-        string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null,
-        T result = default)
+        string responseCode = Infrastructure.StatusCode.UnExpectedError, object? errorData = null,
+        T? result = default)
     {
         return new ResponseInfo<T>().Fail(message, responseCode, errorData, result);
     }
@@ -85,7 +85,7 @@ public struct ResponseInfo
     }
 
     public ResponseInfo Fail(string message = DefaultMessage,
-        string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null)
+        string responseCode = Infrastructure.StatusCode.UnExpectedError, object? errorData = null)
     {
         Message = message;
         StatusCode = responseCode;
@@ -105,18 +105,13 @@ public struct ResponseInfo
     }
 }
 
-public struct ResponseInfo<T>
+public struct ResponseInfo<T>(
+    string message = ResponseInfo.DefaultMessage,
+    string statusCode = Infrastructure.StatusCode.UnExpectedError,
+    T? result = default)
 {
-    private ResponseInfo _responseInfo;
+    private ResponseInfo _responseInfo = new(message, statusCode);
 
-    public ResponseInfo(string message = ResponseInfo.DefaultMessage,
-        string statusCode = Infrastructure.StatusCode.UnExpectedError,
-        T result = default)
-    {
-        Data = result;
-        _responseInfo = new ResponseInfo(message, statusCode);
-    }
-        
     [JsonProperty("statusCode")] 
     [JsonPropertyName("statusCode")]
     public string StatusCode
@@ -135,13 +130,13 @@ public struct ResponseInfo<T>
 
     [JsonProperty("data")] 
     [JsonPropertyName("data")]
-    public T Data { get; private set; }
+    public T? Data { get; private set; } = result;
 
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsSuccessful => _responseInfo.IsSuccessful;
 
-    public ResponseInfo<T> Success(T result, string message = null)
+    public ResponseInfo<T> Success(T result, string message = "")
     {
         if (result is null)
         {
@@ -155,15 +150,15 @@ public struct ResponseInfo<T>
     }
 
     public ResponseInfo<T> Fail(string message = ResponseInfo.DefaultMessage,
-        string responseCode = Infrastructure.StatusCode.UnExpectedError, object errorData = null,
-        T result = default)
+        string responseCode = Infrastructure.StatusCode.UnExpectedError, object? errorData = null,
+        T? result = default)
     {
         Data = result;
         _responseInfo.Fail(message, responseCode, errorData);
         return this;
     }
         
-    public ResponseInfo<T> Fail(ResponseInfo response, T result = default)
+    public ResponseInfo<T> Fail(ResponseInfo response, T? result = default)
     {
         Data = result;
         _responseInfo = response;
@@ -174,7 +169,7 @@ public struct ResponseInfo<T>
     [System.Text.Json.Serialization.JsonIgnore]
     public ResponseInfo InfoResult => _responseInfo;
         
-    public TK GetError<TK>()
+    public TK? GetError<TK>()
     {
         return _responseInfo.GetError<TK>();
     }
@@ -187,7 +182,7 @@ public struct ResponseInfo<T>
         
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
-    public object ErrorData
+    public object? ErrorData
     {
         get => _responseInfo.ErrorData;
         set => _responseInfo.ErrorData = value;

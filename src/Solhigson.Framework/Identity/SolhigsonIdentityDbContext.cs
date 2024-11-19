@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.EntityModels;
 
 namespace Solhigson.Framework.Identity;
@@ -39,7 +40,7 @@ public class SolhigsonIdentityDbContext<TUser, TKey> : SolhigsonIdentityDbContex
 }
 
     
-public class SolhigsonIdentityDbContext<TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey> 
+public class SolhigsonIdentityDbContext<TUser, TRole, TKey> : IdentityDbContext<TUser, TRole, TKey>, ISolhigsonDbContext 
     where TUser : SolhigsonUser<TKey, TRole> 
     where TRole : SolhigsonAspNetRole<TKey>
     where TKey : IEquatable<TKey>
@@ -67,4 +68,7 @@ public class SolhigsonIdentityDbContext<TUser, TRole, TKey> : IdentityDbContext<
         });
         base.OnModelCreating(builder);
     }
+
+    public DbSet<AppSetting> AppSettings { get; set; }
+    public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
 }

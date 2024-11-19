@@ -7,7 +7,7 @@ namespace Solhigson.Framework.Logging.Hangfire;
 
 public class HangfireLogger : ILog
 {
-    public bool Log(LogLevel logLevel, Func<string> messageFunc, Exception exception = null)
+    public bool Log(LogLevel logLevel, Func<string>? messageFunc, Exception? exception = null)
     {
         if (messageFunc == null) return true;
 
@@ -19,32 +19,32 @@ public class HangfireLogger : ILog
 
         if (exception != null)
         {
-            this.ELogError(exception, message);
+            this.LogError(exception, message);
             return true;
         }
 
         switch (logLevel)
         {
             case LogLevel.Debug:
-                this.ELogDebug(message);
+                this.LogDebug(message);
                 break;
             case LogLevel.Error:
-                this.ELogError(message);
+                this.LogError(message);
                 break;
             case LogLevel.Info:
-                this.ELogInfo(message);
+                this.LogInformation(message);
                 break;
             case LogLevel.Fatal:
-                this.ELogFatal(message);
+                this.LogCritical(message);
                 break;
             case LogLevel.Trace:
-                this.ELogTrace(message);
+                this.LogTrace(message);
                 break;
             case LogLevel.Warn:
-                this.ELogWarn(message);
+                this.LogWarning(message);
                 break;
             default:
-                this.ELogInfo($"{logLevel} => {message}");
+                this.LogInformation($"{logLevel} => {message}");
                 break;
         }
 

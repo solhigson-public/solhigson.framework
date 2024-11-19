@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Utilities.Extensions;
 
 namespace Solhigson.Framework.Data.Repository;
@@ -21,28 +20,29 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     public RepositoryBase(TDbContext dbContext)
     {
         DbContext = dbContext;
-        ConnectionString = DbContext.Database.GetConnectionString();
+        var connectionString = dbContext.Database.GetDbConnection().ConnectionString;
+        ConnectionString = connectionString;
     }
 
-    public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter> parameters = null,
+    public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null)
     {
         return await AdoNetUtils.ExecuteNonQueryAsync(ConnectionString,
             spName, parameters, isStoredProcedure, retryLogicBaseProvider);
     }
     
-    public async Task<TK> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter> parameters = null,
+    public async Task<TK?> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null)
     {
         return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(ConnectionString,
             spName, parameters, isStoredProcedure, retryLogicBaseProvider);
     }
 
-    public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter> parameters = null,
+    public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null)
     {
         return await AdoNetUtils.ExecuteListAsync<TK>(ConnectionString,
             spName, parameters, isStoredProcedure, retryLogicBaseProvider);
@@ -65,13 +65,13 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return Add(entity);
     }
 
-    [ObsoleteAttribute("This property is obsolete. Use Where() instead.")]
+    [Obsolete("This property is obsolete. Use Where() instead.")]
     public IQueryable<T> Get(Expression<Func<T, bool>> expression)
     {
         return Where(expression);
     }
     
-    [ObsoleteAttribute("This property is obsolete. Use Where<TK>() instead.")]
+    [Obsolete("This property is obsolete. Use Where<TK>() instead.")]
     public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class
     {
         return Where<TK>(expression);
