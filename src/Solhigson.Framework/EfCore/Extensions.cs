@@ -45,7 +45,7 @@ public static class Extensions
         }
     }
     
-    public static IApplicationBuilder InitializeEfCoreCaching(this IApplicationBuilder app, IConnectionMultiplexer connectionMultiplexer,
+    public static IApplicationBuilder InitializeEfCoreCaching(this IApplicationBuilder app, IConnectionMultiplexer? connectionMultiplexer,
         string? prefix = null)
     {
         EfCoreCacheManager.Initialize(connectionMultiplexer, prefix);

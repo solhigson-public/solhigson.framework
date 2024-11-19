@@ -17,10 +17,15 @@ internal static class EfCoreCacheManager
     private static IDatabase? _database;
     private static string? _prefix;
 
-    internal static void Initialize(IConnectionMultiplexer redis, string? prefix = "solhigson.efcore.caching.")
+    internal static void Initialize(IConnectionMultiplexer? redis, string? prefix = "solhigson.efcore.caching.")
     {
         try
         {
+            if (redis is null)
+            {
+                Logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
+                return;
+            }
             _database = redis.GetDatabase();
             _prefix = prefix;
         }
