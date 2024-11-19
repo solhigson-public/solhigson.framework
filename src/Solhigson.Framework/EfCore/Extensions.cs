@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities.Extensions;
 using Solhigson.Framework.Utilities.Linq;
@@ -137,7 +138,8 @@ public static class Extensions
         params Type[] iCachedEntityTypes)
         where TK : class where T : class
     {
-        if (!IsValidICacheEntityTypes(query, iCachedEntityTypes))
+        var validTypes = GetQueryBaseTypeList(query, iCachedEntityTypes);
+        if (!validTypes.HasData())
         {
             return await func(query);
         }
@@ -160,7 +162,7 @@ public static class Extensions
             Logger.LogTrace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             var result = func(query).Result;// as TK;
 
-            _ = RedisCacheManager.SetDataAsync(key, result);
+            _ = RedisCacheManager.SetDataAsync(key, result, validTypes);
 
             return result;
         }
@@ -187,16 +189,16 @@ public static class Extensions
         return type;
     }
 
-    private static bool IsValidICacheEntityTypes<T>(IQueryable<T> query, params Type[]? iCachedEntityTypes)
-        where T : class
-    {
-        if (iCachedEntityTypes != null && iCachedEntityTypes.Length != 0)
-        {
-            return IsValidICacheEntityTypes(iCachedEntityTypes);
-        }
-
-        return IsValidICacheEntityTypes(GetQueryBaseTypeSingle(query));
-    }
+    // private static bool IsValidICacheEntityTypes<T>(IQueryable<T> query, params Type[]? iCachedEntityTypes)
+    //     where T : class
+    // {
+    //     if (iCachedEntityTypes != null && iCachedEntityTypes.Length != 0)
+    //     {
+    //         return IsValidICacheEntityTypes(iCachedEntityTypes);
+    //     }
+    //
+    //     return IsValidICacheEntityTypes(GetQueryBaseTypeSingle(query));
+    // }
 
     private static async Task<List<T>?> ResolveToList<T>(IQueryable<T> query) where T : class
     {
@@ -227,10 +229,10 @@ public static class Extensions
         return PagedList.Create(items, count, pageNumber, itemsPerPage);
     }
     
-    private static bool IsValidICacheEntityTypes(params Type []? types)
-    {
-        return types?.Any(type => typeof(ICachedEntity).IsAssignableFrom(type)) == true;
-    }
+    // private static bool IsValidICacheEntityTypes(params Type []? types)
+    // {
+    //     return types?.Any(type => typeof(ICachedEntity).IsAssignableFrom(type)) == true;
+    // }
 
     private static IList<Type>? GetQueryBaseTypeList<T>(IQueryable<T> query, params Type[]? iCachedEntityTypes)
         where T : class

@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Utilities;
 using StackExchange.Redis;
@@ -13,7 +17,7 @@ internal static class RedisCacheManager
     private static IDatabase? _database;
     private static string? _prefix;
 
-    internal static void Initialize(IConnectionMultiplexer redis, string prefix = "solhigson.efcore.caching")
+    internal static void Initialize(IConnectionMultiplexer redis, string prefix = "solhigson.efcore.caching.")
     {
         try
         {
@@ -32,8 +36,12 @@ internal static class RedisCacheManager
     }
 
     
-    internal static async Task<bool> SetDataAsync<T>(string key, T? data, TimeSpan? timeSpan = null) where T : class
+    internal static async Task<bool> SetDataAsync<T>(string key, T? data, IList<Type>? types, TimeSpan? timeSpan = null) where T : class
     {
+        if (types?.Any(type => typeof(ICachedEntity).IsAssignableFrom(type)) == false)
+        {
+            return false;
+        }
         try
         {
             if (_database is not null && !string.IsNullOrWhiteSpace(key) && data is not null)

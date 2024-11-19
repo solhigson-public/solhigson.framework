@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
@@ -9,9 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Text;
-using System.Threading.Tasks;
 using Autofac;
-using Mapster;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -20,35 +17,25 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Tokens;
-using NLog;
-using NLog.Common;
 using NLog.Config;
-using NLog.Targets.Wrappers;
 using Polly;
-using Solhigson.Framework.Data;
-using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Infrastructure.Dependency;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Nlog;
-using Solhigson.Framework.Logging.Nlog.Dto;
 using Solhigson.Framework.Logging.Nlog.Renderers;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
 using Solhigson.Framework.Services;
 using Solhigson.Framework.Utilities;
-using Solhigson.Framework.Utilities.Extensions;
-using Solhigson.Framework.Utilities.Linq;
 using Solhigson.Framework.Utilities.Security;
 using Solhigson.Framework.Web;
-using Solhigson.Framework.Web.Api;
 using Solhigson.Framework.Web.Middleware;
 using Xunit.Abstractions;
 using LogLevel = NLog.LogLevel;
@@ -141,7 +128,7 @@ public static class Extensions
 
     public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
     {
-        ConfigurationItemFactory.Default.RegisterItemsFromAssembly(typeof(CustomDataRenderer).Assembly);
+        ConfigurationItemFactory.Default?.RegisterItemsFromAssembly(typeof(CustomDataRenderer).Assembly);
         ConfigurationItemFactory.Default.CreateInstance = type => CreateInstance(type, null);
 
         var config = new LoggingConfiguration();
@@ -341,12 +328,12 @@ public static class Extensions
         
     #region DateTime
         
-    public static string ToClientTime(this DateTime dt, string format = null)
+    public static string ToClientTime(this DateTime dt, string? format = null)
     {
         return dt.AddMinutes(LocaleUtil.GetTimeZoneOffset()).ToString(format);
     }
         
-    public static string ToClientTime(this DateTime? dt, string format = null)
+    public static string ToClientTime(this DateTime? dt, string? format = null)
     {
         return dt.HasValue ? dt.Value.ToClientTime(format) : "-";
     }
