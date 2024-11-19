@@ -134,28 +134,7 @@ public static class Extensions
         services.AddSingleton<IMailProvider, SolhigsonSmtpMailProvider>();
         return services;
     }
-
-    public static IServiceCollection AddSolhigsonDefaultHttpClient(this IServiceCollection services)
-    {
-        IAsyncPolicy<HttpResponseMessage> ConfigurePolicy(PolicyBuilder<HttpResponseMessage> builder) =>
-            builder.WaitAndRetryAsync(new[]
-                {
-                    TimeSpan.FromSeconds(1),
-                    TimeSpan.FromSeconds(5),
-                    TimeSpan.FromSeconds(10)
-                }, 
-                onRetry: (outcome, timespan, retryAttempt, context) =>
-                {
-                    LogManager.GetLogger("HttpPollyService")
-                        .LogWarning($"Delaying for {timespan.TotalMilliseconds}ms, then making retry {retryAttempt}.");
-                });
-
-        services.AddHttpClient(AzureLogAnalyticsService.AzureLogAnalyticsNamedHttpClient)
-            .AddTransientHttpErrorPolicy(ConfigurePolicy);
-
-        return services;
-    }
-
+    
     private static IServiceCollection AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
         Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<TKey, TRole>
