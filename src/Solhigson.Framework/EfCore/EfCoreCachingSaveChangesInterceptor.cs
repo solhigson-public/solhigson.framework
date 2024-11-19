@@ -12,6 +12,20 @@ namespace Solhigson.Framework.EfCore;
 
 public class EfCoreCachingSaveChangesInterceptor : SaveChangesInterceptor
 {
+    private readonly List<Type> _changedTypes = [];
+    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    {
+        CaptureChangedICachedEntities(eventData.Context);
+        return base.SavingChanges(eventData, result);
+    }
+
+    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        CaptureChangedICachedEntities(eventData.Context);
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
     public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result,
         CancellationToken cancellationToken = default)
     {
@@ -25,26 +39,42 @@ public class EfCoreCachingSaveChangesInterceptor : SaveChangesInterceptor
         return base.SavedChanges(eventData, result);
     }
 
-    private static void InvalidateCache(DbContext? context)
+    public override void SaveChangesFailed(DbContextErrorEventData eventData)
+    {
+        _changedTypes.Clear();
+        base.SaveChangesFailed(eventData);
+    }
+
+    public override Task SaveChangesFailedAsync(DbContextErrorEventData eventData,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        _changedTypes.Clear();
+        return base.SaveChangesFailedAsync(eventData, cancellationToken);
+    }
+
+    private void CaptureChangedICachedEntities(DbContext? context)
     {
         if (context is null)
         {
             return;
         }
         var entities = context.ChangeTracker.Entries<ICachedEntity>().ToList();
-        List<Type> types = [];
 
         foreach (var entry in entities)
         {
             if (entry.State is EntityState.Added or EntityState.Deleted or EntityState.Modified) 
             {
-                types.Add(entry.Entity.GetType());
+                _changedTypes.Add(entry.Entity.GetType());
             }
         }
-
-        if (types.HasData())
+    }
+    private void InvalidateCache(DbContext? context)
+    {
+        if (!_changedTypes.HasData())
         {
-            _ = EfCoreCacheManager.InvalidateAsync(types.ToArray());
+            return;
         }
+        _ = EfCoreCacheManager.InvalidateAsync(_changedTypes.ToArray());
+        _changedTypes.Clear();
     }
 }

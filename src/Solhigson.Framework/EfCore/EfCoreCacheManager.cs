@@ -17,10 +17,14 @@ internal static class EfCoreCacheManager
     private static IDatabase? _database;
     private static string? _prefix;
 
-    internal static void Initialize(IConnectionMultiplexer? redis, string? prefix = "solhigson.efcore.caching.")
+    internal static void Initialize(IConnectionMultiplexer? redis, string? prefix = null)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                prefix = "solhigson.efcore.caching.";
+            }
             if (redis is null)
             {
                 Logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
@@ -62,11 +66,11 @@ internal static class EfCoreCacheManager
             {
                 cacheKeys.AddRange(values.Select(value => value.ToString()));
             }
-            await tran.KeyDeleteAsync(tagCacheKey);
+            _ = tran.KeyDeleteAsync(tagCacheKey);
         }
         foreach (var cacheKey in cacheKeys)
         {
-            await tran.KeyDeleteAsync(cacheKey);
+            _ = tran.KeyDeleteAsync(cacheKey);
         }
         
         return await tran.ExecuteAsync();
@@ -92,10 +96,10 @@ internal static class EfCoreCacheManager
             var cacheKey = GetKey(key);
             foreach (var type in validTypes)
             {
-                await tran.SetAddAsync(GetTagKey(type), cacheKey);
+                _ = tran.SetAddAsync(GetTagKey(type), cacheKey);
             }
 
-            await tran.StringSetAsync(GetKey(key), data.SerializeToJson());
+            _ = tran.StringSetAsync(GetKey(key), data.SerializeToJson());
             return await tran.ExecuteAsync();
 
         }
