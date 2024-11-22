@@ -101,6 +101,12 @@ public static class LoggerExtensions
     }
     
     [MessageTemplateFormatMethod("message")]
+    public static void LogCritical(this object obj, string message, params object?[]? args)
+    {
+        Log(obj, LogLevel.Error, message, null, args);
+    }
+
+    [MessageTemplateFormatMethod("message")]
     public static void LogCritical(this object obj, Exception e, string message, params object?[]? args)
     {
         Log(obj, LogLevel.Critical, message, e, args);
