@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading.Tasks;
+using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NLog;
@@ -19,7 +20,7 @@ public class LogWrapper
     internal LogWrapper(string name, ILoggerFactory? loggerFactory)
     {
         InternalLogger = loggerFactory?.CreateLogger(name);
-        InternalLogger2 = NLog.LogManager.GetLogger(name);
+        //InternalLogger2 = NLog.LogManager.GetLogger(name);
     }
 
     public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
@@ -28,7 +29,7 @@ public class LogWrapper
     }
 
     public ILogger? InternalLogger { get; }
-    public Logger InternalLogger2 { get; }
+    //public Logger InternalLogger2 { get; }
 
     internal void Log(LogLevel logLevel, string? message, params object?[]? args)
     {
@@ -60,59 +61,74 @@ public class LogWrapper
             //
         }
 
-        LogEventInfo eventInfo;
-        if (!args.HasData())
-        {
-            eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
-                message, args);
-        }
-        else
-        {
-            eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
-                message);
-        }
-        eventInfo.Properties[UserRenderer.Name] = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
+        var email = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
                                                   ServiceProviderWrapper.GetCurrentLogUserEmail();
-        eventInfo.Properties["chainId"] = ServiceProviderWrapper.GetCurrentLogChainId();
-     
-        InternalLogger2.Log(eventInfo);
-        // if (!string.IsNullOrWhiteSpace(email) || !string.IsNullOrEmpty(chainId))
+        var chainId = ServiceProviderWrapper.GetCurrentLogChainId();
+
+
+        // LogEventInfo eventInfo;
+        // if (!args.HasData())
         // {
-        //     var dic = new Dictionary<string, object?>();
-        //     if (!string.IsNullOrEmpty(email))
-        //     {
-        //         dic.Add("Email", email);
-        //     }
-        //
-        //     if (!string.IsNullOrEmpty(chainId))
-        //     {
-        //         dic.Add("ChainId", chainId);
-        //     }
-        //     using var scope = InternalLogger.BeginScope(dic);
-        //     LogInternal(InternalLogger, logLevel, message, exception, args);
+        //     eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
+        //         message, args);
         // }
         // else
-        // {   
-        //     LogInternal(InternalLogger, logLevel, message, exception, args);
+        // {
+        //     eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
+        //         message);
         // }
+        // eventInfo.Properties[UserRenderer.Name] = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
+        //                                           ServiceProviderWrapper.GetCurrentLogUserEmail();
+        // eventInfo.Properties["chainId"] = ServiceProviderWrapper.GetCurrentLogChainId();
+        //
+        // InternalLogger2.Log(eventInfo);
+        if (!string.IsNullOrWhiteSpace(email) || !string.IsNullOrEmpty(chainId))
+        {
+            var dic = new Dictionary<string, object?>();
+            if (!string.IsNullOrEmpty(email))
+            {
+                dic.Add("Email", email);
+            }
+
+            if (!string.IsNullOrEmpty(chainId))
+            {
+                dic.Add("ChainId", chainId);
+            }
+            using (var scope = InternalLogger.BeginScope(dic))
+            {
+                LogInternal(InternalLogger, logLevel, message, exception, args);
+            }
+        }
+        else
+        {   
+            LogInternal(InternalLogger, logLevel, message, exception, args);
+        }
     }
 
     private void LogInternal(ILogger logger, LogLevel logLevel, string? message, Exception? exception, params object?[]? args)
     {
-        LogEventInfo eventInfo;
+        if (exception is not null)
+        {
+            message = $"{exception.Message}: {message}";
+            if (args.HasData())
+            {
+                message += " {exception}";
+            }
+        }
+        // LogEventInfo eventInfo;
         if (!args.HasData())
         {
-            eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
-                message, args);
-            //logger.Log(logLevel, exception, message);
+            // eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
+            //     message, args);
+            logger.Log(logLevel, exception, message);
         }
         else
         {
-            eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
-                message);
-            //logger.Log(logLevel, exception, message, args!);
+            // eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
+            //     message);
+            logger.Log(logLevel, exception, message, exception.Adapt<ExceptionInfo>(), args!);
         }
-        InternalLogger2.Log(eventInfo);
+        //InternalLogger2.Log(eventInfo);
     }
 
     private static NLogLevel GetNLogLevel(LogLevel logLevel)
