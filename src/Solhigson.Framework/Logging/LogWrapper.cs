@@ -126,7 +126,7 @@ public class LogWrapper
         {
             // eventInfo = LogEventInfo.Create(GetNLogLevel(logLevel), InternalLogger2.Name, exception, CultureInfo.InvariantCulture,
             //     message);
-            logger.Log(logLevel, exception, message, exception.Adapt<ExceptionInfo>(), args!);
+            logger.Log(logLevel, exception, message, args!, exception.Adapt<ExceptionInfo>());
         }
         //InternalLogger2.Log(eventInfo);
     }
