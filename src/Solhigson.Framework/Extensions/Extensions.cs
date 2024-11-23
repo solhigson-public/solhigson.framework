@@ -198,6 +198,11 @@ public static class Extensions
     }
 
 
+    public static IApplicationBuilder ConfigureSolhigsonServiceProviderWrapper(this IApplicationBuilder app)
+    {
+        ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
+        return app;
+    }
 
 
     #endregion
