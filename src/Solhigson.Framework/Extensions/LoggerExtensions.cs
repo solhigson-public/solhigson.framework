@@ -111,11 +111,7 @@ public static class LoggerExtensions
     {
         Log(obj, LogLevel.Critical, message, e, args);
     }
-
-    public static ILogger? Logger(this object obj) => LogManager.GetLogger(obj).InternalLogger;
-
     
-
     public static void SetCurrentLogChainId(this object obj, string chainId)
     {
         ServiceProviderWrapper.SetCurrentLogChainId(chainId);
