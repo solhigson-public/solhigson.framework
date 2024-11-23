@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Config;
 using Polly;
@@ -203,6 +204,13 @@ public static class Extensions
         ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
         return app;
     }
+    
+    public static IApplicationBuilder ConfigureSolhigsonLogManager(this IApplicationBuilder app)
+    {
+        LogManager.SetLoggerFactory(app.ApplicationServices.GetRequiredService<ILoggerFactory>());
+        return app;
+    }
+
 
 
     #endregion

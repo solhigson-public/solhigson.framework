@@ -34,14 +34,28 @@ public class LogWrapper
     internal void Log(LogLevel logLevel, string? message, params object?[]? args)
     {
         Log(logLevel, message, null, args);
-    }    
-    
+    }
+
     internal void Log(LogLevel logLevel, string? message, Exception? exception, params object?[]? args)
+    {
+        try
+        {
+            LogInternal(logLevel, message, exception, args);
+        }
+        catch (Exception e)
+        {
+            NLog.Common.InternalLogger.Log(e, NLogLevel.Error, $"Trying to log {message}", args);
+        }
+    }
+
+    private void LogInternal(LogLevel logLevel, string? message, Exception? exception, params object?[]? args)
     {
         if (InternalLogger is null)
         {
+            NLog.Common.InternalLogger.Log(exception, GetNLogLevel(logLevel), message, args);
             return;
         }
+
         try
         {
             if (exception is TaskCanceledException or OperationCanceledException)
@@ -49,7 +63,8 @@ public class LogWrapper
                 var configurationWrapper = ServiceProviderWrapper.ServiceProvider?.GetService<ConfigurationWrapper>();
                 if (configurationWrapper is not null)
                 {
-                    if (configurationWrapper.GetConfigAsync<bool>("appSettings", "IgnoreTaskCancelledException", "false").Result)
+                    if (configurationWrapper
+                        .GetConfigAsync<bool>("appSettings", "IgnoreTaskCancelledException", "false").Result)
                     {
                         return;
                     }
@@ -62,7 +77,7 @@ public class LogWrapper
         }
 
         var email = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
-                                                  ServiceProviderWrapper.GetCurrentLogUserEmail();
+                    ServiceProviderWrapper.GetCurrentLogUserEmail();
         var chainId = ServiceProviderWrapper.GetCurrentLogChainId();
 
 
@@ -89,7 +104,7 @@ public class LogWrapper
             {
                 case false when !string.IsNullOrWhiteSpace(chainId):
                     otherArgs = [email, chainId];
-                    message += " |Email: {email} |ChainId: {chainId";
+                    message += " |Email: {email} |ChainId: {chainId}";
                     break;
                 case false:
                     otherArgs = [email];
@@ -115,17 +130,19 @@ public class LogWrapper
             // }
             // using (var scope = InternalLogger.BeginScope(dic))
             // {
-            //     LogInternal(InternalLogger, logLevel, message, exception, args);
+            //     Log(InternalLogger, logLevel, message, exception, args);
             // }
         }
+
         // else
         // {   
-        //     LogInternal(InternalLogger, logLevel, message, exception, otherArgs, args);
+        //     Log(InternalLogger, logLevel, message, exception, otherArgs, args);
         // }
-        LogInternal(InternalLogger, logLevel, message, exception, otherArgs, args);
+        Log(InternalLogger, logLevel, message, exception, otherArgs, args);
     }
 
-    private void LogInternal(ILogger logger, LogLevel logLevel, string? message, Exception? exception, object?[]? otherArgs, params object?[]? args)
+    private static void Log(ILogger logger, LogLevel logLevel, string? message, Exception? exception,
+        object?[]? otherArgs, params object?[]? args)
     {
         if (exception is not null)
         {
@@ -136,18 +153,9 @@ public class LogWrapper
             }
         }
 
-        if (args.HasData() && otherArgs.HasData())
-        {
-            if (exception is not null)
-            {
-                logger.Log(logLevel, exception, message, args, otherArgs, exception.Adapt<ExceptionInfo>());
-            }
-            else
-            {
-                logger.Log(logLevel, exception, message, args, otherArgs);
-            }
-        }
-        else if(args.HasData())
+        args = Merge(exception, otherArgs, args);
+
+        if (args.HasData())
         {
             if (exception is not null)
             {
@@ -162,13 +170,47 @@ public class LogWrapper
         {
             if (exception is not null)
             {
-                logger.Log(logLevel, exception, message, otherArgs, exception.Adapt<ExceptionInfo>());
+                logger.Log(logLevel, exception, message, exception.Adapt<ExceptionInfo>());
             }
             else
             {
-                logger.Log(logLevel, exception, message, otherArgs!);
+                logger.Log(logLevel, exception, message, args!);
             }
         }
+
+        // if (args.HasData() && otherArgs.HasData())
+        // {
+        //     if (exception is not null)
+        //     {
+        //         logger.Log(logLevel, exception, message, args, otherArgs, exception.Adapt<ExceptionInfo>());
+        //     }
+        //     else
+        //     {
+        //         logger.Log(logLevel, exception, message, args, otherArgs);
+        //     }
+        // }
+        // else if(args.HasData())
+        // {
+        //     if (exception is not null)
+        //     {
+        //         logger.Log(logLevel, exception, message, args!, exception.Adapt<ExceptionInfo>());
+        //     }
+        //     else
+        //     {
+        //         logger.Log(logLevel, exception, message, args!);
+        //     }
+        // }
+        // else
+        // {
+        //     if (exception is not null)
+        //     {
+        //         logger.Log(logLevel, exception, message, otherArgs, exception.Adapt<ExceptionInfo>());
+        //     }
+        //     else
+        //     {
+        //         logger.Log(logLevel, exception, message, otherArgs!);
+        //     }
+        // }
         //
         // if (!args.HasData())
         // {
@@ -185,6 +227,37 @@ public class LogWrapper
         // //InternalLogger2.Log(eventInfo);
     }
 
+    private static object?[]? Merge(Exception? exception, object?[]? otherArgs, params object?[]? args)
+    {
+        var length = exception is null ? 0 : 1;
+        var combinedLength = otherArgs?.Length + args?.Length + length;
+        if (combinedLength is null or 0)
+        {
+            return null;
+        }
+
+        var newArgs = new object[combinedLength.Value];
+        var secondCopyIndex = 0;
+        if (args.HasData())
+        {
+            Array.Copy(args!, newArgs, args!.Length);
+            secondCopyIndex = args.Length;
+        }
+
+        var a = args!.Length;
+        if (otherArgs.HasData())
+        {
+            Array.Copy(otherArgs!, 0, newArgs, secondCopyIndex, otherArgs!.Length);
+        }
+
+        if (exception is not null)
+        {
+            newArgs[^1] = exception;
+        }
+
+        return newArgs;
+    }
+
     private static NLogLevel GetNLogLevel(LogLevel logLevel)
     {
         return logLevel switch
@@ -197,7 +270,7 @@ public class LogWrapper
             LogLevel.Warning => NLogLevel.Warn,
         };
     }
-    
+
     [MessageTemplateFormatMethod("message")]
     public void LogDebug(string message, params object?[]? args)
     {
@@ -209,7 +282,7 @@ public class LogWrapper
     {
         Log(LogLevel.Information, message, args);
     }
-    
+
     [MessageTemplateFormatMethod("message")]
     public void LogWarning(string message, params object?[]? args)
     {
@@ -227,13 +300,10 @@ public class LogWrapper
     {
         Log(LogLevel.Error, message, e, args);
     }
-    
+
     [MessageTemplateFormatMethod("message")]
     public void LogCritical(Exception e, string? message = null, params object?[]? args)
     {
         Log(LogLevel.Critical, message, e, args);
     }
-
-
 }
-
