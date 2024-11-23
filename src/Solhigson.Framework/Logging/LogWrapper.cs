@@ -89,15 +89,15 @@ public class LogWrapper
             {
                 case false when !string.IsNullOrWhiteSpace(chainId):
                     otherArgs = [email, chainId];
-                    message += " {email} {chainId";
+                    message += " |Email: {email} |ChainId: {chainId";
                     break;
                 case false:
                     otherArgs = [email];
-                    message += " {email}";
+                    message += " |Email: {email}";
                     break;
                 default:
                     otherArgs = [chainId];
-                    message += " {chainId}";
+                    message += " |ChainId: {chainId}";
                     break;
             }
             // args ??= [];
