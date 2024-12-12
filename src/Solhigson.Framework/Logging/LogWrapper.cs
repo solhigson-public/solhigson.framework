@@ -145,13 +145,13 @@ public class LogWrapper
     private static object?[]? Merge(Exception? exception, object?[]? otherArgs, params object?[]? args)
     {
         var length = exception is null ? 0 : 1;
-        var combinedLength = otherArgs?.Length + args?.Length + length;
-        if (combinedLength is null or 0)
+        var combinedLength = (otherArgs?.Length ?? 0) + (args?.Length ?? 0) + length;
+        if (combinedLength is 0)
         {
             return null;
         }
 
-        var newArgs = new object[combinedLength.Value];
+        var newArgs = new object[combinedLength];
         var secondCopyIndex = 0;
         if (args.HasData())
         {
