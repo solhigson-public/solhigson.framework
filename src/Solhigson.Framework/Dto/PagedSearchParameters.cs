@@ -67,7 +67,7 @@ public class PagedSearchParameters
     public string OrderBy { get; set; }
 
     public bool HasData { get; set; }
-    public bool IsPaginated { get; set; }
+    public bool IsPaginated { get; set; } = true;
     
     private DateTime? _fromDate;
     public DateTime FromDate 
