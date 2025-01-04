@@ -1,6 +1,6 @@
 ﻿namespace Solhigson.Framework.Infrastructure.Dependency;
 
-public enum DependencyType
+public enum DependencyLifetime
 {
     Scoped = 0,
     NewInstance = 1,

@@ -1,4 +1,6 @@
-﻿namespace Solhigson.Framework.Notification;
+﻿using Solhigson.Framework.Infrastructure.Dependency;
+
+namespace Solhigson.Framework.Notification;
 
 public record SmtpConfiguration
 {

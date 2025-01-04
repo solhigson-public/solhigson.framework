@@ -81,31 +81,38 @@ public static class Extensions
         }
         var coreServicesAssemblyTypes = assembly.GetTypes()
             .Where(t => t is { IsClass: true, IsAbstract: false });
-        var injectType = typeof(IDependencyInject);
         foreach (var type in coreServicesAssemblyTypes)
         {
-            if (injectType.IsAssignableFrom(type))
+            var attr = type.GetCustomAttribute<DependencyInjectAttribute>();
+            if (attr is null)
             {
-                var regBuilder = builder.RegisterType(type).AsSelf().PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
-                var attr = type.GetCustomAttribute<DependencyInjectAttribute>();
-                var dType = DependencyType.Scoped.ToString();
-                if (attr is not null)
-                {
-                    dType = attr.DependencyType.ToString();
-                }
-                Logger.LogDebug($"Registering Dependency: {type.FullName} as {dType}");
-                switch (attr?.DependencyType)
-                {
-                    case DependencyType.Singleton:
-                        regBuilder.SingleInstance();
-                        break;
-                    case DependencyType.NewInstance:
-                        regBuilder.InstancePerDependency();
-                        break;
-                    default:
-                        regBuilder.InstancePerLifetimeScope();
-                        break;
-                }
+                continue;
+            }
+
+            var regBuilder = builder.RegisterType(type).PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+            
+            Logger.LogDebug($"Registering Dependency: {type.FullName} as {attr.DependencyLifetime}");
+            switch (attr.DependencyLifetime)
+            {
+                case DependencyLifetime.Singleton:
+                    regBuilder.SingleInstance();
+                    break;
+                case DependencyLifetime.NewInstance:
+                    regBuilder.InstancePerDependency();
+                    break;
+                case DependencyLifetime.Scoped:
+                default:
+                    regBuilder.InstancePerLifetimeScope();
+                    break;
+            }
+
+            if (attr.RegisteredTypes.HasData())
+            {
+                regBuilder.As(attr.RegisteredTypes!);
+            }
+            else
+            {
+                regBuilder.AsSelf();
             }
         }
         return builder;

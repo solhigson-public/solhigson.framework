@@ -15,7 +15,7 @@ public static class LoggerExtensions
         LogManager.GetLogger(obj).Log(level, message, e, args);
     }
     
-    [Obsolete("This will be depreciated in future releases, use LogTrace() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogTrace() instead")]
     public static void ELogTrace(this object obj, string message, object? data = null)
     {
         Log(obj, LogLevel.Trace, message, null, data);
@@ -28,7 +28,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LogDebug() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogDebug() instead")]
     public static void ELogDebug(this object obj, string message, object? data = null)
     {
         Log(obj, LogLevel.Debug, message, null, data);
@@ -41,7 +41,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LogInfo() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogInfo() instead")]
     public static void ELogInfo(this object obj, string message, object? data = null)
     {
         Log(obj, LogLevel.Information, message, null, data);
@@ -53,7 +53,7 @@ public static class LoggerExtensions
         Log(obj, LogLevel.Information, message, null, args);
     }
 
-    [Obsolete("This will be depreciated in future releases, use LogWarning() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogWarning() instead")]
     public static void ELogWarn(this object obj, string message, object? data = null)
     {
         Log(obj, LogLevel.Warning, message, null, data);
@@ -66,7 +66,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LogError() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogError() instead")]
     public static void ELogError(this object obj, string message, object? data = null)
     {
         Log(obj, LogLevel.Error, message, null, data);
@@ -79,7 +79,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LogError() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogError() instead")]
     public static void ELogError(this object obj, Exception e, string? message = null, object? data = null,
         string? userEmail = null)
     {
@@ -93,7 +93,7 @@ public static class LoggerExtensions
     }
 
 
-    [Obsolete("This will be depreciated in future releases, use LogCritical() instead")]
+    [Obsolete("This has been depreciated and will be removed in future releases, use LogCritical() instead")]
     public static void ELogFatal(this object obj, string message, Exception? e = null, object? data = null,
         string? userEmail = null)
     {
