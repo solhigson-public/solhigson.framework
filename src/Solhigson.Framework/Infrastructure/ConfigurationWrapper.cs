@@ -95,7 +95,8 @@ public class ConfigurationWrapper
             // if (!query.AddCustomResultToCacheAsync(value))
             if (!await AddToCacheAsync(configKey, value))
             {
-                this.LogWarning("Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL", configKey);
+                this.LogWarning("Adding AppSetting [" + configKey + "] to memory cache was UNSUCCESSFUL");
+                //this.LogWarning("Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL", configKey);
             }
             return value;
         }
