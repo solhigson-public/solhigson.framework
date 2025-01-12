@@ -109,11 +109,11 @@ public class LogWrapper
     {
         if (exception is not null)
         {
-            message = $"{exception.Message}: {message}";
-            if (args.HasData())
-            {
-                message += " {exception}";
-            }
+            message = $"Exception: {exception.GetType().FullName} - {exception.Message} | {message}";
+            // if (args.HasData())
+            // {
+            //     message += " {exception}";
+            // }
         }
 
         args = Merge(exception, otherArgs, args);
