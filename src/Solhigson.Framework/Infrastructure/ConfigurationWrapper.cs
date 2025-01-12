@@ -44,9 +44,14 @@ public class ConfigurationWrapper
         return VerifySetting<T>(setting, key, groupName, defaultValue);
     }
 
-    private async ValueTask<string> GetConfigInternalAsync(string group, string? key = null, string? defaultValue = null,
+    private async ValueTask<string?> GetConfigInternalAsync(string group, string? key = null, string? defaultValue = null,
         bool useAppSettingsFileOnly = false)
     {
+        if (string.IsNullOrWhiteSpace(group) && string.IsNullOrWhiteSpace(key))
+        {
+            this.LogWarning("GetConfig: group and key are both empty, nothing will be retrieved, returning default value: " + defaultValue);
+            return defaultValue;
+        }
         var configKey = group;
         if (!string.IsNullOrWhiteSpace(key))
         {

@@ -108,7 +108,7 @@ public class NotificationService(IServiceProvider serviceProvider) : INotificati
         {
             if (_smsProvider == null)
             {
-                this.ELogWarn($"No type of {nameof(ISmsProvider)} has been registered, SMS will not be sent");
+                this.LogWarning($"No type of {nameof(ISmsProvider)} has been registered, SMS will not be sent");
                 return;
             }
             if (string.IsNullOrWhiteSpace(parameters.From))
@@ -120,7 +120,7 @@ public class NotificationService(IServiceProvider serviceProvider) : INotificati
             {
                 if (_repositoryWrapper == null)
                 {
-                    this.ELogWarn("SMS will not be sent as SolhigsonAutofacModule was not initialized with a connection string and " +
+                    this.LogWarning("SMS will not be sent as SolhigsonAutofacModule was not initialized with a connection string and " +
                                   "template was specified");
                     return;
                 }
