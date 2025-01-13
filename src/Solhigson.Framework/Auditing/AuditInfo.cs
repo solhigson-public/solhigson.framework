@@ -11,6 +11,7 @@ public class AuditEntry
 {
     public string? Table { get; set; }
     public string? PrimaryKey { get; set; }
+    public string? Action { get; set; }
     public List<AuditChange>? Changes { get; set; }
 }
 public class AuditChange
