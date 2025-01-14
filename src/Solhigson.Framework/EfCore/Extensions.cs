@@ -45,12 +45,24 @@ public static class Extensions
         }
     }
     
-    public static IApplicationBuilder InitializeEfCoreCaching(this IApplicationBuilder app, IConnectionMultiplexer? connectionMultiplexer,
-        string? prefix = null)
+    public static IApplicationBuilder InitializeEfCoreRedisCache(this IApplicationBuilder app, 
+        IConnectionMultiplexer? connectionMultiplexer,
+        string? prefix = null, int expirationInMinutes = 1440)
     {
-        EfCoreCacheManager.Initialize(connectionMultiplexer, prefix);
+        EfCoreCacheManager.Initialize(CacheType.Redis, connectionMultiplexer, prefix, expirationInMinutes);
         return app;
     }
+    
+    public static IApplicationBuilder InitializeEfCoreMemoryCache(this IApplicationBuilder app, 
+        IConnectionMultiplexer? connectionMultiplexer,
+        string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
+    {
+        EfCoreCacheManager.Initialize(CacheType.Memory, connectionMultiplexer, prefix, expirationInMinutes, 
+            changeTrackerTimerIntervalInSeconds);
+        return app;
+    }
+
+    
     public static string GetCacheKey<T>(this IQueryable<T> query, bool hash = true) where T : class
     {
         var expression = query.Expression;

@@ -6,7 +6,6 @@ using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Utilities;
 using StackExchange.Redis;
 
 namespace Solhigson.Framework.EfCore;
@@ -14,10 +13,11 @@ namespace Solhigson.Framework.EfCore;
 internal static class EfCoreCacheManager
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName);
-    private static IDatabase? _database;
     private static string? _prefix;
+    private static ICacheProvider? _cacheProvider;
 
-    internal static void Initialize(IConnectionMultiplexer? redis, string? prefix = null)
+    internal static void Initialize(CacheType cacheType, IConnectionMultiplexer? redis, string? prefix = null,
+        int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
         try
         {
@@ -30,7 +30,10 @@ internal static class EfCoreCacheManager
                 Logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
                 return;
             }
-            _database = redis.GetDatabase();
+            _cacheProvider = cacheType == CacheType.Redis 
+                ? new RedisCacheProvider(redis, prefix, expirationInMinutes)
+                : new MemoryCacheProvider(redis, prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
+            
             _prefix = prefix;
         }
         catch (Exception e)
@@ -44,39 +47,25 @@ internal static class EfCoreCacheManager
         return _prefix + key;
     }
 
-    private static string GetTagKey(Type type)
-    {
-        return _prefix + type.Name;
-    }
-    
     internal static async Task<bool> InvalidateAsync(Type[] types)
     {
-        if (_database is null || !IsICachedEntity(types, out var validTypes))
+        try
         {
-            return false;
-        }
-        List<string> cacheKeys = [];
-        var tran = _database.CreateTransaction();
-        
-        foreach (var type in validTypes)
-        {
-            var tagCacheKey = GetTagKey(type);
-            var values = await _database.SetMembersAsync(tagCacheKey);
-            if (values.Length != 0)
+            if (_cacheProvider is null || !IsICachedEntity(types, out var validTypes))
             {
-                cacheKeys.AddRange(values.Select(value => value.ToString()));
+                return false;
             }
-            _ = tran.KeyDeleteAsync(tagCacheKey);
+            return await _cacheProvider.InvalidateCacheAsync(validTypes);
         }
-        foreach (var cacheKey in cacheKeys)
+        catch (Exception e)
         {
-            _ = tran.KeyDeleteAsync(cacheKey);
+            Logger.LogError(e);
         }
-        
-        return await tran.ExecuteAsync();
+
+        return false;
     }
 
-    private static bool IsICachedEntity(Type[] types, out Type[] validTypes)
+    private static bool IsICachedEntity(Type[]? types, out Type[] validTypes)
     {
         validTypes = types?.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)).ToArray() ?? [];
         return validTypes.HasData();
@@ -86,22 +75,12 @@ internal static class EfCoreCacheManager
     {
         try
         {
-            if (_database is null || string.IsNullOrWhiteSpace(key) || data is null
+            if (_cacheProvider is null || string.IsNullOrWhiteSpace(key) || data is null
                 || !IsICachedEntity(types, out var validTypes))
             {
                 return false;
             }
-            
-            var tran = _database.CreateTransaction();
-            var cacheKey = GetKey(key);
-            foreach (var type in validTypes)
-            {
-                _ = tran.SetAddAsync(GetTagKey(type), cacheKey);
-            }
-
-            _ = tran.StringSetAsync(GetKey(key), data.SerializeToJson());
-            return await tran.ExecuteAsync();
-
+            return await _cacheProvider.AddToCacheAsync(GetKey(key), data, validTypes);
         }
         catch (Exception e)
         {
@@ -116,26 +95,11 @@ internal static class EfCoreCacheManager
         var response = new ResponseInfo<T?>();
         try
         {
-            if (_database is null || string.IsNullOrWhiteSpace(key))
+            if (_cacheProvider is null || string.IsNullOrWhiteSpace(key))
             {
                 return response.Fail();
             }
-
-            var resp = await _database.StringGetAsync(GetKey(key));
-            string? json = resp;
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return response.Fail();
-            }
-            
-            try
-            {
-                return response.Success(json.DeserializeFromJson<T>());
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "While trying to deserialize {entry} into type {type}", json, typeof(T));
-            }
+            return await _cacheProvider.GetFromCacheAsync<T>(GetKey(key));
         }
         catch (Exception e)
         {
