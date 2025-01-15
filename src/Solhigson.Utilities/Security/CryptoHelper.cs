@@ -173,7 +173,7 @@ public static class CryptoHelper
         return result.ToString();
     }
 
-    public static ICryptoTransform CreateSymmetricEncryptor(byte[] encryptionKey, byte[] encryptionIv = null,
+    public static ICryptoTransform CreateSymmetricEncryptor(byte[] encryptionKey, byte[]? encryptionIv = null,
         EncryptionModes encryptionMode =
             EncryptionModes.TripleDes,
         PaddingMode paddingMode = PaddingMode.None,
@@ -182,7 +182,7 @@ public static class CryptoHelper
         return CreateCryptographicInstance(encryptionKey, encryptionIv, encryptionMode, paddingMode, cipherMode);
     }
 
-    public static ICryptoTransform CreateSymmetricDecryptor(byte[] encryptionKey, byte[] encryptionIv = null,
+    public static ICryptoTransform CreateSymmetricDecryptor(byte[] encryptionKey, byte[]? encryptionIv = null,
         EncryptionModes encryptionMode =
             EncryptionModes.TripleDes,
         PaddingMode paddingMode = PaddingMode.None,
@@ -192,7 +192,7 @@ public static class CryptoHelper
             false);
     }
         
-    public static async Task<byte[]> SymmetricEncryptAsync(byte[] dataToDecrypt, byte[] encryptionKey, byte[] encryptionIv = null,
+    public static async Task<byte[]> SymmetricEncryptAsync(byte[] dataToDecrypt, byte[] encryptionKey, byte[]? encryptionIv = null,
         EncryptionModes encryptionMode =
             EncryptionModes.TripleDes,
         PaddingMode paddingMode = PaddingMode.None,
@@ -202,7 +202,7 @@ public static class CryptoHelper
             encryptionMode, paddingMode, cipherMode));
     }
         
-    public static async Task<byte[]> SymmetricDecryptAsync(byte[] dataToDecrypt, byte[] encryptionKey, byte[] encryptionIv = null,
+    public static async Task<byte[]> SymmetricDecryptAsync(byte[] dataToDecrypt, byte[] encryptionKey, byte[]? encryptionIv = null,
         EncryptionModes encryptionMode =
             EncryptionModes.TripleDes,
         PaddingMode paddingMode = PaddingMode.None,
@@ -212,14 +212,14 @@ public static class CryptoHelper
             encryptionMode, paddingMode, cipherMode));
     }
 
-    private static ICryptoTransform CreateCryptographicInstance(byte[] encryptionKey, byte[] encryptionIv = null,
+    private static ICryptoTransform CreateCryptographicInstance(byte[] encryptionKey, byte[]? encryptionIv = null,
         EncryptionModes encryptionMode =
             EncryptionModes.TripleDes,
         PaddingMode paddingMode = PaddingMode.None,
         CipherMode cipherMode = CipherMode.CBC,
         bool createAsEncryptor = true)
     {
-        SymmetricAlgorithm provider = encryptionMode switch
+        using SymmetricAlgorithm provider = encryptionMode switch
         {
             EncryptionModes.Aes => Aes.Create(),
             _ => TripleDES.Create()
@@ -235,15 +235,18 @@ public static class CryptoHelper
 
     public static async Task<byte[]> PerformCryptoGraphicActionAsync(byte[] encodedText, ICryptoTransform cryptoProvider)
     {
-        await using var ms = new MemoryStream();
-        await using (var cs = new CryptoStream
-                         (ms, cryptoProvider, CryptoStreamMode.Write))
+        using (cryptoProvider)
         {
-            await cs.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
-            await cs.FlushFinalBlockAsync();
-        }
+            await using var ms = new MemoryStream();
+            await using (var cs = new CryptoStream
+                             (ms, cryptoProvider, CryptoStreamMode.Write))
+            {
+                await cs.WriteAsync(encodedText.AsMemory(0, encodedText.Length));
+                await cs.FlushFinalBlockAsync();
+            }
 
-        return ms.ToArray();
+            return ms.ToArray();
+        }
     }
         
     public static async Task<byte[]> PerformCryptoGraphicActionAsync(string data, ICryptoTransform cryptoProvider)
