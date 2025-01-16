@@ -9,8 +9,8 @@ using Solhigson.Framework.Dto;
 using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
-using Solhigson.Framework.Utilities.Extensions;
-using Solhigson.Framework.Utilities.Security;
+using Solhigson.Utilities.Extensions;
+using Solhigson.Utilities.Security;
 
 namespace Solhigson.Framework.Services;
 

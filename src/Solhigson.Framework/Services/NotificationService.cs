@@ -11,8 +11,8 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Notification;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
 using Solhigson.Framework.Services.Abstractions;
-using Solhigson.Framework.Utilities;
-using Solhigson.Framework.Utilities.Security;
+using Solhigson.Utilities;
+using Solhigson.Utilities.Security;
 
 namespace Solhigson.Framework.Services;
 

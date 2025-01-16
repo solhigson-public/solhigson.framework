@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Solhigson.Framework.Utilities.Extensions;
+using Solhigson.Utilities.Extensions;
 
 namespace Solhigson.Framework.Data.Repository;
 

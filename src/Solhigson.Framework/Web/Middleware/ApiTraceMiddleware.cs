@@ -12,7 +12,7 @@ using NLog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Utilities;
+using Solhigson.Utilities;
 
 namespace Solhigson.Framework.Web.Middleware;
 

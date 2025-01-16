@@ -9,7 +9,7 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Utilities;
+using Solhigson.Utilities;
 using Solhigson.Framework.Web.Attributes;
 
 namespace Solhigson.Framework.Web.Middleware;

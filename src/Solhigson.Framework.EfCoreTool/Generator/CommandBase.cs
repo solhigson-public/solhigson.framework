@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Solhigson.Framework.Utilities.Extensions;
+using Solhigson.Utilities.Extensions;
 
 //using Solhigson.Framework.Extensions;
 

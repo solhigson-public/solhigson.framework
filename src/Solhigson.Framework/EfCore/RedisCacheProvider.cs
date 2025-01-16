@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Solhigson.Framework.Dto;
-using Solhigson.Framework.Utilities;
+using Solhigson.Utilities;
 using StackExchange.Redis;
 
 namespace Solhigson.Framework.EfCore;

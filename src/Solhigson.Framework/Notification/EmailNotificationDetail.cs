@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Utilities;
-using Solhigson.Framework.Utilities.Extensions;
+using Solhigson.Utilities;
+using Solhigson.Utilities.Extensions;
 
 namespace Solhigson.Framework.Notification;
 

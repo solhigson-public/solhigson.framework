@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Solhigson.Framework.Utilities;
+using Solhigson.Utilities;
 
 namespace Solhigson.Framework.Dto;
 

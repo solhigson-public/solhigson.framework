@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Solhigson.Framework.Infrastructure;
 
-namespace Solhigson.Framework.Utilities;
+namespace Solhigson.Utilities;
 
 public static class LocaleUtil
 {

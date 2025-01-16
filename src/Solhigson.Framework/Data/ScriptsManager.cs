@@ -8,7 +8,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Persistence.EntityModels;
-using Solhigson.Framework.Utilities.Extensions;
+using Solhigson.Utilities.Extensions;
 
 namespace Solhigson.Framework.Data;
 

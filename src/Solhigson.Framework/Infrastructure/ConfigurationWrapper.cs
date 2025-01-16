@@ -12,7 +12,7 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Services;
-using Solhigson.Framework.Utilities.Security;
+using Solhigson.Utilities.Security;
 
 namespace Solhigson.Framework.Infrastructure;
 

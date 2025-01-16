@@ -9,8 +9,8 @@ using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
-using Solhigson.Framework.Utilities.Extensions;
-using Solhigson.Framework.Utilities.Linq;
+using Solhigson.Utilities.Extensions;
+using Solhigson.Utilities.Linq;
 using StackExchange.Redis;
 
 namespace Solhigson.Framework.EfCore;

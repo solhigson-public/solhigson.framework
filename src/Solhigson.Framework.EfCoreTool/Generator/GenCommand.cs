@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using Microsoft.CSharp;
 using Microsoft.EntityFrameworkCore;
-using Solhigson.Framework.Utilities.Extensions;
+using Solhigson.Utilities.Extensions;
 
 namespace Solhigson.Framework.EfCoreTool.Generator;
 
