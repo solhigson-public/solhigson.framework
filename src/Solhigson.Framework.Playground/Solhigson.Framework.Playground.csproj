@@ -29,6 +29,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
+      <ProjectReference Include="..\Solhigson.Utilities\Solhigson.Utilities.csproj" />
     </ItemGroup>
 
     <ItemGroup>

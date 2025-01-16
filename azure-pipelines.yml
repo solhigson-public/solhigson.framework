@@ -14,7 +14,7 @@ variables:
   solution: '**/*.sln'
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
-  utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Framework.Utilities.csproj'
+  utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Utilities.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   package: true
