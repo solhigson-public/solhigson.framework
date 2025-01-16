@@ -14,7 +14,7 @@ variables:
   solution: '**/*.sln'
   frameworkProj: '**/Solhigson.Framework/Solhigson.Framework.csproj'
   toolsProj: '**/Solhigson.Framework.EfCoreTool/Solhigson.Framework.EfCoreTool.csproj'
-  utilitiesProj: '**/Solhigson.Framework.Utilities/Solhigson.Utilities.csproj'
+  utilitiesProj: '**/Solhigson.Utilities/Solhigson.Utilities.csproj'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   package: true
@@ -136,7 +136,7 @@ stages:
 
   - stage: nuget_package_utilities
     condition:  eq(variables.packageUtilities, true)
-    displayName: Deploy Solhigson MongoDb package to Nuget.Org
+    displayName: Deploy Solhigson Utilities package to Nuget.Org
     jobs:
       - job:
         displayName: Package & Push Solhigson Utilities
