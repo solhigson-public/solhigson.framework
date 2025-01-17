@@ -1,75 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Solhigson.Framework.EfCore;
-using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
 
 namespace Solhigson.Framework.Identity;
 
-public class SolhigsonIdentityManager<TUser, TContext> 
-    : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext, string>
-    where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
-    where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
-{
-    public SolhigsonIdentityManager(UserManager<TUser> userManager,
-        RoleManager<SolhigsonAspNetRole> roleManager,
-        RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext, string> roleGroupManager,//TRoleGroup, TRole, TUser, TContext, TKey
-        SignInManager<TUser> signInManager,
-        PermissionManager<TUser, SolhigsonAspNetRole, TContext, string> permissionManager, //TUser, TRole, TContext, TKey
-        TContext dbContext) : base(userManager, roleManager, roleGroupManager, signInManager, permissionManager,
+public class SolhigsonIdentityManager<TUser, TContext>(
+    UserManager<TUser> userManager,
+    RoleManager<SolhigsonAspNetRole> roleManager,
+    RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole, TUser, TContext, string> roleGroupManager,
+    SignInManager<TUser> signInManager,
+    PermissionManager<TUser, SolhigsonAspNetRole, TContext, string> permissionManager,
+    TContext dbContext)
+    : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole, TContext, string>(userManager,
+        roleManager, roleGroupManager, signInManager, permissionManager,
         dbContext)
-    {
-    }
-}
+    where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
+    where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>;
     
-public class SolhigsonIdentityManager<TUser, TKey, TContext> 
-    : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TContext, TKey>
+public class SolhigsonIdentityManager<TUser, TKey, TContext>(
+    UserManager<TUser> userManager,
+    RoleManager<SolhigsonAspNetRole<TKey>> roleManager,
+    RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TUser, TContext, TKey> roleGroupManager,
+    SignInManager<TUser> signInManager,
+    PermissionManager<TUser, SolhigsonAspNetRole<TKey>, TContext, TKey> permissionManager,
+    TContext dbContext)
+    : SolhigsonIdentityManager<TUser, SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TContext, TKey>(userManager,
+        roleManager, roleGroupManager, signInManager, permissionManager, dbContext)
     where TUser : SolhigsonUser<TKey, SolhigsonAspNetRole<TKey>>
     where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
-    where TKey : IEquatable<TKey>
-{
-    public SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<SolhigsonAspNetRole<TKey>> roleManager,
-        RoleGroupManager<SolhigsonRoleGroup, SolhigsonAspNetRole<TKey>, TUser, TContext, TKey> roleGroupManager, SignInManager<TUser> signInManager,
-        PermissionManager<TUser, SolhigsonAspNetRole<TKey>, TContext, TKey> permissionManager, TContext dbContext) 
-        : base(userManager, roleManager, roleGroupManager, signInManager, permissionManager, dbContext)
-    {
-    }
-}
+    where TKey : IEquatable<TKey>;
 
 
-public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey> : IDisposable 
+public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey>(
+    UserManager<TUser> userManager,
+    RoleManager<TRole> roleManager,
+    RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> roleGroupManager,
+    SignInManager<TUser> signInManager,
+    PermissionManager<TUser, TRole, TContext, TKey> permissionManager,
+    TContext dbContext)
+    : IDisposable
     where TUser : SolhigsonUser<TKey, TRole>
-    where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey> 
-    where TRoleGroup : SolhigsonRoleGroup, new() 
+    where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
+    where TRoleGroup : SolhigsonRoleGroup, new()
     where TRole : SolhigsonAspNetRole<TKey>, new()
     where TKey : IEquatable<TKey>
 {
-    public RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> RoleGroupManager { get; }
-    public UserManager<TUser> UserManager { get; }
-    public RoleManager<TRole> RoleManager { get; }
-    public SignInManager<TUser> SignInManager { get; }
-    public PermissionManager<TUser, TRole, TContext, TKey> PermissionManager { get; }
-    private readonly SolhigsonIdentityDbContext<TUser, TRole, TKey>  _dbContext;
-
-    protected SolhigsonIdentityManager(UserManager<TUser> userManager, RoleManager<TRole> roleManager,
-        RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> roleGroupManager, SignInManager<TUser> signInManager,
-        PermissionManager<TUser, TRole, TContext, TKey> permissionManager, TContext dbContext)
-    {
-        UserManager = userManager;
-        RoleManager = roleManager;
-        RoleGroupManager = roleGroupManager;
-        SignInManager = signInManager;
-        PermissionManager = permissionManager;
-        _dbContext = dbContext;
-    }
+    public RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> RoleGroupManager { get; } = roleGroupManager;
+    public UserManager<TUser> UserManager { get; } = userManager;
+    public RoleManager<TRole> RoleManager { get; } = roleManager;
+    public SignInManager<TUser> SignInManager { get; } = signInManager;
+    public PermissionManager<TUser, TRole, TContext, TKey> PermissionManager { get; } = permissionManager;
+    private readonly SolhigsonIdentityDbContext<TUser, TRole, TKey>  _dbContext = dbContext;
 
     public async Task<IdentityResult> CreateRoleAsync(string roleName, string? roleGroupName = null)
     {
@@ -89,17 +75,17 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         var role = new TRole
         {
             Name = roleName,
-            RoleGroupId = roleGroupId!,
+            RoleGroupId = roleGroupId,
         };
         return await RoleManager.CreateAsync(role);
     }
 
-    public async Task SignOut()
+    public async Task SignOutAsync()
     {
         await SignInManager.SignOutAsync();
     }
         
-    public async Task<TUser?> GetUserDetailsById(string id)
+    public async Task<TUser?> GetUserDetailsByIdAsync(string id)
     {
         var user = await UserManager.FindByIdAsync(id);
         await GetRolesAsync(user);
@@ -107,7 +93,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
     }
 
 
-    public async Task<TUser?> GetUserDetailsByUsername(string userName)
+    public async Task<TUser?> GetUserDetailsByUsernameAsync(string userName)
     {
         var user = await UserManager.FindByNameAsync(userName);
         await GetRolesAsync(user);
@@ -138,7 +124,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         }
     }
         
-    public async Task<TUser?> GetUserDetailsByEmail(string email)
+    public async Task<TUser?> GetUserDetailsByEmailAsync(string email)
     {
         var user = await UserManager.FindByEmailAsync(email);
         await GetRolesAsync(user);
@@ -146,7 +132,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
     }
 
         
-    public async Task<SignInResponse<TUser, TKey, TRole>> SignIn(string userName, string password, bool lockOutOnFailure = false)
+    public async Task<SignInResponse<TUser, TKey, TRole>> SignInAsync(string userName, string password, bool lockOutOnFailure = false)
     {
         var response = new SignInResponse<TUser, TKey, TRole>();
         var signInResponse = await SignInManager.PasswordSignInAsync(userName, password, false, lockOutOnFailure);
@@ -158,11 +144,11 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
             return response;
         }
             
-        response.User = await GetUserDetailsByUsername(userName);
+        response.User = await GetUserDetailsByUsernameAsync(userName);
         return response;
     }
 
-    public async Task UpdateLastLoginTime(string userName, DateTime? lastLoginTime = null)
+    public async Task UpdateLastLoginTimeAsync(string userName, DateTime? lastLoginTime = null)
     {
         var user = await UserManager.FindByNameAsync(userName);
         if (user is null)
@@ -174,7 +160,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         await UserManager.UpdateAsync(user);
     }
 
-    public async Task<List<T>> GetUsersInRoles<T>(string[] roles)
+    public async Task<List<T>> GetUsersInRolesAsync<T>(string[] roles)
     {
         return await (from user in _dbContext.Users
             join userRole in _dbContext.UserRoles
@@ -188,9 +174,10 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
 
     public void Dispose()
     {
-        UserManager?.Dispose();
-        RoleManager?.Dispose();
-        RoleGroupManager?.Dispose();
-        _dbContext?.Dispose();
+        UserManager.Dispose();
+        RoleManager.Dispose();
+        RoleGroupManager.Dispose();
+        _dbContext.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
