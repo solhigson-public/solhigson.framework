@@ -162,6 +162,18 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         return response;
     }
 
+    public async Task UpdateLastLoginTime(string userName, DateTime? lastLoginTime = null)
+    {
+        var user = await UserManager.FindByNameAsync(userName);
+        if (user is null)
+        {
+            return;
+        }
+
+        user.LastLoginDate = lastLoginTime ?? DateTime.UtcNow;
+        await UserManager.UpdateAsync(user);
+    }
+
     public async Task<List<T>> GetUsersInRoles<T>(string[] roles)
     {
         return await (from user in _dbContext.Users

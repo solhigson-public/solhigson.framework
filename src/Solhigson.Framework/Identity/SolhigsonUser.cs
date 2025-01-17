@@ -24,6 +24,7 @@ public class SolhigsonUser<T, TRole> : IdentityUser<T> where T : IEquatable<T>
 {
     public bool Enabled { get; set; }
     public bool RequirePasswordChange { get; set; }
+    public DateTime? LastLoginDate { get; set; }
         
     [NotMapped]
     public List<TRole> Roles { get; set; }
