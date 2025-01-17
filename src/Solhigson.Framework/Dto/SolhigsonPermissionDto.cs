@@ -15,6 +15,7 @@ public record SolhigsonPermissionDto
     public string OnClickFunction { get; set; }
         
     public bool IsMenu { get; set; }
+    public int MenuIndex { get; set; }
 
     public virtual List<SolhigsonPermissionDto> Children { get; set; }
 

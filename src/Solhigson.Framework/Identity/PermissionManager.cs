@@ -249,8 +249,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             return result;
         }
 
-        var topLevel = query.OrderBy(t => t.MenuIndex)
-            .ThenBy(t => t.Name).AsNoTracking().ToList();
+        var topLevel = query.AsNoTracking().ToList();
 
         var children = await (from rolePerm in _dbContext.RolePermissions
             join role in _dbContext.Roles
@@ -298,6 +297,15 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             }
             result.Add(permissionDto);
         }
+
+        foreach (var item in result.Where(item => item.Children.HasData()))
+        {
+            item.Children = item.Children.OrderBy(t => t.MenuIndex)
+                .ThenBy(t => t.Name).ToList();
+        }
+        
+        result = result.OrderBy(t => t.MenuIndex)
+            .ThenBy(t => t.Name).ToList();
 
         _ = query.AddCustomResultToCacheAsync(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
         return result;
