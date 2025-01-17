@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
+﻿using System.Globalization;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
@@ -18,7 +13,7 @@ public static class Serializer
 {
     private static readonly XmlWriterSettings DefaultXmlWriterSettings = new () {OmitXmlDeclaration = true};
 
-    private static readonly XmlSerializerNamespaces DefaultXmlSerializerNamespaces = new(new[] {XmlQualifiedName.Empty});
+    private static readonly XmlSerializerNamespaces DefaultXmlSerializerNamespaces = new([XmlQualifiedName.Empty]);
         
     private static readonly JsonSerializerSettings DefaultJsonSerializerSettings = new ()
     {
@@ -27,7 +22,7 @@ public static class Serializer
     };
 
 
-    public static IDictionary<string, string>? SerializeToKeyValue(this object? obj)
+    public static IDictionary<string, string?>? SerializeToKeyValue(this object? obj)
     {
         while (true)
         {
@@ -42,7 +37,7 @@ public static class Serializer
 
             if (token.HasValues)
             {
-                var contentData = new Dictionary<string, string>();
+                var contentData = new Dictionary<string, string?>();
                 foreach (var child in token.Children().ToList())
                 {
                     var childContent = child.SerializeToKeyValue();
@@ -55,17 +50,17 @@ public static class Serializer
             }
 
             var jValue = token as JValue;
-            if (jValue?.Value == null) return null;
+            if (jValue?.Value is null) return null;
 
-            var value = jValue?.Type == JTokenType.Date
-                ? jValue?.ToString("o", CultureInfo.InvariantCulture)
-                : jValue?.ToString(CultureInfo.InvariantCulture);
+            var value = jValue.Type == JTokenType.Date
+                ? jValue.ToString("o", CultureInfo.InvariantCulture)
+                : jValue.ToString(CultureInfo.InvariantCulture);
 
-            return new Dictionary<string, string> {{token.Path, value}};
+            return new Dictionary<string, string?> {{token.Path, value}};
         }
     }
 
-    public static string SerializeToXml(this object? obj, XmlSerializerNamespaces? xmlsn = null,
+    public static string? SerializeToXml(this object? obj, XmlSerializerNamespaces? xmlsn = null,
         XmlWriterSettings? settings = null)
     {
         if (obj == null) return null;
@@ -95,9 +90,9 @@ public static class Serializer
         return stream.ToString();
     }
         
-    public static string SerializeToJson(this object obj, bool indent = false, JsonSerializerSettings jsonSerializerSettings = null)
+    public static string? SerializeToJson(this object? obj, bool indent = false, JsonSerializerSettings? jsonSerializerSettings = null)
     {
-        if (obj == null)
+        if (obj is null)
         {
             return null;
         }
@@ -112,7 +107,7 @@ public static class Serializer
         return JsonConvert.SerializeObject(obj, format, jsonSerializerSettings);
     }
         
-    private static object DeserializeFromJson(this string jsonString, Type objType)
+    private static object? DeserializeFromJson(this string? jsonString, Type objType)
     {
         if (string.IsNullOrEmpty(jsonString)) return null;
 
@@ -122,31 +117,26 @@ public static class Serializer
         return theObject;
     }
 
-    public static T DeserializeFromJson<T>(this string jsonString)
+    public static T? DeserializeFromJson<T>(this string? jsonString)
     {
-        return (T) DeserializeFromJson(jsonString, typeof(T));
+        return (T?) DeserializeFromJson(jsonString, typeof(T));
     }
 
-    private static object DeserializeFromXml(this string xmlString, Type objType)
+    private static object? DeserializeFromXml(this string? xmlString, Type objType)
     {
         if (string.IsNullOrEmpty(xmlString)) return null;
 
-        object theObject = null;
-        using (var sReader = new StringReader(xmlString))
-        {
-            using (var xmlReader = new XmlTextReader(sReader))
-            {
-                var xs = new XmlSerializer(objType);
-                theObject = xs.Deserialize(xmlReader);
-            }
-        }
+        using var sReader = new StringReader(xmlString);
+        using var xmlReader = new XmlTextReader(sReader);
+        var xs = new XmlSerializer(objType);
+        var theObject = xs.Deserialize(xmlReader);
 
         return theObject;
     }
 
-    public static T DeserializeFromXml<T>(this string xmlString)// where T : class
+    public static T? DeserializeFromXml<T>(this string? xmlString)// where T : class
     {
-        return (T) xmlString.DeserializeFromXml(typeof(T));
+        return (T?) xmlString.DeserializeFromXml(typeof(T));
     }
 }
 
