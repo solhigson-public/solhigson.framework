@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Extensions;
 
-namespace Solhigson.Framework.EfCore;
+namespace Solhigson.Framework.EfCore.Caching;
 
 public class EfCoreCachingSaveChangesInterceptor : SaveChangesInterceptor
 {

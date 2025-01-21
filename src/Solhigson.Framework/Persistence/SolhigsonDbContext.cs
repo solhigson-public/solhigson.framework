@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.EfCore;
+using Solhigson.Framework.EfCore.Caching;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Persistence.EntityModels;
 

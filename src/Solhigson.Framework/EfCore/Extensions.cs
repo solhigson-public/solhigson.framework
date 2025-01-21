@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
+using Solhigson.Framework.EfCore.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using Solhigson.Utilities.Extensions;

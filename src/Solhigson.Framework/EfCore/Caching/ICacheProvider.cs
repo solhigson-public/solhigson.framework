@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Solhigson.Framework.Dto;
 
-namespace Solhigson.Framework.EfCore;
+namespace Solhigson.Framework.EfCore.Caching;
 
 public interface ICacheProvider
 {

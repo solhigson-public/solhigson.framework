@@ -8,11 +8,11 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
 using StackExchange.Redis;
 
-namespace Solhigson.Framework.EfCore;
+namespace Solhigson.Framework.EfCore.Caching;
 
 internal static class EfCoreCacheManager
 {
-    private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName);
+    private static LogWrapper? _logger;
     private static string? _prefix;
     private static ICacheProvider? _cacheProvider;
 
@@ -21,13 +21,14 @@ internal static class EfCoreCacheManager
     {
         try
         {
+            _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName);
             if (string.IsNullOrWhiteSpace(prefix))
             {
                 prefix = "solhigson.efcore.caching.";
             }
             if (redis is null)
             {
-                Logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
+                _logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
                 return;
             }
             _cacheProvider = cacheType == CacheType.Redis 
@@ -38,7 +39,7 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            Logger.LogError(e);
+            _logger?.LogError(e);
         }
     }
     
@@ -59,7 +60,7 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            Logger.LogError(e);
+            _logger?.LogError(e);
         }
 
         return false;
@@ -84,7 +85,8 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            Logger.LogError(e);
+            _logger?.LogError(e, "Unable to add data of type {type} to cache, " +
+                                 "type might not serializable to json consider using CacheType.Memory", typeof(T).FullName);
         }
 
         return false;
@@ -103,23 +105,15 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            Logger.LogError(e);
+            _logger?.LogError(e);
         }
 
         return response.Fail();
     }
-    
-    internal static string Flatten(IEnumerable<Type> iCacheEntityTypes)
-    {
-        var result = "";
-        foreach (var type in iCacheEntityTypes)
-        {
-            result = string.IsNullOrEmpty(result) 
-                ? type.Name 
-                : $"{result}-{type.Name}";
-        }
-        return result;
-    }
 
+    internal static string GetTypeName(Type type)
+    {
+        return type.FullName!;
+    }
 
 }

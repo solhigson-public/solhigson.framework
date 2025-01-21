@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.EfCore;
+using Solhigson.Framework.EfCore.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.EntityModels;

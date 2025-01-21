@@ -1,4 +1,4 @@
-namespace Solhigson.Framework.EfCore;
+namespace Solhigson.Framework.EfCore.Caching;
 
 public enum CacheType
 {
