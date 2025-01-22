@@ -25,23 +25,23 @@ internal static class EfCoreCacheManager
     {
         try
         {
-            _cacheType = cacheType;
             _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName, loggerFactory);
-            if (string.IsNullOrWhiteSpace(prefix))
-            {
-                var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");
-                prefix = $"{random}";
-            }
             if (redis is null)
             {
                 _logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
                 return;
             }
+            if (string.IsNullOrWhiteSpace(prefix))
+            {
+                var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");
+                prefix = $"{random}";
+            }
+            _cacheType = cacheType;
+            _prefix = prefix + $"{prefix}.solhigson.efcore.caching.{_cacheType.ToString()}";
             _cacheProvider = _cacheType == CacheType.Redis 
-                ? new RedisCacheProvider(redis, prefix, expirationInMinutes)
-                : new MemoryCacheProvider(redis, prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
+                ? new RedisCacheProvider(redis, _prefix, expirationInMinutes)
+                : new MemoryCacheProvider(redis, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
             
-            _prefix = prefix + ".solhigson.efcore.caching";
         }
         catch (Exception e)
         {
