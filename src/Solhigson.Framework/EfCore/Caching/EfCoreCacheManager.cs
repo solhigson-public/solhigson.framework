@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
@@ -17,12 +18,12 @@ internal static class EfCoreCacheManager
     private static string? _prefix;
     private static ICacheProvider? _cacheProvider;
 
-    internal static void Initialize(CacheType cacheType, IConnectionMultiplexer? redis, string? prefix = null,
+    internal static void Initialize(ILoggerFactory loggerFactory, CacheType cacheType, IConnectionMultiplexer? redis, string? prefix = null,
         int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
         try
         {
-            _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName);
+            _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName, loggerFactory);
             if (string.IsNullOrWhiteSpace(prefix))
             {
                 var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");

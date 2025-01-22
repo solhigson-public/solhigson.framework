@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Solhigson.Framework.Data;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
@@ -50,7 +52,8 @@ public static class Extensions
         IConnectionMultiplexer? connectionMultiplexer,
         string? prefix = null, int expirationInMinutes = 1440)
     {
-        EfCoreCacheManager.Initialize(CacheType.Redis, connectionMultiplexer, prefix, expirationInMinutes);
+        var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+        EfCoreCacheManager.Initialize(loggerFactory, CacheType.Redis, connectionMultiplexer, prefix, expirationInMinutes);
         return app;
     }
     
@@ -58,7 +61,8 @@ public static class Extensions
         IConnectionMultiplexer? connectionMultiplexer,
         string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
-        EfCoreCacheManager.Initialize(CacheType.Memory, connectionMultiplexer, prefix, expirationInMinutes, 
+        var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
+        EfCoreCacheManager.Initialize(loggerFactory, CacheType.Memory, connectionMultiplexer, prefix, expirationInMinutes, 
             changeTrackerTimerIntervalInSeconds);
         return app;
     }
