@@ -37,7 +37,7 @@ internal static class EfCoreCacheManager
                 prefix = $"{random}";
             }
             _cacheType = cacheType;
-            _prefix = prefix + $"{prefix}.solhigson.efcore.caching.{_cacheType.ToString()}";
+            _prefix = $"{prefix}.solhigson.efcore.caching.{_cacheType.ToString()}";
             _cacheProvider = _cacheType == CacheType.Redis 
                 ? new RedisCacheProvider(redis, _prefix, expirationInMinutes)
                 : new MemoryCacheProvider(redis, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
