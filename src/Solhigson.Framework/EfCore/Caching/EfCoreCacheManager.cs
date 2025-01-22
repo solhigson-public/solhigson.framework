@@ -78,24 +78,40 @@ internal static class EfCoreCacheManager
         return validTypes.HasData();
     }
     
-    internal static async Task<bool> SetDataAsync<T>(string key, T? data, Type[] types) where T : class
+    internal static async Task<ResponseInfo<bool>> SetDataAsync<T>(string key, T? data, Type[] types) where T : class
     {
+        var resp = new ResponseInfo<bool>();
         try
         {
-            if (_cacheProvider is null || string.IsNullOrWhiteSpace(key) || data is null
-                || !IsICachedEntity(types, out var validTypes))
+            if (_cacheProvider is null)
             {
-                return false;
+                return resp.Fail($"{_cacheType.ToString()}: cache Provider is not configured");
             }
-            return await _cacheProvider.AddToCacheAsync(GetKey(key), data, validTypes);
+
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return resp.Fail($"{_cacheType.ToString()}: key is null or empty");
+            }
+
+            if (data is null)
+            {
+                return resp.Fail($"{_cacheType.ToString()}: data is null");
+            }
+            
+            if (!IsICachedEntity(types, out var validTypes))
+            {
+                return resp.Fail($"{_cacheType.ToString()}: Type(s) aren't iCacheEntityTypes: {MemoryCacheProvider.Flatten(types)}");
+            }
+            var isSuccessful = await _cacheProvider.AddToCacheAsync(GetKey(key), data, validTypes);
+            return isSuccessful ? resp.Success(isSuccessful) : resp.Fail();
         }
         catch (Exception e)
         {
             _logger?.LogError(e, "[{CacheType}]: Unable to add data of type {Type} to cache, " +
                                  "type might not serializable to json consider using CacheType.Memory", _cacheType.ToString(), typeof(T).FullName);
+            return resp.Fail(e.Message);
         }
 
-        return false;
     }
     
     internal static async Task<ResponseInfo<T?>> GetDataAsync<T>(string? key) where T : class

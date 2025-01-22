@@ -120,7 +120,7 @@ public class ConfigurationWrapper
     
     private static async Task<bool> AddToCacheAsync(string key, string value)
     {
-        return await EfCoreCacheManager.SetDataAsync(key, value, [typeof(AppSetting)]);
+        return (await EfCoreCacheManager.SetDataAsync(key, value, [typeof(AppSetting)])).IsSuccessful;
     }
 
 

@@ -161,7 +161,7 @@ public static class Extensions
         return await GetCacheDataAsync(query, ResolveToSingle, iCachedEntityTypesToMonitor);
     }
 
-    public static async Task<bool> AddCustomResultToCacheAsync<T>(this IQueryable<T> query, object result, params Type[] types)
+    public static async Task<ResponseInfo<bool>> AddCustomResultToCacheAsync<T>(this IQueryable<T> query, object result, params Type[] types)
         where T : class
     {
         return await EfCoreCacheManager.SetDataAsync(query.GetCacheKey(), result, types);
