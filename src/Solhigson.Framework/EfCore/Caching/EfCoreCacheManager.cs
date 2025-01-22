@@ -26,7 +26,7 @@ internal static class EfCoreCacheManager
             if (string.IsNullOrWhiteSpace(prefix))
             {
                 var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");
-                prefix = $"solhigson.efcore.caching.{random}.";
+                prefix = $"solhigson.efcore.caching.{random}";
             }
             if (redis is null)
             {
@@ -37,7 +37,7 @@ internal static class EfCoreCacheManager
                 ? new RedisCacheProvider(redis, prefix, expirationInMinutes)
                 : new MemoryCacheProvider(redis, prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
             
-            _prefix = prefix;
+            _prefix = prefix + ".";
         }
         catch (Exception e)
         {
