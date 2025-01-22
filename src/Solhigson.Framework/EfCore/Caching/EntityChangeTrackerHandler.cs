@@ -11,7 +11,7 @@ public class EntityChangeTrackerHandler : IDisposable
     public event EventHandler? OnChanged;
     private readonly MemoryCacheProvider _memoryCacheProvider;
 
-    private readonly Dictionary<string, short> _changeIds = new();
+    private readonly Dictionary<string, int> _changeIds = new();
 
     public EntityChangeTrackerHandler(MemoryCacheProvider memoryCacheProvider, IEnumerable<Type> types)
     {
@@ -24,6 +24,7 @@ public class EntityChangeTrackerHandler : IDisposable
 
         _memoryCacheProvider.OnTableChangeTimerElapsed += OnTableChangeTimerElapsed;
     }
+    internal string TableNames => MemoryCacheProvider.Flatten(_changeIds.Keys.ToList());
 
     private void OnTableChangeTimerElapsed(object? sender, EventArgs e)
     {

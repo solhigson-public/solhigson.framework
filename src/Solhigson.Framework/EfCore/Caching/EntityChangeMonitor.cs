@@ -1,9 +1,13 @@
+using System;
+using System.Runtime.Caching;
+using Solhigson.Framework.Extensions;
+
 namespace Solhigson.Framework.EfCore.Caching;
 
 public class EntityChangeMonitor : ChangeMonitor
 {
-    private readonly TableChangeTracker _tableChangeTracker;
-    public TableChangeMonitor(TableChangeTracker tableChangeTracker)
+    private readonly EntityChangeTrackerHandler _tableChangeTracker;
+    public EntityChangeMonitor(EntityChangeTrackerHandler tableChangeTracker)
     {
         UniqueId = $"{tableChangeTracker.TableNames}_{Guid.NewGuid().ToString()}";
         this.LogTrace($"New Change monitor: {UniqueId}");
@@ -24,7 +28,5 @@ public class EntityChangeMonitor : ChangeMonitor
         _tableChangeTracker.OnChanged -= TableChangeTrackerOnChanged;
     }
 
-    public override string UniqueId { get; }
-        
-        
+    public sealed override string UniqueId { get; }
 }

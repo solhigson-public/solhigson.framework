@@ -6,6 +6,7 @@ using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
+using Solhigson.Utilities.Security;
 using StackExchange.Redis;
 
 namespace Solhigson.Framework.EfCore.Caching;
@@ -24,7 +25,8 @@ internal static class EfCoreCacheManager
             _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName);
             if (string.IsNullOrWhiteSpace(prefix))
             {
-                prefix = "solhigson.efcore.caching.";
+                var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");
+                prefix = $"solhigson.efcore.caching.{random}.";
             }
             if (redis is null)
             {
@@ -113,7 +115,7 @@ internal static class EfCoreCacheManager
 
     internal static string GetTypeName(Type type)
     {
-        return type.FullName!;
+        return type.Name.ToLower();
     }
 
 }
