@@ -74,7 +74,7 @@ public class EfCoreCachingSaveChangesInterceptor : SaveChangesInterceptor
         {
             return;
         }
-        _ = EfCoreCacheManager.InvalidateAsync(_changedTypes);
+        _ = EfCoreCacheManager.InvalidateAsync(_changedTypes.ToArray());
         _changedTypes.Clear();
     }
 }

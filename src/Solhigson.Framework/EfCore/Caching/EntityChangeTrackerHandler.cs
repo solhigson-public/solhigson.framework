@@ -13,7 +13,7 @@ public class EntityChangeTrackerHandler : IDisposable
 
     private readonly Dictionary<string, int> _changeIds = new();
 
-    public EntityChangeTrackerHandler(MemoryCacheProvider memoryCacheProvider, IEnumerable<Type> types)
+    public EntityChangeTrackerHandler(MemoryCacheProvider memoryCacheProvider, Type[] types)
     {
         _memoryCacheProvider = memoryCacheProvider;
         foreach (var type in types)

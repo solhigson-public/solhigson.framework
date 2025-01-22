@@ -46,7 +46,7 @@ public class MemoryCacheProvider : CacheProviderBase
     }
 
 
-    public override async Task<bool> InvalidateCacheAsync(IEnumerable<Type> types)
+    public override async Task<bool> InvalidateCacheAsync(Type[] types)
     {
         var trackerInfo = await GetEntityChangeTrackersAsync();
         foreach (var type in types)
@@ -66,7 +66,7 @@ public class MemoryCacheProvider : CacheProviderBase
         return true;
     }
 
-    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, IEnumerable<Type> types)
+    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types)
     {
         var policy = new CacheItemPolicy();
         var changeMonitor = new EntityChangeMonitor(GetEntityChangeTrackerHandler(types));
@@ -92,16 +92,15 @@ public class MemoryCacheProvider : CacheProviderBase
         return changeId;
     }
 
-    private EntityChangeTrackerHandler GetEntityChangeTrackerHandler(IEnumerable<Type> types)
+    private EntityChangeTrackerHandler GetEntityChangeTrackerHandler(Type[] types)
     {
-        var iCacheEntityTypes = types as Type[] ?? types.ToArray();
-        var changeTrackerKey = Flatten(iCacheEntityTypes);
+        var changeTrackerKey = Flatten(types);
         if (ChangeTrackers.TryGetValue(changeTrackerKey, out var entityChangeTrackerHandler))
         {
             return entityChangeTrackerHandler;
         }
 
-        entityChangeTrackerHandler = new EntityChangeTrackerHandler(this, iCacheEntityTypes);
+        entityChangeTrackerHandler = new EntityChangeTrackerHandler(this, types);
         try
         {
             ChangeTrackers.TryAdd(changeTrackerKey, entityChangeTrackerHandler);
@@ -114,7 +113,7 @@ public class MemoryCacheProvider : CacheProviderBase
         return entityChangeTrackerHandler;
     }
 
-    private static string Flatten(IEnumerable<Type> iCacheEntityTypes)
+    private static string Flatten(Type[] iCacheEntityTypes)
     {
         return Flatten(iCacheEntityTypes.Select(EfCoreCacheManager.GetTypeName));
     }

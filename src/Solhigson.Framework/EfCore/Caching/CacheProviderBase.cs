@@ -18,9 +18,9 @@ public abstract class CacheProviderBase(IConnectionMultiplexer redis, string pre
     }
 
 
-    public abstract Task<bool> InvalidateCacheAsync(IEnumerable<Type>types);
+    public abstract Task<bool> InvalidateCacheAsync(Type[] types);
 
-    public abstract Task<bool> AddToCacheAsync<T>(string cacheKey, T data, IEnumerable<Type> types) where T : class;
+    public abstract Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types) where T : class;
 
     public abstract Task<ResponseInfo<T?>> GetFromCacheAsync<T>(string cacheKey) where T : class;
 }

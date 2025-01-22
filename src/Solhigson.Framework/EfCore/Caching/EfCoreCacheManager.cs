@@ -17,28 +17,31 @@ internal static class EfCoreCacheManager
     private static LogWrapper? _logger;
     private static string? _prefix;
     private static ICacheProvider? _cacheProvider;
+    private static CacheType _cacheType;
+    
 
     internal static void Initialize(ILoggerFactory loggerFactory, CacheType cacheType, IConnectionMultiplexer? redis, string? prefix = null,
         int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
         try
         {
+            _cacheType = cacheType;
             _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName, loggerFactory);
             if (string.IsNullOrWhiteSpace(prefix))
             {
                 var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");
-                prefix = $"solhigson.efcore.caching.{random}";
+                prefix = $"{random}";
             }
             if (redis is null)
             {
                 _logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
                 return;
             }
-            _cacheProvider = cacheType == CacheType.Redis 
+            _cacheProvider = _cacheType == CacheType.Redis 
                 ? new RedisCacheProvider(redis, prefix, expirationInMinutes)
                 : new MemoryCacheProvider(redis, prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
             
-            _prefix = prefix + ".";
+            _prefix = prefix + ".solhigson.efcore.caching";
         }
         catch (Exception e)
         {
@@ -51,7 +54,7 @@ internal static class EfCoreCacheManager
         return _prefix + key;
     }
 
-    internal static async Task<bool> InvalidateAsync(IEnumerable<Type> types)
+    internal static async Task<bool> InvalidateAsync(Type[] types)
     {
         try
         {
@@ -63,15 +66,15 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            _logger?.LogError(e);
+            _logger?.LogError(e, "[{CacheType}]: Unable to invalidate cache", _cacheType.ToString());
         }
 
         return false;
     }
 
-    private static bool IsICachedEntity(IEnumerable<Type>? types, out IEnumerable<Type> validTypes)
+    private static bool IsICachedEntity(Type[]? types, out Type[] validTypes)
     {
-        validTypes = types?.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)) ?? [];
+        validTypes = types?.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)).ToArray() ?? [];
         return validTypes.HasData();
     }
     
@@ -88,8 +91,8 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            _logger?.LogError(e, "Unable to add data of type {type} to cache, " +
-                                 "type might not serializable to json consider using CacheType.Memory", typeof(T).FullName);
+            _logger?.LogError(e, "[{CacheType}]: Unable to add data of type {Type} to cache, " +
+                                 "type might not serializable to json consider using CacheType.Memory", _cacheType.ToString(), typeof(T).FullName);
         }
 
         return false;
@@ -108,7 +111,7 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            _logger?.LogError(e);
+            _logger?.LogError(e, "[{CacheType}]: Unable to get data from cache", _cacheType.ToString());
         }
 
         return response.Fail();
