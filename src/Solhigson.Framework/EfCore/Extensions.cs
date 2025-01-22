@@ -164,7 +164,7 @@ public static class Extensions
     public static async Task<ResponseInfo<bool>> AddCustomResultToCacheAsync<T>(this IQueryable<T> query, object result, params Type[] types)
         where T : class
     {
-        return await EfCoreCacheManager.SetDataAsync(query.GetCacheKey(), result, types);
+        return await EfCoreCacheManager.SetDataAsync(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
     }
 
     public static async Task<T?> GetCustomResultFromCacheAsync<T, TK>(this IQueryable<TK> query) where T : class where TK : class

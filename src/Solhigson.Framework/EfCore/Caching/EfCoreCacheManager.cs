@@ -78,7 +78,7 @@ internal static class EfCoreCacheManager
         return validTypes.HasData();
     }
     
-    internal static async Task<ResponseInfo<bool>> SetDataAsync<T>(string key, T? data, Type[] types) where T : class
+    internal static async Task<ResponseInfo<bool>> SetDataAsync<T>(string key, T? data, Type[]? types) where T : class
     {
         var resp = new ResponseInfo<bool>();
         try

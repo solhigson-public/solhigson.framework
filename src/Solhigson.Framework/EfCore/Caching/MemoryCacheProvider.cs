@@ -113,9 +113,11 @@ public class MemoryCacheProvider : CacheProviderBase
         return entityChangeTrackerHandler;
     }
 
-    internal static string Flatten(Type[] iCacheEntityTypes)
+    internal static string Flatten(Type[]? iCacheEntityTypes)
     {
-        return Flatten(iCacheEntityTypes.Select(EfCoreCacheManager.GetTypeName));
+        return !iCacheEntityTypes.HasData() 
+            ? string.Empty 
+            : Flatten(iCacheEntityTypes!.Select(EfCoreCacheManager.GetTypeName));
     }
 
     internal static string Flatten(IEnumerable<string> names)
