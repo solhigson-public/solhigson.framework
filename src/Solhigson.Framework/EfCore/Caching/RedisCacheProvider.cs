@@ -15,7 +15,7 @@ public class RedisCacheProvider : CacheProviderBase
     {
     }
     
-    public override async Task<bool> InvalidateCacheAsync(Type[] types)
+    public override async Task<bool> InvalidateCacheAsync(IEnumerable<Type> types)
     {
         List<string> cacheKeys = [];
         var tran = Database.CreateTransaction();
@@ -38,7 +38,7 @@ public class RedisCacheProvider : CacheProviderBase
         return await tran.ExecuteAsync();
     }
 
-    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types) where T : class
+    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, IEnumerable<Type> types) where T : class
     {
         var tran = Database.CreateTransaction();
         foreach (var type in types)

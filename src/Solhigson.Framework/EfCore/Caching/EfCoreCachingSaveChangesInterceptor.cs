@@ -58,7 +58,7 @@ public class EfCoreCachingSaveChangesInterceptor : SaveChangesInterceptor
         {
             return;
         }
-        var entities = context.ChangeTracker.Entries<ICachedEntity>().ToList();
+        var entities = context.ChangeTracker.Entries<ICachedEntity>();//.ToList();
 
         foreach (var entry in entities)
         {
@@ -74,7 +74,7 @@ public class EfCoreCachingSaveChangesInterceptor : SaveChangesInterceptor
         {
             return;
         }
-        _ = EfCoreCacheManager.InvalidateAsync(_changedTypes.ToArray());
+        _ = EfCoreCacheManager.InvalidateAsync(_changedTypes);
         _changedTypes.Clear();
     }
 }

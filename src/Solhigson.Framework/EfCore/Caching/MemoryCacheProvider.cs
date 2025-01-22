@@ -46,7 +46,7 @@ public class MemoryCacheProvider : CacheProviderBase
     }
 
 
-    public override async Task<bool> InvalidateCacheAsync(Type[] types)
+    public override async Task<bool> InvalidateCacheAsync(IEnumerable<Type> types)
     {
         var trackerInfo = await GetEntityChangeTrackersAsync();
         foreach (var type in types)
@@ -66,7 +66,7 @@ public class MemoryCacheProvider : CacheProviderBase
         return true;
     }
 
-    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types)
+    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, IEnumerable<Type> types)
     {
         var policy = new CacheItemPolicy();
         var changeMonitor = new EntityChangeMonitor(GetEntityChangeTrackerHandler(types));
@@ -92,15 +92,16 @@ public class MemoryCacheProvider : CacheProviderBase
         return changeId;
     }
 
-    private EntityChangeTrackerHandler GetEntityChangeTrackerHandler(IReadOnlyCollection<Type> types)
+    private EntityChangeTrackerHandler GetEntityChangeTrackerHandler(IEnumerable<Type> types)
     {
-        var changeTrackerKey = Flatten(types);
+        var iCacheEntityTypes = types as Type[] ?? types.ToArray();
+        var changeTrackerKey = Flatten(iCacheEntityTypes);
         if (ChangeTrackers.TryGetValue(changeTrackerKey, out var entityChangeTrackerHandler))
         {
             return entityChangeTrackerHandler;
         }
 
-        entityChangeTrackerHandler = new EntityChangeTrackerHandler(this, types);
+        entityChangeTrackerHandler = new EntityChangeTrackerHandler(this, iCacheEntityTypes);
         try
         {
             ChangeTrackers.TryAdd(changeTrackerKey, entityChangeTrackerHandler);

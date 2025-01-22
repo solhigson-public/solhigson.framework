@@ -50,7 +50,7 @@ internal static class EfCoreCacheManager
         return _prefix + key;
     }
 
-    internal static async Task<bool> InvalidateAsync(Type[] types)
+    internal static async Task<bool> InvalidateAsync(IEnumerable<Type> types)
     {
         try
         {
@@ -68,9 +68,9 @@ internal static class EfCoreCacheManager
         return false;
     }
 
-    private static bool IsICachedEntity(Type[]? types, out Type[] validTypes)
+    private static bool IsICachedEntity(IEnumerable<Type>? types, out IEnumerable<Type> validTypes)
     {
-        validTypes = types?.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)).ToArray() ?? [];
+        validTypes = types?.Where(type => typeof(ICachedEntity).IsAssignableFrom(type)) ?? [];
         return validTypes.HasData();
     }
     
