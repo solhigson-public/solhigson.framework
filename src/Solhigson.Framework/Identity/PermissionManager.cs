@@ -47,11 +47,11 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         
     public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, string? role)
     {
-        if (role is null)
+        if (string.IsNullOrWhiteSpace(role))
         {
             return ResponseInfo.FailedResult();
         }
-        return await VerifyPermissionAsync(permissionName, new [] { role});
+        return await VerifyPermissionAsync(permissionName, [role]);
     }
 
     public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, IReadOnlyCollection<string>? roles)
@@ -278,9 +278,9 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 topLevel.Add(parent);
             }
 
-            if (parent.Children.All(t => t.Name != child.Name))
+            if (parent.Children!.All(t => t.Name != child.Name))
             {
-                parent.Children.Add(child);
+                parent.Children!.Add(child);
             }
         }
 
@@ -291,7 +291,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         {
             var permissionDto = parent.Adapt<SolhigsonPermissionDto>();
             permissionDto.Children = [];
-            foreach (var child in parent.Children)
+            foreach (var child in parent.Children!)
             {
                 permissionDto.Children.Add(child.Adapt<SolhigsonPermissionDto>());
             }

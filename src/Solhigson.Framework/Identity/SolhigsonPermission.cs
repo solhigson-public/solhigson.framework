@@ -73,6 +73,6 @@ public record SolhigsonPermission : ICachedEntity
     public SolhigsonPermission Parent { get; set; }
         
     [InverseProperty(nameof(Parent))]
-    public virtual ICollection<SolhigsonPermission> Children { get; set; }
+    public virtual ICollection<SolhigsonPermission>? Children { get; set; }
 
 }

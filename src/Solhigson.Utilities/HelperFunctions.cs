@@ -470,7 +470,7 @@ public static class HelperFunctions
         return text;
     }
 
-    public static T SafeGetSessionData<T>(string key, HttpContext httpContext) where T : class
+    public static T? SafeGetSessionData<T>(string key, HttpContext? httpContext) where T : class
     {
         try
         {
@@ -489,27 +489,27 @@ public static class HelperFunctions
         }
     }
 
-    public static T SafeGetSessionData<T>(string key, IHttpContextAccessor httpContextAccessor) where T : class
+    public static T? SafeGetSessionData<T>(string key, IHttpContextAccessor? httpContextAccessor) where T : class
     {
         return SafeGetSessionData<T>(key, httpContextAccessor?.HttpContext);
     }
 
-    public static string SafeGetSessionData(string key, IHttpContextAccessor httpContextAccessor)
+    public static string? SafeGetSessionData(string key, IHttpContextAccessor? httpContextAccessor)
     {
         return SafeGetSessionData<string>(key, httpContextAccessor?.HttpContext);
     }
 
-    public static string SafeGetSessionData(string key, HttpContext httpContext)
+    public static string? SafeGetSessionData(string key, HttpContext? httpContext)
     {
         return SafeGetSessionData<string>(key, httpContext);
     }
 
-    public static void SafeSetSessionData(string key, object value, IHttpContextAccessor httpContextAccessor)
+    public static void SafeSetSessionData(string key, object value, IHttpContextAccessor? httpContextAccessor)
     {
         SafeSetSessionData(key, value, httpContextAccessor?.HttpContext);
     }
 
-    public static void SafeSetSessionData(string key, object value, HttpContext httpContext)
+    public static void SafeSetSessionData(string key, object? value, HttpContext? httpContext)
     {
         try
         {
@@ -518,7 +518,7 @@ public static class HelperFunctions
                 return;
             }
 
-            var data = value is not string ? value.SerializeToJson() : value.ToString();
+            var data = value is not string ? value.SerializeToJson()! : value.ToString()!;
             if (httpContext?.Session != null)
             {
                 httpContext.Session.SetString(key, data);
@@ -534,11 +534,11 @@ public static class HelperFunctions
         }
     }
 
-    public static void SafeRemoveSessionData(string key, HttpContext httpContext)
+    public static void SafeRemoveSessionData(string key, HttpContext? httpContext)
     {
         try
         {
-            if (httpContext?.Session != null)
+            if (httpContext?.Session is not null)
             {
                 httpContext.Session.Remove(key);
             }
@@ -553,7 +553,7 @@ public static class HelperFunctions
         }
     }
 
-    public static void SafeRemoveSessionData(string key, IHttpContextAccessor httpContextAccessor)
+    public static void SafeRemoveSessionData(string key, IHttpContextAccessor? httpContextAccessor)
     {
         SafeRemoveSessionData(key, httpContextAccessor?.HttpContext);
     }
