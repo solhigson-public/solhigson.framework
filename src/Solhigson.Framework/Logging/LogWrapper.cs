@@ -109,7 +109,7 @@ public class LogWrapper
     {
         if (exception is not null)
         {
-            message = $"Exception: {exception.GetType().FullName} - {exception.Message} | {message}";
+            message = $"Exception: {exception.GetType().FullName} - {exception.Message} | {message}" + " {exception}";
             // if (args.HasData())
             // {
             //     message += " {exception}";
