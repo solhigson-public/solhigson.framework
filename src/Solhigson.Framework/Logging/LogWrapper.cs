@@ -109,7 +109,7 @@ public class LogWrapper
     {
         if (exception is not null)
         {
-            message = $"Exception: {exception.GetType().FullName} - {exception.Message} | {message}" + " {exception}";
+            message = $"Exception: {exception.GetType().FullName} - {exception.Message} | {message}";
             // if (args.HasData())
             // {
             //     message += " {exception}";
@@ -117,29 +117,30 @@ public class LogWrapper
         }
 
         args = Merge(exception, otherArgs, args);
+        logger.Log(logLevel, exception, message, args!);
 
-        if (args.HasData())
-        {
-            if (exception is not null)
-            {
-                logger.Log(logLevel, exception, message, args!, exception.Adapt<ExceptionInfo>());
-            }
-            else
-            {
-                logger.Log(logLevel, exception, message, args!);
-            }
-        }
-        else
-        {
-            if (exception is not null)
-            {
-                logger.Log(logLevel, exception, message, exception.Adapt<ExceptionInfo>());
-            }
-            else
-            {
-                logger.Log(logLevel, exception, message, args!);
-            }
-        }
+        // if (args.HasData())
+        // {
+        //     if (exception is not null)
+        //     {
+        //         logger.Log(logLevel, exception, message, args!, exception.Adapt<ExceptionInfo>());
+        //     }
+        //     else
+        //     {
+        //         logger.Log(logLevel, exception, message, args!);
+        //     }
+        // }
+        // else
+        // {
+        //     if (exception is not null)
+        //     {
+        //         logger.Log(logLevel, exception, message, exception.Adapt<ExceptionInfo>());
+        //     }
+        //     else
+        //     {
+        //         logger.Log(logLevel, exception, message, args!);
+        //     }
+        // }
     }
 
     private static object?[]? Merge(Exception? exception, object?[]? otherArgs, params object?[]? args)
