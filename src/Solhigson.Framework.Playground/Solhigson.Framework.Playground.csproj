@@ -6,21 +6,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Audit.EntityFramework.Core" Version="26.0.0" />
-        <PackageReference Include="Audit.NET.AzureCosmos" Version="19.0.7" />
-        <PackageReference Include="Audit.NET.MongoDB" Version="19.0.7" />
-        <PackageReference Include="ClosedXML" Version="0.95.4" />
+        <PackageReference Include="Audit.EntityFramework.Core" Version="29.0.1" />
+        <PackageReference Include="Audit.NET.AzureCosmos" Version="29.0.1" />
+        <PackageReference Include="Audit.NET.MongoDB" Version="29.0.1" />
+        <PackageReference Include="ClosedXML" Version="0.105.0" />
         <PackageReference Include="FastExcel" Version="3.0.13" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.7" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.1">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.14" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.16" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.16" />
+        <PackageReference Include="NLog.Web.AspNetCore" Version="5.4.0" />
         <PackageReference Include="Open.Text" Version="6.3.0" />
-        <PackageReference Include="PgpCore" Version="5.9.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
+        <PackageReference Include="PgpCore" Version="6.5.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.2" />
     </ItemGroup>
 
     <ItemGroup>

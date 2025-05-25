@@ -9,13 +9,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
-      <PackageReference Include="ClosedXML" Version="0.102.3" />
-      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.2.2" />
-      <PackageReference Include="EPPlus" Version="7.2.2" />
-      <PackageReference Include="NLog.Extensions.Logging" Version="5.3.14" />
-      <PackageReference Include="Open.Text" Version="8.0.0" />
-      <PackageReference Include="PgpCore" Version="6.5.0" />
+      <PackageReference Include="BenchmarkDotNet" Version="0.15.0" />
+      <PackageReference Include="ClosedXML" Version="0.105.0" />
+      <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
+      <PackageReference Include="EPPlus" Version="8.0.5" />
+      <PackageReference Include="NLog.Extensions.Logging" Version="5.4.0" />
+      <PackageReference Include="Open.Text" Version="9.0.0" />
+      <PackageReference Include="PgpCore" Version="6.5.1" />
     </ItemGroup>
 
     <ItemGroup>
