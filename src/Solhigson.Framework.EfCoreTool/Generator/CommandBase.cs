@@ -155,7 +155,8 @@ internal abstract class CommandBase
                 return (false,
                     $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
             }
-            
+
+            Models = new List<Type>();
             foreach (var entity in initialModels)
             {
                 var ignore = entity.GetInterface("Solhigson.Framework.EfCore.IEfCoreGenIgnore") is not null;
