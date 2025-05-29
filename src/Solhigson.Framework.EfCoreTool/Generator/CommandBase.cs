@@ -144,16 +144,29 @@ internal abstract class CommandBase
 
             Console.WriteLine($"Using databaseContext: {databaseContext}");
 
-            Models = databaseContext.GetProperties(BindingFlags.DeclaredOnly |
+            var initialModels = databaseContext.GetProperties(BindingFlags.DeclaredOnly |
                                                    BindingFlags.Public |
                                                    BindingFlags.Instance).Where(t =>
                     t.PropertyType.IsDbSetType())
                 .Select(t => t.PropertyType.GetGenericArguments()[0]).ToList();
 
-            if (!Models.Any())
+            if (initialModels.Count == 0)
             {
                 return (false,
                     $"Database Context: [{databaseContext.FullName}] does not have any properties of type DbSet<>");
+            }
+            
+            foreach (var entity in initialModels)
+            {
+                var ignore = entity.GetInterface("Solhigson.Framework.EfCore.IEfCoreGenIgnore") is not null;
+                if (ignore)
+                {
+                    Console.WriteLine($"Ignoring DbContext Property: {entity.Name}");
+                }
+                else
+                {
+                    Models.Add(entity);
+                }
             }
 
             PersistenceProjectRootNamespace = assembly.GetName().Name;
@@ -166,7 +179,7 @@ internal abstract class CommandBase
             DbContextNamespace = databaseContext.Namespace;
             if (ProjectRootNamespace.Contains("."))
             {
-                var split = ProjectRootNamespace.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                var split = ProjectRootNamespace.Split(['.'], StringSplitOptions.RemoveEmptyEntries);
                 ApplicationName = split[0];
             }
             else

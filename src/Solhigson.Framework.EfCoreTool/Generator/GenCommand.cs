@@ -109,12 +109,7 @@ internal class GenCommand : CommandBase
             {
                 continue;
             }
-            var ignore = entity.GetInterface("Solhigson.Framework.EfCore.IEfCoreGenIgnore") is not null;
-            if (ignore)
-            {
-                Console.WriteLine($"Ignoring DbContext Property: {entity.Name}");
-                continue;
-            }
+
             var isCached = entity.GetInterface("Solhigson.Framework.Data.Caching.ICachedEntity") is not null;
             // var isCached = typeof(ICachedEntity).IsAssignableFrom(entity)
             //                || entity.GetInterface("Solhigson.Framework.Data.Caching.ICachedEntity") != null;
