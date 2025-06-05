@@ -396,8 +396,8 @@ internal class GenCommand : CommandBase
 
         var getMethod = $"Where{projectedReturnType}";
         var resultProjection = indexAttr.IsUnique
-            ? ".FirstOrDefaultAsync()"
-            : ".ToListAsync()";
+            ? ".FirstOrDefaultAsync(cancellationToken: cancellationToken)"
+            : ".ToListAsync(cancellationToken: cancellationToken)";
 
         var awaitWord = "await ";
         if (isCacheEntity)
@@ -500,6 +500,7 @@ internal class GenCommand : CommandBase
             }
 
         }
+        parameters += ", CancellationToken cancellationToken = default";
 
         var asyncPostfix = "";
         var projectedTypeIndicator = "";
