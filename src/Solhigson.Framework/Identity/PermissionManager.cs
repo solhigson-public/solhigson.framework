@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Extensions;
-using Solhigson.Framework.Infrastructure;
 using Solhigson.Utilities.Extensions;
 using Solhigson.Framework.Web.Attributes;
 
@@ -54,7 +53,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         return await VerifyPermissionAsync(permissionName, [role]);
     }
 
-    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, IReadOnlyCollection<string>? roles)
+    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, IReadOnlyCollection<string>? roles, CancellationToken cancellationToken = default)
     {
         if (!roles.HasData())
         {
@@ -67,7 +66,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             join r in _dbContext.Roles
                 on rp.RoleId equals r.Id
             where roles.Contains(r.Name) && p.Name == permissionName
-            select rp).FromCacheSingleAsync(typeof(SolhigsonPermission),
+            select rp).FromCacheSingleAsync(cancellationToken, typeof(SolhigsonPermission),
             typeof(SolhigsonRolePermission<TKey>), typeof(TRole));
 
         return query is not null
@@ -201,7 +200,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             select ar.Name).ToListAsync();
     }
         
-    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string? roleName)
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string? roleName, CancellationToken cancellationToken = default)
     {
         if (roleName is null)
         {
@@ -213,7 +212,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             join perm in _dbContext.Permissions
                 on rolePerm.PermissionId equals perm.Id
             where role.Name == roleName
-            select perm).FromCacheListAsync(typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+            select perm).FromCacheListAsync(cancellationToken, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
     }
 
     public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(ClaimsPrincipal claimsPrincipal)
@@ -228,7 +227,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         return await GetMenuPermissionsForRoleCachedAsync(role);
     }
 
-    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName)
+    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
@@ -243,7 +242,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
             select perm;
 
-        var result = await query.GetCustomResultFromCacheAsync<List<SolhigsonPermissionDto>, SolhigsonPermission>();
+        var result = await query.GetCustomResultFromCacheAsync<List<SolhigsonPermissionDto>, SolhigsonPermission>(cancellationToken: cancellationToken);
         if (result != null)
         {
             return result;
@@ -257,7 +256,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             join perm in _dbContext.Permissions
                 on rolePerm.PermissionId equals perm.Id
             where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName && !string.IsNullOrWhiteSpace(perm.ParentId)
-            select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking().ToListAsync();
+            select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking().ToListAsync(cancellationToken: cancellationToken);
             
         foreach(var parent in topLevel)
         {
@@ -307,7 +306,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         result = result.OrderBy(t => t.MenuIndex)
             .ThenBy(t => t.Name).ToList();
 
-        _ = query.AddCustomResultToCacheAsync(result, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+        _ = query.AddCustomResultToCacheAsync(result, cancellationToken, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
         return result;
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,28 +10,22 @@ using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.Identity;
 
-public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> : IDisposable 
-    where TRoleGroup : SolhigsonRoleGroup, new() 
-    where TRole : SolhigsonAspNetRole<TKey> 
+public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey>(TContext context) : IDisposable
+    where TRoleGroup : SolhigsonRoleGroup, new()
+    where TRole : SolhigsonAspNetRole<TKey>
     where TUser : SolhigsonUser<TKey, TRole>
     where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
     where TKey : IEquatable<TKey>
 {
-    private readonly TContext _dbContext;
-    public RoleGroupManager(TContext context)
-    {
-        _dbContext = context;
-    }
-
-    protected virtual DbSet<TRoleGroup> RoleGroups => _dbContext.Set<TRoleGroup>();
-    protected virtual DbSet<TRole> Roles => _dbContext.Set<TRole>();
+    protected virtual DbSet<TRoleGroup> RoleGroups => context.Set<TRoleGroup>();
+    protected virtual DbSet<TRole> Roles => context.Set<TRole>();
         
-    public async Task<SolhigsonRoleGroup> CreateAsync(string roleGroupName)
+    public async Task<SolhigsonRoleGroup?> CreateAsync(string roleGroupName, CancellationToken cancellationToken = default)
     {
-        return await CreateAsync(new TRoleGroup { Name = roleGroupName });
+        return await CreateAsync(new TRoleGroup { Name = roleGroupName }, cancellationToken);
     }
         
-    private async Task<SolhigsonRoleGroup> CreateAsync(TRoleGroup roleGroup)
+    private async Task<SolhigsonRoleGroup?> CreateAsync(TRoleGroup? roleGroup, CancellationToken cancellationToken = default)
     {
         if (roleGroup == null)
         {
@@ -42,7 +37,7 @@ public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> : IDispo
             throw new Exception($"Role group name is empty");
         }
             
-        if (await RoleGroupExistsAsync(roleGroup.Name))
+        if (await RoleGroupExistsAsync(roleGroup.Name, cancellationToken))
         {
             return roleGroup;
         }
@@ -50,89 +45,89 @@ public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey> : IDispo
         {
             roleGroup.Id = Guid.NewGuid().ToString();
         }
-        _dbContext.Add(roleGroup);
-        await _dbContext.SaveChangesAsync();
+        context.Add(roleGroup);
+        await context.SaveChangesAsync(cancellationToken);
         return roleGroup;
     }
 
-    public async Task<bool> HasRoleGroups()
+    public async Task<bool> HasRoleGroups(CancellationToken cancellationToken = default)
     {
-        return await RoleGroups.AnyAsync();
+        return await RoleGroups.AnyAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task<bool> RoleGroupExistsAsync(string roleGroupName)
+    public async Task<bool> RoleGroupExistsAsync(string roleGroupName, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.RoleGroups.AnyAsync(t => t.Name == roleGroupName);
+        return await context.RoleGroups.AnyAsync(t => t.Name == roleGroupName, cancellationToken: cancellationToken);
     }
 
-    public async Task<SolhigsonRoleGroup> FindByNameAsync(string roleGroupName)
+    public async Task<SolhigsonRoleGroup?> FindByNameAsync(string roleGroupName, CancellationToken cancellationToken = default)
     {
-        return await RoleGroups.FirstOrDefaultAsync(t => t.Name == roleGroupName);
+        return await RoleGroups.FirstOrDefaultAsync(t => t.Name == roleGroupName, cancellationToken: cancellationToken);
     }
 
-    public async Task<SolhigsonRoleGroup> FindByIdAsync(string id)
+    public async Task<SolhigsonRoleGroup?> FindByIdAsync(string id, CancellationToken cancellationToken = default)
     {
-        return await RoleGroups.FirstOrDefaultAsync(t => t.Id == id);
+        return await RoleGroups.FirstOrDefaultAsync(t => t.Id == id, cancellationToken: cancellationToken);
     }
 
-    public async Task DeleteAsync(TRoleGroup roleGroup)
+    public async Task DeleteAsync(TRoleGroup? roleGroup, CancellationToken cancellationToken = default)
     {
         if (roleGroup != null)
         {
-            _dbContext.Remove(roleGroup);
-            await _dbContext.SaveChangesAsync();
+            context.Remove(roleGroup);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
         
-    public async Task UpdateAsync(TRoleGroup roleGroup)
+    public async Task UpdateAsync(TRoleGroup? roleGroup, CancellationToken cancellationToken = default)
     {
         if (roleGroup != null)
         {
-            _dbContext.Update(roleGroup);
-            await _dbContext.SaveChangesAsync();
+            context.Update(roleGroup);
+            await context.SaveChangesAsync(cancellationToken);
         }
     }
         
-    public async Task<IList<TRole>> GetRolesForGroupAsync(string roleGroupName)
+    public async Task<IList<TRole>> GetRolesForGroupAsync(string roleGroupName, CancellationToken cancellationToken = default)
     {
         return await Roles
-            .Where(t => t.RoleGroup.Name == roleGroupName).ToListAsync();
+            .Where(t => t.RoleGroup != null && t.RoleGroup.Name == roleGroupName).ToListAsync(cancellationToken: cancellationToken);
     }
 
-    public async Task AddRoleToGroupAsync(string roleName, string roleGroupName)
+    public async Task AddRoleToGroupAsync(string roleName, string roleGroupName, CancellationToken cancellationToken = default)
     {
         var roleGroup = await RoleGroups
-            .FirstOrDefaultAsync(t => t.Name == roleGroupName);
+            .FirstOrDefaultAsync(t => t.Name == roleGroupName, cancellationToken: cancellationToken);
         if (roleGroup is null)
         {
             throw new Exception($"RoleGroup: {roleGroupName} not found");
         }
 
-        var role = await Roles.FirstOrDefaultAsync(t => t.Name == roleName);
+        var role = await Roles.FirstOrDefaultAsync(t => t.Name == roleName, cancellationToken: cancellationToken);
         if (role is null)
         {
             throw new Exception($"Role: {roleName} not found");
         }
 
         role.RoleGroupId = roleGroup.Id;
-        await _dbContext.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> RoleBelongsToGroupCached(string roleName, string roleGroupName)
+    public async Task<bool> RoleBelongsToGroupCachedAsync(string roleName, string roleGroupName, CancellationToken cancellationToken = default)
     {
-        return (await Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingleAsync())
-            ?.RoleGroup.Name == roleGroupName;
+        return (await Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingleAsync(cancellationToken: cancellationToken))
+            ?.RoleGroup!.Name == roleGroupName;
     }
         
-    public async Task<string?> GetRoleGroupCached(string roleName)
+    public async Task<string?> GetRoleGroupCached(string roleName, CancellationToken cancellationToken = default)
     {
-        return (await Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingleAsync())
-            ?.RoleGroup.Name;
+        return (await Roles.Include(t => t.RoleGroup).Where(t => t.Name == roleName).FromCacheSingleAsync(cancellationToken: cancellationToken))
+            ?.RoleGroup!.Name;
     }
 
 
     public void Dispose()
     {
-        _dbContext?.Dispose();
+        context.Dispose();
     }
 }

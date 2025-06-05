@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -94,7 +95,7 @@ public static class Extensions
     {
         var response = new ResponseInfo<object>();
         var validTypes = GetQueryBaseTypeList(query, iCachedEntityType);
-        validTypes ??= Array.Empty<Type>();
+        validTypes ??= [];
         var types = new List<string?>();
         if (iCachedEntityType?.Length > 0)
         {
@@ -131,19 +132,20 @@ public static class Extensions
     /// 
     /// </summary>
     /// <param name="query"></param>
+    /// <param name="cancellationToken"></param>
     /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static async Task<List<T>> FromCacheListAsync<T>(this IQueryable<T> query, params Type[] iCachedEntityTypesToMonitor)
+    public static async Task<List<T>> FromCacheListAsync<T>(this IQueryable<T> query, CancellationToken cancellationToken = default, params Type[] iCachedEntityTypesToMonitor)
         where T : class
     {
-        return await GetCacheDataAsync(query, ResolveToList, iCachedEntityTypesToMonitor) ?? new List<T>();
+        return await GetCacheDataAsync(query, ResolveToList, cancellationToken, iCachedEntityTypesToMonitor) ?? new List<T>();
     }
 
-    public static async Task<PagedList<T>> FromCacheListPagedAsync<T>(this IQueryable<T> query, int page, int itemsPerPage,
+    public static async Task<PagedList<T>> FromCacheListPagedAsync<T>(this IQueryable<T> query, int page, int itemsPerPage, CancellationToken cancellationToken = default, 
         params Type[] iCachedEntityTypesToMonitor) where T : class
     {
-        var data = await GetCacheDataAsync(query, ResolveToList, iCachedEntityTypesToMonitor) ?? [];
+        var data = await GetCacheDataAsync(query, ResolveToList, cancellationToken, iCachedEntityTypesToMonitor) ?? [];
         return data.AsQueryable().ToPagedList(page, itemsPerPage);
     }
 
@@ -152,24 +154,26 @@ public static class Extensions
     /// 
     /// </summary>
     /// <param name="query"></param>
+    /// <param name="cancellationToken"></param>
     /// <param name="iCachedEntityTypesToMonitor">The entity types to monitor for database changes</param>
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
-    public static async Task<T?> FromCacheSingleAsync<T>(this IQueryable<T> query, params Type[] iCachedEntityTypesToMonitor)
+    public static async Task<T?> FromCacheSingleAsync<T>(this IQueryable<T> query, CancellationToken cancellationToken = default,  params Type[] iCachedEntityTypesToMonitor)
         where T : class
     {
-        return await GetCacheDataAsync(query, ResolveToSingle, iCachedEntityTypesToMonitor);
+        return await GetCacheDataAsync(query, ResolveToSingle, cancellationToken, iCachedEntityTypesToMonitor);
     }
 
-    public static async Task<ResponseInfo<bool>> AddCustomResultToCacheAsync<T>(this IQueryable<T> query, object result, params Type[] types)
+    public static async Task<ResponseInfo<bool>> AddCustomResultToCacheAsync<T>(this IQueryable<T> query, object result, 
+        CancellationToken cancellationToken = default,  params Type[] types)
         where T : class
     {
-        return await EfCoreCacheManager.SetDataAsync(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types));
+        return await EfCoreCacheManager.SetDataAsync(query.GetCacheKey(), result, GetQueryBaseTypeList(query, types), cancellationToken);
     }
 
-    public static async Task<T?> GetCustomResultFromCacheAsync<T, TK>(this IQueryable<TK> query) where T : class where TK : class
+    public static async Task<T?> GetCustomResultFromCacheAsync<T, TK>(this IQueryable<TK> query, CancellationToken cancellationToken = default) where T : class where TK : class
     {
-        var result = await EfCoreCacheManager.GetDataAsync<T>(query.GetCacheKey());
+        var result = await EfCoreCacheManager.GetDataAsync<T>(query.GetCacheKey(), cancellationToken);
         if (!result.IsSuccessful)
         {
             return null;
@@ -180,7 +184,7 @@ public static class Extensions
     }
 
 
-    private static async Task<TK?> GetCacheDataAsync<T, TK>(IQueryable<T> query, Func<IQueryable<T>, Task<TK?>> func,
+    private static async Task<TK?> GetCacheDataAsync<T, TK>(IQueryable<T> query, Func<IQueryable<T>, Task<TK?>> func, CancellationToken cancellationToken = default,
         params Type[] iCachedEntityTypes)
         where TK : class where T : class
     {
@@ -190,7 +194,7 @@ public static class Extensions
             return await func(query);
         }
         var key = query.GetCacheKey();
-        var entryResult = await EfCoreCacheManager.GetDataAsync<TK>(key);
+        var entryResult = await EfCoreCacheManager.GetDataAsync<TK>(key, cancellationToken);
         if (entryResult.IsSuccessful)
         {
             Logger.LogTrace($"Retrieved {query.ElementType.Name} [{query.GetCacheKey(false)}] data from cache");
@@ -199,7 +203,7 @@ public static class Extensions
 
         lock (key)
         {
-            entryResult = EfCoreCacheManager.GetDataAsync<TK>(key).Result;
+            entryResult = EfCoreCacheManager.GetDataAsync<TK>(key, cancellationToken).Result;
             if (entryResult.IsSuccessful)
             {
                 return entryResult.Data;
@@ -208,7 +212,7 @@ public static class Extensions
             Logger.LogTrace($"Fetching {query.ElementType.Name} [{query.GetCacheKey(false)}] data from db");
             var result = func(query).Result;// as TK;
 
-            _ = EfCoreCacheManager.SetDataAsync(key, result, validTypes);
+            _ = EfCoreCacheManager.SetDataAsync(key, result, validTypes, cancellationToken);
 
             return result;
         }
@@ -258,11 +262,11 @@ public static class Extensions
     }
 
     public static async Task<PagedList<T>> ToPagedListAsync<T>(this IQueryable<T> source, int pageNumber,
-        int itemsPerPage) where T : class
+        int itemsPerPage, CancellationToken cancellationToken = default) where T : class
     {
-        var count = await source.CountAsync();
+        var count = await source.CountAsync(cancellationToken: cancellationToken);
         var items = await source.AsNoTrackingWithIdentityResolution().Skip((pageNumber - 1) * itemsPerPage)
-            .Take(itemsPerPage).ToListAsync();
+            .Take(itemsPerPage).ToListAsync(cancellationToken: cancellationToken);
         return PagedList.Create(items, count, pageNumber, itemsPerPage);
     }
 

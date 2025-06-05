@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -18,29 +19,29 @@ public abstract class CachedRepositoryBase<T, TDbContext, TCacheModel> : Reposit
         DbContext = dbContext;
     }
 
-    public async Task<List<TCacheModel>> GetAllCachedAsync()
+    public async Task<List<TCacheModel>> GetAllCachedAsync(CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<T>().ProjectToType<TCacheModel>().FromCacheListAsync(typeof(T));
+        return await DbContext.Set<T>().ProjectToType<TCacheModel>().FromCacheListAsync(cancellationToken, typeof(T));
     }
 
-    public async Task<List<TCacheModel>> GetListCachedAsync(Expression<Func<T, bool>> expression)
+    public async Task<List<TCacheModel>> GetListCachedAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheListAsync(typeof(T));
+        return await DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheListAsync(cancellationToken, typeof(T));
     }
 
-    public async Task<TCacheModel?> GetSingleCachedAsync(Expression<Func<T, bool>> expression)
+    public async Task<TCacheModel?> GetSingleCachedAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheSingleAsync(typeof(T));
+        return await DbContext.Set<T>().Where(expression).ProjectToType<TCacheModel>().FromCacheSingleAsync(cancellationToken, typeof(T));
     }
     
-    public async Task<List<TK>> GetListCachedAsync<TK>(Expression<Func<T, bool>> expression) where TK : class
+    public async Task<List<TK>> GetListCachedAsync<TK>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where TK : class
     {
-        return await DbContext.Set<T>().Where(expression).ProjectToType<TK>().FromCacheListAsync(typeof(T));
+        return await DbContext.Set<T>().Where(expression).ProjectToType<TK>().FromCacheListAsync(cancellationToken, typeof(T));
     }
 
-    public async Task<TK?> GetSingleCachedAsync<TK>(Expression<Func<T, bool>> expression) where TK : class
+    public async Task<TK?> GetSingleCachedAsync<TK>(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default) where TK : class
     {
-        return await DbContext.Set<T>().Where(expression).ProjectToType<TK>().FromCacheSingleAsync(typeof(T));
+        return await DbContext.Set<T>().Where(expression).ProjectToType<TK>().FromCacheSingleAsync(cancellationToken, typeof(T));
     }
 
 }

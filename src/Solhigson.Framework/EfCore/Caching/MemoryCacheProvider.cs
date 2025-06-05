@@ -3,12 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Caching;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Utilities;
 using StackExchange.Redis;
+using Timer = System.Timers.Timer;
 
 namespace Solhigson.Framework.EfCore.Caching;
 
@@ -46,7 +48,7 @@ public class MemoryCacheProvider : CacheProviderBase
     }
 
 
-    public override async Task<bool> InvalidateCacheAsync(Type[] types)
+    public override async Task<bool> InvalidateCacheAsync(Type[] types, CancellationToken cancellationToken = default)
     {
         var trackerInfo = await GetEntityChangeTrackersAsync();
         foreach (var type in types)
@@ -66,7 +68,7 @@ public class MemoryCacheProvider : CacheProviderBase
         return true;
     }
 
-    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types)
+    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types, CancellationToken cancellationToken = default)
     {
         var policy = new CacheItemPolicy();
         var changeMonitor = new EntityChangeMonitor(GetEntityChangeTrackerHandler(types));
@@ -76,7 +78,7 @@ public class MemoryCacheProvider : CacheProviderBase
         return await Task.FromResult(true);
     }
 
-    public override async Task<ResponseInfo<T?>> GetFromCacheAsync<T>(string cacheKey) where T : class
+    public override async Task<ResponseInfo<T?>> GetFromCacheAsync<T>(string cacheKey, CancellationToken cancellationToken = default) where T : class
     {
         var responseInfo = new ResponseInfo<T?>();
         var result = DefaultMemoryCache.Get(cacheKey) is T entry 
@@ -133,7 +135,7 @@ public class MemoryCacheProvider : CacheProviderBase
         return result;
     }
 
-    private async Task<Dictionary<string, short>> GetEntityChangeTrackersAsync()
+    private async Task<Dictionary<string, short>> GetEntityChangeTrackersAsync(CancellationToken cancellationToken = default)
     {
         var resp = await Database.StringGetAsync(_cacheKey);
         string? json = resp;

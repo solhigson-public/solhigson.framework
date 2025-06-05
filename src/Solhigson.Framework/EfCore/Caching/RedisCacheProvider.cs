@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Solhigson.Framework.Dto;
 using Solhigson.Utilities;
@@ -15,7 +16,7 @@ public class RedisCacheProvider : CacheProviderBase
     {
     }
     
-    public override async Task<bool> InvalidateCacheAsync(Type[] types)
+    public override async Task<bool> InvalidateCacheAsync(Type[] types, CancellationToken cancellationToken = default)
     {
         List<string> cacheKeys = [];
         var tran = Database.CreateTransaction();
@@ -38,7 +39,7 @@ public class RedisCacheProvider : CacheProviderBase
         return await tran.ExecuteAsync();
     }
 
-    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types) where T : class
+    public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types, CancellationToken cancellationToken = default) where T : class
     {
         var tran = Database.CreateTransaction();
         foreach (var type in types)
@@ -50,7 +51,7 @@ public class RedisCacheProvider : CacheProviderBase
         return await tran.ExecuteAsync();
     }
 
-    public override async Task<ResponseInfo<T?>> GetFromCacheAsync<T>(string? cacheKey) where T : class
+    public override async Task<ResponseInfo<T?>> GetFromCacheAsync<T>(string? cacheKey, CancellationToken cancellationToken = default) where T : class
     {
         var response = new ResponseInfo<T?>();
         var resp = await Database.StringGetAsync(cacheKey);

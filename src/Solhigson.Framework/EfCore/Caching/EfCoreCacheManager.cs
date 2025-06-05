@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Solhigson.Framework.Data.Caching;
@@ -78,7 +79,7 @@ internal static class EfCoreCacheManager
         return validTypes.HasData();
     }
     
-    internal static async Task<ResponseInfo<bool>> SetDataAsync<T>(string key, T? data, Type[]? types) where T : class
+    internal static async Task<ResponseInfo<bool>> SetDataAsync<T>(string key, T? data, Type[]? types, CancellationToken cancellationToken = default) where T : class
     {
         var resp = new ResponseInfo<bool>();
         try
@@ -102,7 +103,7 @@ internal static class EfCoreCacheManager
             {
                 return resp.Fail($"{_cacheType.ToString()}: Type(s) aren't iCacheEntityTypes: {MemoryCacheProvider.Flatten(types)}");
             }
-            var isSuccessful = await _cacheProvider.AddToCacheAsync(GetKey(key), data, validTypes);
+            var isSuccessful = await _cacheProvider.AddToCacheAsync(GetKey(key), data, validTypes, cancellationToken);
             return isSuccessful ? resp.Success(isSuccessful) : resp.Fail();
         }
         catch (Exception e)
@@ -114,7 +115,7 @@ internal static class EfCoreCacheManager
 
     }
     
-    internal static async Task<ResponseInfo<T?>> GetDataAsync<T>(string? key) where T : class
+    internal static async Task<ResponseInfo<T?>> GetDataAsync<T>(string? key, CancellationToken cancellationToken = default) where T : class
     {
         var response = new ResponseInfo<T?>();
         try
@@ -123,7 +124,7 @@ internal static class EfCoreCacheManager
             {
                 return response.Fail();
             }
-            return await _cacheProvider.GetFromCacheAsync<T>(GetKey(key));
+            return await _cacheProvider.GetFromCacheAsync<T>(GetKey(key), cancellationToken);
         }
         catch (Exception e)
         {

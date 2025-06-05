@@ -395,6 +395,7 @@ internal class GenCommand : CommandBase
         }
 
         var getMethod = $"Where{projectedReturnType}";
+        var cachedCancellationToken = "";
         var resultProjection = indexAttr.IsUnique
             ? ".FirstOrDefaultAsync(cancellationToken: cancellationToken)"
             : ".ToListAsync(cancellationToken: cancellationToken)";
@@ -406,6 +407,7 @@ internal class GenCommand : CommandBase
             getMethod = indexAttr.IsUnique
                 ? $"GetSingleCachedAsync{projectedReturnType}"
                 : $"GetListCachedAsync{projectedReturnType}";
+            cachedCancellationToken = ", cancellationToken: cancellationToken";
         }
         else
         {
@@ -463,7 +465,7 @@ internal class GenCommand : CommandBase
         }
         sBuilder.Append(';');
         sBuilder.AppendLine();
-        sBuilder.AppendLine($"{GetTabSpace(3)}return {awaitWord}{getMethod}(query){resultProjection};");
+        sBuilder.AppendLine($"{GetTabSpace(3)}return {awaitWord}{getMethod}(query{cachedCancellationToken}){resultProjection};");
         sBuilder.AppendLine(GetTabSpace(2) + "}");
 
         return sBuilder.ToString();

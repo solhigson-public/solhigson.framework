@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
@@ -57,13 +58,13 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
     public PermissionManager<TUser, TRole, TContext, TKey> PermissionManager { get; } = permissionManager;
     private readonly SolhigsonIdentityDbContext<TUser, TRole, TKey>  _dbContext = dbContext;
 
-    public async Task<IdentityResult> CreateRoleAsync(string roleName, string? roleGroupName = null)
+    public async Task<IdentityResult> CreateRoleAsync(string roleName, string? roleGroupName = null, CancellationToken cancellationToken = default)
     {
         string roleGroupId = null!;
         if (!string.IsNullOrWhiteSpace(roleGroupName))
         {
             var roleGroup = await _dbContext.RoleGroups
-                .FirstOrDefaultAsync(t => t.Name == roleGroupName);
+                .FirstOrDefaultAsync(t => t.Name == roleGroupName, cancellationToken: cancellationToken);
             if (roleGroup is null)
             {
                 throw new Exception($"RoleGroup: {roleName} not found");
@@ -85,54 +86,54 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         await SignInManager.SignOutAsync();
     }
         
-    public async Task<TUser?> GetUserDetailsByIdAsync(string id)
+    public async Task<TUser?> GetUserDetailsByIdAsync(string id, CancellationToken cancellationToken = default)
     {
         var user = await UserManager.FindByIdAsync(id);
-        await GetRolesAsync(user);
+        await GetRolesAsync(user, cancellationToken);
         return user;
     }
 
 
-    public async Task<TUser?> GetUserDetailsByUsernameAsync(string userName)
+    public async Task<TUser?> GetUserDetailsByUsernameAsync(string userName, CancellationToken cancellationToken = default)
     {
         var user = await UserManager.FindByNameAsync(userName);
-        await GetRolesAsync(user);
+        await GetRolesAsync(user, cancellationToken);
         return user;
     }
 
-    private async Task GetRolesAsync(TUser? user)
+    private async Task GetRolesAsync(TUser? user, CancellationToken cancellationToken = default)
     {
         if (user is null)
         {
             return;
         }
         var userRoles = await _dbContext.UserRoles.Where(t => t.UserId.Equals(user.Id))
-            .FromCacheListAsync();
+            .FromCacheListAsync(cancellationToken: cancellationToken);
             
         if (userRoles.Any())
         {
             user.Roles = new List<TRole>();
-            foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingleAsync().Result).Where(role => role is not null))
+            foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingleAsync(cancellationToken: cancellationToken).Result).Where(role => role is not null))
             {
                 if (role is null)
                 {
                     continue;
                 }
-                role.RoleGroup = await _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingleAsync();
+                role.RoleGroup = await _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingleAsync(cancellationToken: cancellationToken);
                 user.Roles.Add(role);
             }
         }
     }
         
-    public async Task<TUser?> GetUserDetailsByEmailAsync(string email)
+    public async Task<TUser?> GetUserDetailsByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var user = await UserManager.FindByEmailAsync(email);
-        await GetRolesAsync(user);
+        await GetRolesAsync(user, cancellationToken);
         return user;
     }
 
         
-    public async Task<SignInResponse<TUser, TKey, TRole>> SignInAsync(string userName, string password, bool lockOutOnFailure = false)
+    public async Task<SignInResponse<TUser, TKey, TRole>> SignInAsync(string userName, string password, bool lockOutOnFailure = false, CancellationToken cancellationToken = default)
     {
         var response = new SignInResponse<TUser, TKey, TRole>();
         var signInResponse = await SignInManager.PasswordSignInAsync(userName, password, false, lockOutOnFailure);
@@ -144,11 +145,11 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
             return response;
         }
             
-        response.User = await GetUserDetailsByUsernameAsync(userName);
+        response.User = await GetUserDetailsByUsernameAsync(userName, cancellationToken);
         return response;
     }
 
-    public async Task UpdateLastLoginTimeAsync(string userName, DateTime? lastLoginTime = null)
+    public async Task UpdateLastLoginTimeAsync(string userName, DateTime? lastLoginTime = null, CancellationToken cancellationToken = default)
     {
         var user = await UserManager.FindByNameAsync(userName);
         if (user is null)
@@ -160,7 +161,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         await UserManager.UpdateAsync(user);
     }
 
-    public async Task<List<T>> GetUsersInRolesAsync<T>(string[] roles)
+    public async Task<List<T>> GetUsersInRolesAsync<T>(string[] roles, CancellationToken cancellationToken = default)
     {
         return await (from user in _dbContext.Users
             join userRole in _dbContext.UserRoles
@@ -169,7 +170,7 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
                 on userRole.RoleId equals role.Id
             where roles.Contains(role.Name)
                   && user.Enabled
-            select user).ProjectToType<T>().ToListAsync();
+            select user).ProjectToType<T>().ToListAsync(cancellationToken: cancellationToken);
     }
 
     public void Dispose()
