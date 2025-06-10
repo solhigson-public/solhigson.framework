@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -26,26 +27,32 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
 
     public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
+        int? commandTimeout = null,
+        CancellationToken cancellationToken = default)
     {
         return await AdoNetUtils.ExecuteNonQueryAsync(ConnectionString,
-            spName, parameters, isStoredProcedure, retryLogicBaseProvider);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, cancellationToken);
     }
     
     public async Task<TK?> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
+        int? commandTimeout = null,
+        CancellationToken cancellationToken = default)
     {
         return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(ConnectionString,
-            spName, parameters, isStoredProcedure, retryLogicBaseProvider);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, cancellationToken);
     }
 
     public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
-        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null)
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
+        int? commandTimeout = null,
+        CancellationToken cancellationToken = default)
     {
         return await AdoNetUtils.ExecuteListAsync<TK>(ConnectionString,
-            spName, parameters, isStoredProcedure, retryLogicBaseProvider);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, cancellationToken);
     }
     
     protected SqlParameter GetParameter(string name, object value)
@@ -88,9 +95,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     }
 
 
-    public async Task<bool> ExistsAsync(Expression<Func<T, bool>> expression)
+    public async Task<bool> ExistsAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default)
     {
-        return await DbContext.Set<T>().AnyAsync(expression);
+        return await DbContext.Set<T>().AnyAsync(expression, cancellationToken: cancellationToken);
     }
 
     #region Add

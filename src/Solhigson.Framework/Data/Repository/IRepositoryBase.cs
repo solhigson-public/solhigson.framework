@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Solhigson.Framework.Data.Repository;
@@ -13,7 +14,7 @@ public interface IRepositoryBase<T> where T : class, new()
     IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class;
     IQueryable<T> Where(Expression<Func<T, bool>> expression);
     IQueryable<TK> Where<TK>(Expression<Func<T, bool>> expression) where TK : class;
-    Task<bool> ExistsAsync(Expression<Func<T, bool>> expression);
+    Task<bool> ExistsAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default);
     T Add(T entity);
     void AddRange(IEnumerable<T> entities);
     Task<T> AddAndSaveChangesAsync(T entity);
