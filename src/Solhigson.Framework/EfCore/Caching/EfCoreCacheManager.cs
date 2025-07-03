@@ -42,7 +42,7 @@ internal static class EfCoreCacheManager
             _prefix = $"{prefix}.solhigson.efcore.caching.{_cacheType.ToString()}.";
             _cacheProvider = connectionMultiplexerFactory is null
                 ? new MemoryCacheProvider(connectionMultiplexer!, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds)
-                : new MemoryCacheProvider(connectionMultiplexerFactory, _prefix, expirationInMinutes,
+                : new MemoryCacheProvider(connectionMultiplexerFactory!, _prefix, expirationInMinutes,
                     changeTrackerTimerIntervalInSeconds);
 
         }

@@ -69,7 +69,7 @@ public static class Extensions
     }
 
     public static IApplicationBuilder InitializeEfCoreMemoryCache(this IApplicationBuilder app, 
-        Func<IConnectionMultiplexer>? connectionMultiplexerFactory, ILoggerFactory? loggerFactory = null,
+        Func<IConnectionMultiplexer?>? connectionMultiplexerFactory, ILoggerFactory? loggerFactory = null,
         string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
         EfCoreCacheManager.Initialize(loggerFactory, null, connectionMultiplexerFactory, prefix, expirationInMinutes, 
