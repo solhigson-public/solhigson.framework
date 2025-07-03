@@ -28,7 +28,7 @@ internal static class EfCoreCacheManager
         try
         {
             _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName, loggerFactory);
-            if (connectionMultiplexer is null && connectionMultiplexerFactory is null)
+            if (connectionMultiplexer is null && connectionMultiplexerFactory?.Invoke() is null)
             {
                 _logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
                 return;
