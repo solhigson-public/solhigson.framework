@@ -21,13 +21,14 @@ internal static class EfCoreCacheManager
     private static CacheType _cacheType;
     
 
-    internal static void Initialize(ILoggerFactory loggerFactory, CacheType cacheType, IConnectionMultiplexer? redis, string? prefix = null,
+    internal static void Initialize(ILoggerFactory? loggerFactory = null, IConnectionMultiplexer? connectionMultiplexer = null, 
+        Func<IConnectionMultiplexer>? connectionMultiplexerFactory = null, string? prefix = null,
         int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
         try
         {
             _logger = LogManager.GetLogger(typeof(EfCoreCacheManager).FullName, loggerFactory);
-            if (redis is null)
+            if (connectionMultiplexer is null && connectionMultiplexerFactory is null)
             {
                 _logger.LogWarning("Unable to initialize EfCore Cache Manager because Redis is not configured");
                 return;
@@ -37,12 +38,13 @@ internal static class EfCoreCacheManager
                 var random = CryptoHelper.GenerateRandomString(10, "ABCDEFGHIJKLMNPQRSTUVWXYZ");
                 prefix = $"{random}";
             }
-            _cacheType = cacheType;
+            _cacheType = CacheType.Memory;
             _prefix = $"{prefix}.solhigson.efcore.caching.{_cacheType.ToString()}.";
-            _cacheProvider = _cacheType == CacheType.Redis 
-                ? new RedisCacheProvider(redis, _prefix, expirationInMinutes)
-                : new MemoryCacheProvider(redis, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds);
-            
+            _cacheProvider = connectionMultiplexerFactory is null
+                ? new MemoryCacheProvider(connectionMultiplexer!, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds)
+                : new MemoryCacheProvider(connectionMultiplexerFactory, _prefix, expirationInMinutes,
+                    changeTrackerTimerIntervalInSeconds);
+
         }
         catch (Exception e)
         {

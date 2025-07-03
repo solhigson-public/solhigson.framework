@@ -318,7 +318,7 @@ public class ApiRequestService : IApiRequestService
             var hResponse = (HttpWebResponse) we.Response;
             if (hResponse == null)
             {
-                _logger.LogError(we, $"While sending request to url: {url}");
+                _logger.LogError(we, "While sending request to url: {Url}", url);
                 GetStatusCode(we, apiRequestHelperResponse);
 
                 apiRequestHelperResponse.HttpStatusCode = HttpStatusCode.InternalServerError;

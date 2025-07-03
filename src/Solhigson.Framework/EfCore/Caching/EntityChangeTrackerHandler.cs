@@ -41,7 +41,7 @@ public class EntityChangeTrackerHandler : IDisposable
             }
 
             _changeIds[key] = changeId;
-            this.LogTrace($"Change tracker changed for [{key}]");
+            this.LogTrace("Change tracker changed for [{Key}]", key);
             OnChanged?.Invoke(null, EventArgs.Empty);
         }
 

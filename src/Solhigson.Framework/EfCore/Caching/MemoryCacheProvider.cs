@@ -19,15 +19,27 @@ public class MemoryCacheProvider : CacheProviderBase
     private static Timer? _timer;
     private static MemoryCache DefaultMemoryCache { get; } = new("Solhigson::EfCore::Memory::Cache::Manager");
     private static readonly ConcurrentDictionary<string, EntityChangeTrackerHandler> ChangeTrackers = new();
-    private readonly string _cacheKey;
+    private string? _cacheKey;
     public event EventHandler? OnTableChangeTimerElapsed;
 
     internal MemoryCacheProvider(IConnectionMultiplexer redis, string prefix, int expirationInMinutes = 1440,
         int changeTrackerTimerIntervalInSeconds = 5) : base(redis, prefix, expirationInMinutes)
     {
+        Initialize(prefix, changeTrackerTimerIntervalInSeconds);
+    }
+    
+    internal MemoryCacheProvider(Func<IConnectionMultiplexer> connectionMultiplexerFactory, string prefix, int expirationInMinutes = 1440,
+        int changeTrackerTimerIntervalInSeconds = 5) : base(connectionMultiplexerFactory, prefix, expirationInMinutes)
+    {
+        Initialize(prefix, changeTrackerTimerIntervalInSeconds);
+    }
+
+    private void Initialize(string prefix, int changeTrackerTimerIntervalInSeconds)
+    {
         _cacheKey = $"{prefix}memory.tracker";
         StartCacheTimer(changeTrackerTimerIntervalInSeconds);
     }
+
 
     private void StartCacheTimer(int changeTrackerTimerIntervalInSeconds)
     {
@@ -50,7 +62,7 @@ public class MemoryCacheProvider : CacheProviderBase
 
     public override async Task<bool> InvalidateCacheAsync(Type[] types, CancellationToken cancellationToken = default)
     {
-        var trackerInfo = await GetEntityChangeTrackersAsync();
+        var trackerInfo = await GetEntityChangeTrackersAsync(cancellationToken);
         foreach (var type in types)
         {
             var key = EfCoreCacheManager.GetTypeName(type);
@@ -64,7 +76,7 @@ public class MemoryCacheProvider : CacheProviderBase
             }
         }
 
-        _ = Database.StringSetAsync(_cacheKey, trackerInfo.SerializeToJson(), TimeSpan.FromMinutes(ExpirationInMinutes));
+        _ = GetDatabase().StringSetAsync(_cacheKey, trackerInfo.SerializeToJson(), TimeSpan.FromMinutes(ExpirationInMinutes));
         return true;
     }
 
@@ -137,7 +149,7 @@ public class MemoryCacheProvider : CacheProviderBase
 
     private async Task<Dictionary<string, short>> GetEntityChangeTrackersAsync(CancellationToken cancellationToken = default)
     {
-        var resp = await Database.StringGetAsync(_cacheKey);
+        var resp = await GetDatabase().StringGetAsync(_cacheKey);
         string? json = resp;
         return json.DeserializeFromJson<Dictionary<string, short>>() ?? new Dictionary<string, short>();
     }

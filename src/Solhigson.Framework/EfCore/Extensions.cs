@@ -49,26 +49,34 @@ public static class Extensions
         }
     }
     
+    [Obsolete("This method has been depreciated and will be removed in future releases")]
     public static IApplicationBuilder InitializeEfCoreRedisCache(this IApplicationBuilder app, 
         IConnectionMultiplexer? connectionMultiplexer,
         string? prefix = null, int expirationInMinutes = 1440)
     {
         var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
-        EfCoreCacheManager.Initialize(loggerFactory, CacheType.Redis, connectionMultiplexer, prefix, expirationInMinutes);
+        EfCoreCacheManager.Initialize(loggerFactory, connectionMultiplexer, null, prefix, expirationInMinutes);
         return app;
     }
     
     public static IApplicationBuilder InitializeEfCoreMemoryCache(this IApplicationBuilder app, 
-        IConnectionMultiplexer? connectionMultiplexer,
+        IConnectionMultiplexer? connectionMultiplexer, ILoggerFactory? loggerFactory = null,
         string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
-        var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
-        EfCoreCacheManager.Initialize(loggerFactory, CacheType.Memory, connectionMultiplexer, prefix, expirationInMinutes, 
+        EfCoreCacheManager.Initialize(loggerFactory, connectionMultiplexer, null, prefix, expirationInMinutes, 
             changeTrackerTimerIntervalInSeconds);
         return app;
     }
 
-    
+    public static IApplicationBuilder InitializeEfCoreMemoryCache(this IApplicationBuilder app, 
+        Func<IConnectionMultiplexer>? connectionMultiplexerFactory, ILoggerFactory? loggerFactory = null,
+        string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
+    {
+        EfCoreCacheManager.Initialize(loggerFactory, null, connectionMultiplexerFactory, prefix, expirationInMinutes, 
+            changeTrackerTimerIntervalInSeconds);
+        return app;
+    }
+
     public static string GetCacheKey<T>(this IQueryable<T> query, bool hash = true) where T : class
     {
         var expression = query.Expression;

@@ -43,7 +43,7 @@ public class ExceptionHandlingMiddleware : IMiddleware
             {
                 httpContext.Response.ContentType = "application/json";
                 await httpContext.Response.WriteAsync(ResponseInfo.FailedResult("Internal Server Error")
-                    .SerializeToJson());
+                    .SerializeToJson()!);
             }
             else
             {

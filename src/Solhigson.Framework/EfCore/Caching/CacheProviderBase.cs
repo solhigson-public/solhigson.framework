@@ -7,15 +7,35 @@ using StackExchange.Redis;
 
 namespace Solhigson.Framework.EfCore.Caching;
 
-public abstract class CacheProviderBase(IConnectionMultiplexer redis, string prefix, int expirationInMinutes = 1440)
-    : ICacheProvider
+public abstract class CacheProviderBase : ICacheProvider
 {
-    protected readonly IDatabase Database = redis.GetDatabase();
-    protected readonly int ExpirationInMinutes = expirationInMinutes;
+    private readonly IDatabase? _database;
+    protected readonly int ExpirationInMinutes;
+    private readonly string _prefix;
+    private readonly Func<IConnectionMultiplexer>? _connectionMultiplexerFactory;
 
+    protected CacheProviderBase(IConnectionMultiplexer redis, string prefix, int expirationInMinutes = 1440)
+    {
+        _prefix = prefix;
+        _database = redis.GetDatabase();
+        ExpirationInMinutes = expirationInMinutes;
+    }
+
+    protected CacheProviderBase(Func<IConnectionMultiplexer> connectionMultiplexerFactor, string prefix, int expirationInMinutes = 1440)
+    {
+        _prefix = prefix;
+        _connectionMultiplexerFactory = connectionMultiplexerFactor;
+        ExpirationInMinutes = expirationInMinutes;
+    }
+
+    protected IDatabase GetDatabase()
+    {
+        return _database ?? _connectionMultiplexerFactory!().GetDatabase();
+    }
+    
     protected string GetTagKey(Type type)
     {
-        return prefix + EfCoreCacheManager.GetTypeName(type);
+        return _prefix + EfCoreCacheManager.GetTypeName(type);
     }
 
 
