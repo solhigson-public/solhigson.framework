@@ -22,7 +22,7 @@ internal static class EfCoreCacheManager
     
 
     internal static void Initialize(ILoggerFactory? loggerFactory = null, IConnectionMultiplexer? connectionMultiplexer = null, 
-        Func<IConnectionMultiplexer>? connectionMultiplexerFactory = null, string? prefix = null,
+        Func<IConnectionMultiplexer?>? connectionMultiplexerFactory = null, string? prefix = null,
         int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
         try
