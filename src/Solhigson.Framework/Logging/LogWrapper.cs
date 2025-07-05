@@ -107,9 +107,9 @@ public class LogWrapper
     private static void Log(ILogger logger, LogLevel logLevel, string? message, Exception? exception,
         object?[]? otherArgs, params object?[]? args)
     {
-        if (exception is not null)
+        if (exception is not null && string.IsNullOrWhiteSpace(message))
         {
-            message = $"Exception: {exception.GetType().FullName} - {exception.Message} | {message}";
+            message = $"{exception.GetType().FullName} - {exception.Message}";
             // if (args.HasData())
             // {
             //     message += " {exception}";
