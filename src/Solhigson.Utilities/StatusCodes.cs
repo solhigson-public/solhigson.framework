@@ -1,4 +1,4 @@
-﻿namespace Solhigson.Framework.Infrastructure;
+﻿namespace Solhigson.Utilities;
 
 public static class StatusCode
 {

@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Tokens;
+using Solhigson.Utilities.Dto;
 using Solhigson.Utilities.Extensions;
 
 namespace Solhigson.Utilities.Security;
@@ -44,6 +45,45 @@ public static class CryptoHelper
         var token = tokenHandler.CreateToken(securityTokenDescription);
         return (tokenHandler.WriteToken(token), DateUtils.ToUnixTimestamp(securityTokenDescription.Expires.Value));
     }
+    
+    public static ResponseInfo<ClaimsPrincipal> ValidateJwtToken(string? jwtToken, string jwtKey)
+    {
+        return ValidateJwtToken(jwtToken, jwtKey, out _);
+    }
+
+    public static ResponseInfo<ClaimsPrincipal> ValidateJwtToken(string? jwtToken, string jwtKey, out SecurityToken? securityToken)
+    {
+        var response = new ResponseInfo<ClaimsPrincipal>();
+        securityToken = null;
+        if (string.IsNullOrWhiteSpace(jwtToken))
+        {
+            return response.Fail();
+        }
+        
+        if (string.IsNullOrWhiteSpace(jwtKey))
+        {
+            return response.Fail();
+        }
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var validationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+
+        try
+        {
+            var principal = tokenHandler.ValidateToken(jwtToken, validationParameters, out securityToken);
+            return response.Success(principal);
+        }
+        catch (Exception e)
+        {
+            return response.Fail(e.Message);
+        }
+    }
+
 
     public static string HashData(string ordinaryData,
         HashAlgorithmType hashAlgorithmType = HashAlgorithmType.Sha512,
