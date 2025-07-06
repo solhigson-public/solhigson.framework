@@ -9,6 +9,7 @@ using System.Timers;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Utilities;
+using Solhigson.Utilities.Dto;
 using StackExchange.Redis;
 using Timer = System.Timers.Timer;
 

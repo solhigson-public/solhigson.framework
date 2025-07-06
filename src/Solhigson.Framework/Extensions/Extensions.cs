@@ -36,6 +36,7 @@ using Solhigson.Utilities;
 using Solhigson.Utilities.Security;
 using Solhigson.Framework.Web;
 using Solhigson.Framework.Web.Middleware;
+using Solhigson.Utilities.Dto;
 using Xunit.Abstractions;
 using LogLevel = NLog.LogLevel;
 using LogManager = Solhigson.Framework.Logging.LogManager;

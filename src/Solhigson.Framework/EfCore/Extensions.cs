@@ -13,6 +13,7 @@ using Solhigson.Framework.Dto;
 using Solhigson.Framework.EfCore.Caching;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
+using Solhigson.Utilities.Dto;
 using Solhigson.Utilities.Extensions;
 using Solhigson.Utilities.Linq;
 using StackExchange.Redis;

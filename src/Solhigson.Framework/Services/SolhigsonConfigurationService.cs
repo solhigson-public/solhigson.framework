@@ -9,6 +9,7 @@ using Solhigson.Framework.Dto;
 using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
+using Solhigson.Utilities.Dto;
 using Solhigson.Utilities.Extensions;
 using Solhigson.Utilities.Security;
 

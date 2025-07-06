@@ -8,6 +8,7 @@ using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Logging;
+using Solhigson.Utilities.Dto;
 using Solhigson.Utilities.Security;
 using StackExchange.Redis;
 

@@ -15,6 +15,7 @@ using Solhigson.Framework.EfCore;
 using Solhigson.Framework.Extensions;
 using Solhigson.Utilities.Extensions;
 using Solhigson.Framework.Web.Attributes;
+using Solhigson.Utilities.Dto;
 
 namespace Solhigson.Framework.Identity;
 

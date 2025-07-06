@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Solhigson.Framework.Dto;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
+using Solhigson.Utilities.Dto;
 
 namespace Solhigson.Framework.Web.Attributes;
 

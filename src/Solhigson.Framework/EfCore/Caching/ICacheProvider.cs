@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Solhigson.Framework.Dto;
+using Solhigson.Utilities.Dto;
 
 namespace Solhigson.Framework.EfCore.Caching;
 

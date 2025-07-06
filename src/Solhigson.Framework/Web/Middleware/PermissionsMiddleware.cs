@@ -11,6 +11,7 @@ using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Utilities;
 using Solhigson.Framework.Web.Attributes;
+using Solhigson.Utilities.Dto;
 
 namespace Solhigson.Framework.Web.Middleware;
 
