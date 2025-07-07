@@ -75,7 +75,7 @@ public class EmailNotificationDetail
         get { return _bccAddresses ??= new List<string>(); }
     }
 
-    internal bool HasAddresses()
+    public bool HasAddresses()
     {
         return ToAddresses.Any() || CcAddresses.Any() || BccAddresses.Any();
     }
