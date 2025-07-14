@@ -50,7 +50,9 @@ public class ConfigurationWrapper
     {
         if (string.IsNullOrWhiteSpace(group) && string.IsNullOrWhiteSpace(key))
         {
-            this.LogWarning("GetConfig: group and key are both empty, nothing will be retrieved, returning default value: " + defaultValue);
+            this.LogWarning(
+                "GetConfig: group and key are both empty, nothing will be retrieved, returning default value: {defaultValue}",
+                defaultValue);
             return defaultValue;
         }
         var configKey = group;
@@ -87,7 +89,7 @@ public class ConfigurationWrapper
         }
             
         this.LogDebug("Fetching AppSetting [{configKey}] from db", configKey);
-        var appSetting = query.FirstOrDefault();
+        var appSetting = await query.FirstOrDefaultAsync();
         if (appSetting is not null)
         {
             value = appSetting.IsSensitive
@@ -96,7 +98,7 @@ public class ConfigurationWrapper
             // if (!query.AddCustomResultToCacheAsync(value))
             if (!await AddToCacheAsync(configKey, value))
             {
-                this.LogWarning("Adding AppSetting [" + configKey + "] to memory cache was UNSUCCESSFUL");
+                this.LogWarning("Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL", configKey);
                 //this.LogWarning("Adding AppSetting [{configKey}] to memory cache was UNSUCCESSFUL", configKey);
             }
             return value;
@@ -107,7 +109,7 @@ public class ConfigurationWrapper
             throw new Exception($"Configuration [{configKey}] not found in appSettings or database.");
         }
 
-        AddSettingToDb(configKey, defaultValue);
+        await AddSettingToDbAsync(configKey, defaultValue);
         return defaultValue;
 
     }
@@ -118,13 +120,13 @@ public class ConfigurationWrapper
         return result.Data;
     }
     
-    private static async Task<bool> AddToCacheAsync(string key, string value)
+    private static async Task<bool> AddToCacheAsync(string key, string? value)
     {
         return (await EfCoreCacheManager.SetDataAsync(key, value, [typeof(AppSetting)])).IsSuccessful;
     }
 
 
-    private void AddSettingToDb(string key, string value)
+    private async Task AddSettingToDbAsync(string key, string value)
     {
         try
         {
@@ -143,7 +145,7 @@ public class ConfigurationWrapper
                 Value = value
             };
             _dbContext.AppSettings.Add(setting);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
             //this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
             //CacheManager.AddToCacheAsync(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
             /*
@@ -166,7 +168,7 @@ public class ConfigurationWrapper
         {
             if (defaultValue == null) throw;
             this.LogError(e,
-                $"Invalid value set for system setting, using default value of {defaultValue} instead.");
+                "Invalid value set for setting, using default value of {defaultValue} instead.", defaultValue);
             return (T) defaultValue;
         }
     }
