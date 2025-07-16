@@ -56,27 +56,7 @@ public class LogWrapper
         {
             return;
         }
-
-        try
-        {
-            if (exception is TaskCanceledException or OperationCanceledException)
-            {
-                var configurationWrapper = ServiceProviderWrapper.ServiceProvider?.GetService<ConfigurationWrapper>();
-                if (configurationWrapper is not null)
-                {
-                    if (configurationWrapper
-                        .GetConfigAsync<bool>("appSettings", "IgnoreTaskCancelledException", "false").Result)
-                    {
-                        return;
-                    }
-                }
-            }
-        }
-        catch
-        {
-            //
-        }
-
+        
         var email = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
                     ServiceProviderWrapper.GetCurrentLogUserEmail();
         var chainId = ServiceProviderWrapper.GetCurrentLogChainId();
@@ -107,9 +87,9 @@ public class LogWrapper
     private static void Log(ILogger logger, LogLevel logLevel, string? message, Exception? exception,
         object?[]? otherArgs, params object?[]? args)
     {
-        if (exception is not null && string.IsNullOrWhiteSpace(message))
+        if (exception is not null)
         {
-            message = $"{exception.GetType().FullName} - {exception.Message}";
+            message = $"{message} |{exception.GetType().FullName}";
             // if (args.HasData())
             // {
             //     message += " {exception}";
