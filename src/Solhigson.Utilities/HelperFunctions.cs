@@ -218,7 +218,7 @@ public static class HelperFunctions
         return obj;
     }
 
-    public static JObject ToJsonObject(HttpResponseHeaders headers)
+    public static JObject? ToJsonObject(HttpResponseHeaders? headers)
     {
         if (headers == null)
         {
@@ -235,7 +235,7 @@ public static class HelperFunctions
     }
 
 
-    public static JObject ToJsonObject(IHeaderDictionary dictionary)
+    public static JObject? ToJsonObject(IHeaderDictionary? dictionary)
     {
         if (dictionary == null)
         {
@@ -256,9 +256,9 @@ public static class HelperFunctions
         return obj;
     }
 
-    public static string CheckForProtectedFields(string data, List<string>? protectedFields)
+    public static string? CheckForProtectedFields(string data, IReadOnlyCollection<string>? protectedFields)
     {
-        if (!IsValidJson(data) || protectedFields?.Any() == false) //json only
+        if (!IsValidJson(data) || protectedFields?.Count == 0) //json only
         {
             return data;
         }
@@ -280,9 +280,9 @@ public static class HelperFunctions
         return data;
     }
 
-    public static JObject CheckForProtectedFields(JObject jObject, List<string> protectedFields)
+    public static JObject? CheckForProtectedFields(JObject? jObject, IReadOnlyCollection<string>? protectedFields)
     {
-        if (jObject == null || protectedFields?.Any() == false)
+        if (jObject == null || protectedFields?.Count == 0)
         {
             return jObject;
         }
@@ -305,9 +305,9 @@ public static class HelperFunctions
         return null;
     }
 
-    public static object CheckForProtectedFields(object data, List<string> protectedFields)
+    public static object? CheckForProtectedFields(object? data, IReadOnlyCollection<string>? protectedFields)
     {
-        if(protectedFields?.Any() == false)
+        if(!protectedFields?.Any() == false)
         {
             return data;
         }
@@ -332,16 +332,16 @@ public static class HelperFunctions
         }
     }
 
-    private static void MaskProtectedProperties(JObject jObject, JProperty jProperty, List<string> protectedFields)
+    private static void MaskProtectedProperties(JObject? jObject, JProperty? jProperty, IReadOnlyCollection<string>? protectedFields)
     {
-        if(jObject is null || string.IsNullOrWhiteSpace(jProperty?.Name) || protectedFields?.Any() == false)
+        if(jObject is null || string.IsNullOrWhiteSpace(jProperty?.Name) || protectedFields.Count == 0)
         {
             return;
         }
         
-        if (protectedFields?.Contains(jProperty.Name, StringComparer.OrdinalIgnoreCase) == true)
+        if (protectedFields.Contains(jProperty.Name, StringComparer.OrdinalIgnoreCase))
         {
-            jObject.Property(jProperty.Name).Value = "******";
+            jObject.Property(jProperty.Name)!.Value = "******";
         }
 
         if (jProperty.Value is JValue)
