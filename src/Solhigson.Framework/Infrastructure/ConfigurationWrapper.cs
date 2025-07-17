@@ -89,7 +89,8 @@ public class ConfigurationWrapper
         }
             
         this.LogDebug("Fetching AppSetting [{configKey}] from db", configKey);
-        var appSetting = await query.FirstOrDefaultAsync();
+        //var appSetting = await query.FirstOrDefaultAsync();
+        var appSetting = query.FirstOrDefault();
         if (appSetting is not null)
         {
             value = appSetting.IsSensitive
@@ -109,7 +110,7 @@ public class ConfigurationWrapper
             throw new Exception($"Configuration [{configKey}] not found in appSettings or database.");
         }
 
-        await AddSettingToDbAsync(configKey, defaultValue);
+        AddSettingToDb(configKey, defaultValue);
         return defaultValue;
 
     }
@@ -126,7 +127,7 @@ public class ConfigurationWrapper
     }
 
 
-    private async Task AddSettingToDbAsync(string key, string value)
+    private void AddSettingToDb(string key, string value)
     {
         try
         {
@@ -145,7 +146,8 @@ public class ConfigurationWrapper
                 Value = value
             };
             _dbContext.AppSettings.Add(setting);
-            await _dbContext.SaveChangesAsync();
+            _dbContext.SaveChanges();
+            //await _dbContext.SaveChangesAsync();
             //this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
             //CacheManager.AddToCacheAsync(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
             /*
