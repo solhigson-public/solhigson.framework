@@ -512,7 +512,12 @@ public static class Extensions
     
     public static bool HasData<T>(this IEnumerable<T>? data)
     {
-        return data is not null && data.Any();
+        return data switch
+        {
+            null => false,
+            ICollection<T> coll => coll.Count > 0,
+            _ => data.Any()
+        };
     }
 
 

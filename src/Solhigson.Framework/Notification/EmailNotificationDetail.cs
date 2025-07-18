@@ -24,59 +24,50 @@ public class EmailNotificationDetail
         AddAddress(address, BccAddresses);
     }
 
-    private static void AddAddress(string address, List<string> addressList)
+    private static void AddAddress(string address, HashSet<string>? addressHashSet)
     {
         if (string.IsNullOrWhiteSpace(address))
         {
             return;
         }
-        addressList ??= new List<string>();
-        var addresses = address.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+        addressHashSet ??= [];
+        var addresses = address.Split([';'], StringSplitOptions.RemoveEmptyEntries);
         foreach (var addr in addresses.Select(entry => entry.Trim()))
         {
             if (!addr.IsValidEmailAddress())
             {
                 continue;
             }
-            if (!addressList.Contains(addr))
-            {
-                addressList.Add(addr);
-            }
+
+            addressHashSet.Add(addr);
         }
     }
-    public string Subject { get; set; }
+    public string? Subject { get; set; }
 
-    public string TemplateName { get; set; }
+    public string? TemplateName { get; set; }
 
-    public string Body { get; set; }
+    public string? Body { get; set; }
 
-    public IDictionary<string, string> TemplatePlaceholders { get; set; }
+    public IDictionary<string, string?>? TemplatePlaceholders { get; set; }
 
-    public IList<AttachmentHelper> Attachments { get; set; }
+    public IList<AttachmentHelper>? Attachments { get; set; }
 
-    public string FromAddress { get; set; }
+    public string? FromAddress { get; set; }
 
-    public string FromDisplayAddress { get; set; }
+    public string? FromDisplayAddress { get; set; }
 
-    private List<string> _toAddresses;
+    private HashSet<string>? _toAddresses;
 
-    public List<string> ToAddresses => _toAddresses ??= new List<string>();
+    public HashSet<string> ToAddresses => _toAddresses ??= [];
 
-    private List<string> _ccAddresses;
-    public List<string> CcAddresses
-    {
-        get { return _ccAddresses ??= new List<string>(); }
-    }
+    private HashSet<string>? _ccAddresses;
+    public HashSet<string> CcAddresses => _ccAddresses ??= [];
 
-    private List<string> _bccAddresses;
-
-    public List<string> BccAddresses
-    {
-        get { return _bccAddresses ??= new List<string>(); }
-    }
+    private HashSet<string>? _bccAddresses;
+    public HashSet<string> BccAddresses => _bccAddresses ??= [];
 
     public bool HasAddresses()
     {
-        return ToAddresses.Any() || CcAddresses.Any() || BccAddresses.Any();
+        return ToAddresses.Count != 0 || CcAddresses.Count != 0 || BccAddresses.Count != 0;
     }
 }
