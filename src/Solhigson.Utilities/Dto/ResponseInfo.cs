@@ -7,7 +7,7 @@ public struct ResponseInfo
 {
     internal const string DefaultMessage = "An unexpected error has occurred.";
     private string _statusCode = Solhigson.Utilities.StatusCode.UnExpectedError;
-    private string _message = DefaultMessage;
+    private string? _message = DefaultMessage;
     private bool _initialized;
 
     [Newtonsoft.Json.JsonIgnore] 
@@ -32,7 +32,7 @@ public struct ResponseInfo
 
     [JsonProperty("message")]
     [JsonPropertyName("message")]
-    public string Message
+    public string? Message
     {
         get => _initialized ? _message : DefaultMessage;
         set
@@ -52,30 +52,30 @@ public struct ResponseInfo
         return ErrorData is T error ? error : default;
     }
 
-    public static ResponseInfo SuccessResult(string message = "")
+    public static ResponseInfo SuccessResult(string? message = "")
     {
         return new ResponseInfo().Success(message);
     }
 
-    public static ResponseInfo<T> SuccessResult<T>(T result, string message = "")
+    public static ResponseInfo<T> SuccessResult<T>(T result, string? message = "")
     {
         return new ResponseInfo<T>().Success(result, message);
     }
 
-    public static ResponseInfo FailedResult(string message = DefaultMessage,
+    public static ResponseInfo FailedResult(string? message = DefaultMessage,
         string responseCode = Solhigson.Utilities.StatusCode.UnExpectedError, object? errorData = null)
     {
         return new ResponseInfo().Fail(message, responseCode, errorData);
     }
 
-    public static ResponseInfo<T> FailedResult<T>(string message = DefaultMessage,
+    public static ResponseInfo<T> FailedResult<T>(string? message = DefaultMessage,
         string responseCode = Solhigson.Utilities.StatusCode.UnExpectedError, object? errorData = null,
         T? result = default)
     {
         return new ResponseInfo<T>().Fail(message, responseCode, errorData, result);
     }
 
-    public ResponseInfo Success(string message = "")
+    public ResponseInfo Success(string? message = "")
     {
         StatusCode = Solhigson.Utilities.StatusCode.Successful;
         Message = message;
@@ -83,7 +83,7 @@ public struct ResponseInfo
         return this;
     }
 
-    public ResponseInfo Fail(string message = DefaultMessage,
+    public ResponseInfo Fail(string? message = DefaultMessage,
         string responseCode = Solhigson.Utilities.StatusCode.UnExpectedError, object? errorData = null)
     {
         Message = message;
@@ -93,7 +93,7 @@ public struct ResponseInfo
         return this;
     }
         
-    public ResponseInfo(string message = DefaultMessage, 
+    public ResponseInfo(string? message = DefaultMessage, 
         string statusCode = Solhigson.Utilities.StatusCode.UnExpectedError)
     {
         _message = message;
@@ -105,7 +105,7 @@ public struct ResponseInfo
 }
 
 public struct ResponseInfo<T>(
-    string message = ResponseInfo.DefaultMessage,
+    string? message = ResponseInfo.DefaultMessage,
     string statusCode = StatusCode.UnExpectedError,
     T? result = default)
 {
@@ -121,7 +121,7 @@ public struct ResponseInfo<T>(
 
     [JsonProperty("message")] 
     [JsonPropertyName("message")]
-    public string Message
+    public string? Message
     {
         get => _responseInfo.Message;
         set => _responseInfo.Message = value;
@@ -135,7 +135,7 @@ public struct ResponseInfo<T>(
     [System.Text.Json.Serialization.JsonIgnore]
     public bool IsSuccessful => _responseInfo.IsSuccessful;
 
-    public ResponseInfo<T> Success(T result, string message = "")
+    public ResponseInfo<T> Success(T result, string? message = "")
     {
         if (result is null)
         {
@@ -148,7 +148,7 @@ public struct ResponseInfo<T>(
         return this;
     }
 
-    public ResponseInfo<T> Fail(string message = ResponseInfo.DefaultMessage,
+    public ResponseInfo<T> Fail(string? message = ResponseInfo.DefaultMessage,
         string responseCode = Solhigson.Utilities.StatusCode.UnExpectedError, object? errorData = null,
         T? result = default)
     {
