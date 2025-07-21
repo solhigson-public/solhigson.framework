@@ -20,16 +20,12 @@ namespace Solhigson.Framework.Infrastructure;
 public class ConfigurationWrapper
 {
     public IConfiguration Configuration { get; }
-    private readonly SolhigsonDbContext _dbContext;
-    private static readonly object SyncHelper = new();
+    private readonly DbContextOptionsBuilder<SolhigsonDbContext>? _optionsBuilder;
 
     public ConfigurationWrapper(IConfiguration configuration, DbContextOptionsBuilder<SolhigsonDbContext>? optionsBuilder)
     {
         Configuration = configuration;
-        if (optionsBuilder is not null)
-        {
-            _dbContext = new SolhigsonDbContext(optionsBuilder.Options);
-        }
+        _optionsBuilder = optionsBuilder;
     }
 
     public async ValueTask<T> GetFromAppSettingFileOnlyAsync<T>(string group, string? key = null, string? defaultValue = null)
@@ -41,7 +37,7 @@ public class ConfigurationWrapper
     public async Task<T> GetConfigAsync<T>(string groupName, string? key = null, string? defaultValue = null,
         bool useAppSettingsFileOnly = false)
     {
-        var setting = await GetConfigInternalAsync(groupName, key, defaultValue);
+        var setting = await GetConfigInternalAsync(groupName, key, defaultValue, useAppSettingsFileOnly);
         return VerifySetting<T>(setting, key, groupName, defaultValue);
     }
 
@@ -68,7 +64,7 @@ public class ConfigurationWrapper
         }
 
         // ReSharper disable once InconsistentlySynchronizedField
-        if (useAppSettingsFileOnly || _dbContext is null)
+        if (useAppSettingsFileOnly || _optionsBuilder is null)
         {
             if (defaultValue is not null)
             {
@@ -78,8 +74,10 @@ public class ConfigurationWrapper
                 $"Configuration [{configKey}] not found in appSettings.");
         }
 
+        var dbContext = new SolhigsonDbContext(_optionsBuilder.Options);
+        
         // ReSharper disable once InconsistentlySynchronizedField
-        var query = _dbContext.AppSettings.Where(t => t.Name == configKey);//
+        var query = dbContext.AppSettings.Where(t => t.Name == configKey);//
 
         //var cacheValue = query.GetCustomResultFromCache<string, AppSetting>();
         var cacheValue = await GetFromCacheAsync(configKey);
@@ -110,7 +108,7 @@ public class ConfigurationWrapper
             throw new Exception($"Configuration [{configKey}] not found in appSettings or database.");
         }
 
-        AddSettingToDb(configKey, defaultValue);
+        AddSettingToDb(dbContext, configKey, defaultValue);
         return defaultValue;
 
     }
@@ -127,7 +125,7 @@ public class ConfigurationWrapper
     }
 
 
-    private void AddSettingToDb(string key, string value)
+    private void AddSettingToDb(SolhigsonDbContext dbContext, string key, string value)
     {
         try
         {
@@ -135,7 +133,7 @@ public class ConfigurationWrapper
             lock (SyncHelper)
             {
                 */
-            if (_dbContext.Set<AppSetting>().Any(t => t.Name == key))
+            if (dbContext.Set<AppSetting>().Any(t => t.Name == key))
             {
                 return;
             }
@@ -145,8 +143,8 @@ public class ConfigurationWrapper
                 Name = key,
                 Value = value
             };
-            _dbContext.AppSettings.Add(setting);
-            _dbContext.SaveChanges();
+            dbContext.AppSettings.Add(setting);
+            dbContext.SaveChanges();
             //await _dbContext.SaveChangesAsync();
             //this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
             //CacheManager.AddToCacheAsync(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
@@ -160,7 +158,7 @@ public class ConfigurationWrapper
         }
     }
 
-    private T VerifySetting<T>(string setting, string key, string groupName, object? defaultValue = null)
+    private T VerifySetting<T>(string? setting, string? key, string groupName, object? defaultValue = null)
     {
         try
         {
@@ -175,7 +173,7 @@ public class ConfigurationWrapper
         }
     }
 
-    private static T ChangeType<T>(string key, object value, string group)
+    private static T ChangeType<T>(string? key, object? value, string group)
     {
         try
         {

@@ -69,7 +69,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.16" />
-      <PackageReference Include="Solhigson.Utilities" Version="8.16.13" />
+      <PackageReference Include="Solhigson.Utilities" Version="8.16.16" />
       <PackageReference Include="System.CodeDom" Version="8.0.0" />
     </ItemGroup>
 
