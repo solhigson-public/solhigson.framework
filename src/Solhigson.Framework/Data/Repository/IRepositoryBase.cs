@@ -17,18 +17,17 @@ public interface IRepositoryBase<T> where T : class, new()
     Task<bool> ExistsAsync(Expression<Func<T, bool>> expression, CancellationToken cancellationToken = default);
     T Add(T entity);
     void AddRange(IEnumerable<T> entities);
-    Task<T> AddAndSaveChangesAsync(T entity);
-    Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities);
+    Task<T> AddAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default);
+    Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
     T Attach(T entity);
     void AttachRange(IEnumerable<T> entities);
     T Update(T entity);
     void UpdateRange(IEnumerable<T> entities);
-    Task<T> UpdateAndSaveChangesAsync(T entity);
-    Task UpdateRangeAndSaveChangesAsync(IEnumerable<T> entities);
+    Task<T> UpdateAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default);
+    Task UpdateRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 
     T Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
-    Task<T> RemoveAndSaveChangesAsync(T entity);
-    Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities);
-
+    Task<T> RemoveAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default);
+    Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
 }

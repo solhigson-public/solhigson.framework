@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Threading;
 
 namespace [PersistenceProjectRootNamespace].[Folder]
 {
@@ -13,7 +14,7 @@ namespace [PersistenceProjectRootNamespace].[Folder]
             DbContext = dbContext;
         }
         
-        public System.Threading.Tasks.Task SaveChangesAsync()
+        public System.Threading.Tasks.Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return DbContext.SaveChangesAsync();
         }

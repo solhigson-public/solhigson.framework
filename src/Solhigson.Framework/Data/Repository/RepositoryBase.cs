@@ -106,9 +106,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return DbContext.Add(entity).Entity;
     }
         
-    public async Task<T> AddAndSaveChangesAsync(T entity)
+    public async Task<T> AddAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default)
     {
-        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Add, entity);
+        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Add, entity, cancellationToken);
     }
 
     public void AddRange(IEnumerable<T> entities)
@@ -116,9 +116,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         DbContext.AddRange(entities);
     }
  
-    public async Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities)
+    public async Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await DoActionAndSaveChangesAsync(DbContext.Set<T>().AddRange, entities);
+        await DoActionAndSaveChangesAsync(DbContext.Set<T>().AddRange, entities, cancellationToken);
     }
     #endregion
 
@@ -143,14 +143,14 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         DbContext.Set<T>().UpdateRange(entities);
     }
         
-    public async Task<T> UpdateAndSaveChangesAsync(T entity)
+    public async Task<T> UpdateAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default)
     {
-        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Update, entity);
+        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Update, entity, cancellationToken);
     }
         
-    public async Task UpdateRangeAndSaveChangesAsync(IEnumerable<T> entities)
+    public async Task UpdateRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await DoActionAndSaveChangesAsync(DbContext.Set<T>().UpdateRange, entities);
+        await DoActionAndSaveChangesAsync(DbContext.Set<T>().UpdateRange, entities, cancellationToken);
     }
     #endregion
 
@@ -165,29 +165,29 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         DbContext.Set<T>().RemoveRange(entities);
     }
         
-    public async Task<T> RemoveAndSaveChangesAsync(T entity)
+    public async Task<T> RemoveAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default)
     {
-        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Remove, entity);
+        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Remove, entity, cancellationToken);
     }
         
-    public async Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities)
+    public async Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await DoActionAndSaveChangesAsync(DbContext.Set<T>().RemoveRange, entities);
+        await DoActionAndSaveChangesAsync(DbContext.Set<T>().RemoveRange, entities, cancellationToken);
     }
     #endregion
 
 
-    private async Task<T> DoActionAndSaveChangesAsync(Func<T, EntityEntry<T>> method, T entity)
+    private async Task<T> DoActionAndSaveChangesAsync(Func<T, EntityEntry<T>> method, T entity, CancellationToken cancellationToken = default)
     {
         var ent = method(entity).Entity;
-        await DbContext.SaveChangesAsync();
+        await DbContext.SaveChangesAsync(cancellationToken);
         return ent;
     }
         
-    private async Task DoActionAndSaveChangesAsync(Action<IEnumerable<T>> method, IEnumerable<T> entity)
+    private async Task DoActionAndSaveChangesAsync(Action<IEnumerable<T>> method, IEnumerable<T> entity, CancellationToken cancellationToken = default)
     {
         method(entity);
-        await DbContext.SaveChangesAsync();
+        await DbContext.SaveChangesAsync(cancellationToken);
     }
 
 
