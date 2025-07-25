@@ -16,7 +16,7 @@ namespace [PersistenceProjectRootNamespace].[Folder]
         
         public System.Threading.Tasks.Task SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            return DbContext.SaveChangesAsync();
+            return DbContext.SaveChangesAsync(cancellationToken);
         }
                 
         public int SaveChanges()

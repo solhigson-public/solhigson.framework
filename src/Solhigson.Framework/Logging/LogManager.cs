@@ -14,7 +14,7 @@ public static class LogManager
         new ();
     private static ILogger? _logger;
     
-    internal static void SetLoggerFactory(ILoggerFactory loggerFactory)
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory)
     {   
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger("Solhigson.LogManager");
