@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NLog;
+using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
 using Solhigson.Utilities;
@@ -365,24 +366,33 @@ public class ApiRequestService : IApiRequestService
                 apiRequestHelperResponse.TimeTaken = apiRequestHelperResponse.EndTime.Value - apiRequestHelperResponse.StartTime;
 
                 var responseFormat = format;
-                JObject responseHeaders = null;
+                JObject? responseHeaders = null;
                 if (apiRequestHelperResponse.HttpResponseMessage != null)
                 {
                     apiRequestHelperResponse.HttpStatusCode =
                         apiRequestHelperResponse.HttpResponseMessage.StatusCode;
                     responseHeaders =
                         HelperFunctions.ToJsonObject(apiRequestHelperResponse.HttpResponseMessage.Headers);
-                    if (responseHeaders.TryGetValue("Content-Type", out var header))
+                    if (responseHeaders?.TryGetValue("Content-Type", out var header) == true)
                     {
                         responseFormat = header.ToString();
                     }
-                    if (apiRequestHelperResponse.HttpResponseMessage.Headers != null)
+                    if (apiRequestHelperResponse.HttpResponseMessage.Headers.HasData())
                     {
                         foreach (var (key, value) in apiRequestHelperResponse.HttpResponseMessage.Headers)
                         {
-                            apiRequestHelperResponse.ResponseHeaders.Add(key, string.Join(",", value));
+                            apiRequestHelperResponse.ResponseHeaders?.Add(key, string.Join(",", value));
                         }
                     }
+                    if (apiRequestHelperResponse.HttpResponseMessage.RequestMessage?.Headers != null)
+                    {
+                        apiRequestHelperResponse.RequestHeaders = new Dictionary<string, string>();
+                        foreach (var (key, value) in apiRequestHelperResponse.HttpResponseMessage.RequestMessage.Headers)
+                        {
+                            apiRequestHelperResponse.RequestHeaders.Add(key, string.Join(",", value));
+                        }
+                    }
+
                 }
 
 
@@ -390,7 +400,8 @@ public class ApiRequestService : IApiRequestService
 
                 if (_apiConfiguration.LogOutBoundApiRequests)
                 {
-                    _ = Task.Run(() => SaveApiTraceData(url, method.ToString(), apiRequestDetails.Headers, apiRequestHelperResponse.StartTime, 
+                    var requestHeaders = apiRequestHelperResponse.RequestHeaders ?? apiRequestDetails.Headers;
+                    _ = Task.Run(() => SaveApiTraceData(url, method.ToString(), requestHeaders, apiRequestHelperResponse.StartTime, 
                         apiRequestHelperResponse.EndTime ?? DateTime.UtcNow,
                         apiRequestHelperResponse.Request,
                         apiRequestHelperResponse.Response, responseHeaders,
@@ -407,8 +418,8 @@ public class ApiRequestService : IApiRequestService
         return apiRequestHelperResponse;
     }
 
-    protected virtual void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string requestMessage,
-        string responseMessage, JObject? responseHeaders, HttpStatusCode statusCode, string serviceDescription,
+    protected virtual void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string? requestMessage,
+        string? responseMessage, JObject? responseHeaders, HttpStatusCode statusCode, string serviceDescription,
         string serviceName, string serviceType)
     {
         var timeTaken = endTime - startTime;
