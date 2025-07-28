@@ -11,7 +11,7 @@ public class ApiRequestDetails(Uri uri, HttpMethod httpMethod, string? payload =
     public void AddHeader(string key, string value)
     {
         _headers ??= new Dictionary<string, string>();
-        _headers.Add(key, value);
+        _headers.TryAdd(key, value);
     }
     public bool ExpectContinue { get; set; } = true;
     public Uri Uri { get; } = uri;
