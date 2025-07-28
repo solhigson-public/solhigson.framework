@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 
 namespace Solhigson.Framework.Infrastructure;
 
@@ -51,6 +52,43 @@ internal class CurrentLogScopedPropertiesAccessor
 }
 internal class ScopedProperties
 {
-    public string? LogChainId { get; set; }
-    public string? UserEmail { get; set; }
+    private const string ChainId = nameof(ChainId);
+    private const string Email = nameof(Email);
+
+    private Dictionary<string, string?>? _properties;
+
+    public void AddProperty(string key, string? value)
+    {
+        _properties ??= new Dictionary<string, string?>();
+        _properties.TryAdd(key, value);
+    }
+
+    internal void AddChainId(string chainId)
+    {
+        AddProperty(ChainId, chainId);
+    }
+    
+    internal void AddEmail(string email)
+    {
+        AddProperty(Email, email);
+    }
+
+    internal string? GetChainId()
+    {
+        return GetProperty(ChainId);
+    }
+
+    internal string? GetEmail()
+    {
+        return GetProperty(Email);
+    }
+    
+    private string? GetProperty(string key)
+    {
+        string? value = null;
+        _properties?.TryGetValue(key, out value);
+        return value;
+    }
+
+    internal IReadOnlyDictionary<string, string?>? Properties => _properties;
 }

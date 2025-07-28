@@ -197,16 +197,15 @@ public class ApiRequestService : IApiRequestService
 
     private async Task<ApiRequestResponse<T>> SendRequestAsync<T>(string uri, HttpMethod method,
         string data = "", string format = ContentTypeJson,
-        Dictionary<string, string> headers = null, string serviceName = null, string serviceDescription = null,
-        string serviceType = null, string namedHttpClient = null,
+        Dictionary<string, string>? headers = null, string? serviceName = null, string? serviceDescription = null,
+        string? serviceType = null, string? namedHttpClient = null,
         int timeOut = 0, bool? logTrace = null) 
     {
         try
         {
-            var apiRequestDetails = new ApiRequestDetails(new Uri(uri), method, data)
+            var apiRequestDetails = new ApiRequestDetails(new Uri(uri), method, data, headers)
             {
                 Format = format,
-                Headers = headers,
                 TimeOut = timeOut,
                 ServiceName = serviceName,
                 ServiceType = serviceType,
@@ -418,7 +417,7 @@ public class ApiRequestService : IApiRequestService
         return apiRequestHelperResponse;
     }
 
-    protected virtual void SaveApiTraceData(string url, string method, Dictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string? requestMessage,
+    protected virtual void SaveApiTraceData(string url, string method, IReadOnlyDictionary<string, string> requestHeaders, DateTime startTime, DateTime endTime, string? requestMessage,
         string? responseMessage, JObject? responseHeaders, HttpStatusCode statusCode, string serviceDescription,
         string serviceName, string serviceType)
     {

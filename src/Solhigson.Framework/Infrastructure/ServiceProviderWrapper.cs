@@ -22,7 +22,7 @@ internal static class ServiceProviderWrapper
         return null;
     }
 
-    private static ScopedProperties? GetScopedProperties()
+    internal static ScopedProperties? GetScopedProperties()
     {
         var serviceProvider = GetHttpContextAccessor()?.HttpContext?.RequestServices ?? ServiceProvider;
         CurrentLogScopedPropertiesAccessor? accessor = null;
@@ -45,49 +45,46 @@ internal static class ServiceProviderWrapper
     private const string ChainId = "::solhigson::framework::LogItems::chainid::";
     internal static void SetCurrentLogChainId(string chainId)
     {
-        var httpContext = GetHttpContextAccessor()?.HttpContext;
-        if (httpContext is not null)
-        {
-            SetItem(httpContext, ChainId, chainId);
-            return;
-        }
-        var scopedProperties = GetScopedProperties();
-        if (scopedProperties is not null)
-        {
-            scopedProperties.LogChainId = chainId;
-        }
+        // var httpContext = GetHttpContextAccessor()?.HttpContext;
+        // if (httpContext is not null)
+        // {
+        //     SetItem(httpContext, ChainId, chainId);
+        //     return;
+        // }
+        GetScopedProperties()?.AddChainId(chainId);
     }
     private const string Email = "::solhigson::framework::LogItems::email::";
     internal static void SetCurrentLogUserEmail(string email)
     {
-        var httpContext = GetHttpContextAccessor()?.HttpContext;
-        if (httpContext is not null)
-        {
-            SetItem(httpContext, Email, email);
-            return;
-        }
-        var scopedProperties = GetScopedProperties();
-        if (scopedProperties is not null)
-        {
-            scopedProperties.UserEmail = email;
-        }
+        // var httpContext = GetHttpContextAccessor()?.HttpContext;
+        // if (httpContext is not null)
+        // {
+        //     SetItem(httpContext, Email, email);
+        //     return;
+        // }
+        GetScopedProperties()?.AddEmail(email);
+    }
+
+    internal static void SetCurrentLogProperty(string key, string? value)
+    {
+        GetScopedProperties()?.AddProperty(key, value);
     }
     
     internal static string? GetCurrentLogChainId()
     {
-        if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(ChainId, out var chainId) == true)
-        {
-            return chainId as string;
-        }
-        return GetScopedProperties()?.LogChainId;
+        // if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(ChainId, out var chainId) == true)
+        // {
+        //     return chainId as string;
+        // }
+        return GetScopedProperties()?.GetChainId();
     }
     internal static string? GetCurrentLogUserEmail()
     {
-        if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(Email, out var email) == true)
-        {
-            return email as string;
-        }
-        return GetScopedProperties()?.UserEmail;
+        // if (GetHttpContextAccessor()?.HttpContext?.Items.TryGetValue(Email, out var email) == true)
+        // {
+        //     return email as string;
+        // }
+        return GetScopedProperties()?.GetEmail();
     }
 
     private static void SetItem(HttpContext? context, string key, string value)

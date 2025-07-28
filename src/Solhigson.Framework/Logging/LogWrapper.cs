@@ -57,31 +57,30 @@ public class LogWrapper
             return;
         }
         
-        var email = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
-                    ServiceProviderWrapper.GetCurrentLogUserEmail();
-        var chainId = ServiceProviderWrapper.GetCurrentLogChainId();
-
-        object?[]? otherArgs = null;
-        if (!string.IsNullOrWhiteSpace(email) || !string.IsNullOrEmpty(chainId))
-        {
-            switch (string.IsNullOrWhiteSpace(email))
-            {
-                case false when !string.IsNullOrWhiteSpace(chainId):
-                    otherArgs = [email, chainId];
-                    message += " |Email: {Email} |ChainId: {ChainId}";
-                    break;
-                case false:
-                    otherArgs = [email];
-                    message += " |Email: {Email}";
-                    break;
-                default:
-                    otherArgs = [chainId];
-                    message += " |ChainId: {ChainId}";
-                    break;
-            }
-        }
-
-        Log(_logger, logLevel, message, exception, otherArgs, args);
+        // var email = ServiceProviderWrapper.GetHttpContextAccessor()?.GetEmailClaim() ??
+        //             ServiceProviderWrapper.GetCurrentLogUserEmail();
+        // var chainId = ServiceProviderWrapper.GetCurrentLogChainId();
+        //
+        // object?[]? otherArgs = null;
+        // if (!string.IsNullOrWhiteSpace(email) || !string.IsNullOrEmpty(chainId))
+        // {
+        //     switch (string.IsNullOrWhiteSpace(email))
+        //     {
+        //         case false when !string.IsNullOrWhiteSpace(chainId):
+        //             otherArgs = [email, chainId];
+        //             message += " |Email: {Email} |ChainId: {ChainId}";
+        //             break;
+        //         case false:
+        //             otherArgs = [email];
+        //             message += " |Email: {Email}";
+        //             break;
+        //         default:
+        //             otherArgs = [chainId];
+        //             message += " |ChainId: {ChainId}";
+        //             break;
+        //     }
+        // }
+        Log(_logger, logLevel, message, exception, null, args);
     }
 
     private static void Log(ILogger logger, LogLevel logLevel, string? message, Exception? exception,
@@ -96,8 +95,22 @@ public class LogWrapper
             // }
         }
 
-        args = Merge(exception, otherArgs, args);
-        logger.Log(logLevel, exception, message, args!);
+        //args = Merge(exception, otherArgs, args);
+        var customProperties = ServiceProviderWrapper.GetScopedProperties()?.Properties;
+        if (customProperties is null)
+        {
+            logger.Log(logLevel, exception, message, args!);
+            return;
+        }
+        using (logger.BeginScope(customProperties))
+        {
+            logger.Log(logLevel, exception, message, args!);
+        }
+
+        // using (logger.BeginScope(customProperties))
+        // {
+        //     logger.Log(logLevel, exception, message, args!);
+        // }
 
         // if (args.HasData())
         // {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using NLog;
 using Solhigson.Framework.Infrastructure;
@@ -125,6 +126,11 @@ public static class LoggerExtensions
     public static void SetCurrentLogUserEmail(this object obj, string email)
     {
         ServiceProviderWrapper.SetCurrentLogUserEmail(email);
+    }
+
+    public static void SetCurrentLogProperty(this object obj, [NotNull] string key, string? value)
+    {
+        ServiceProviderWrapper.SetCurrentLogProperty(key, value);
     }
 
     // private static LogWrapper GetLoggerInternal(string name)

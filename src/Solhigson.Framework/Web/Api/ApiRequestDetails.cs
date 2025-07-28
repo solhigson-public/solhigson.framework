@@ -4,30 +4,27 @@ using System.Net.Http;
 
 namespace Solhigson.Framework.Web.Api;
 
-public class ApiRequestDetails
+public class ApiRequestDetails(Uri uri, HttpMethod httpMethod, string? payload = null, Dictionary<string, string>? headers = null)
 {
-    public ApiRequestDetails(Uri uri, HttpMethod httpMethod, string? payload = null)
-    {
-        Uri = uri;
-        TimeOut = 0;
-        Format = ApiRequestService.ContentTypeJson;
-        HttpMethod = httpMethod;
-        Payload = payload;
-        ExpectContinue = true;
-    }
+    private Dictionary<string, string>? _headers = headers;
 
-    public bool ExpectContinue { get; set; }
-    public Uri Uri { get; }
-    public HttpMethod HttpMethod { get; set; }
-    public Dictionary<string, string> Headers { get; set; }
-    public string Format { get; set; }
-    public int TimeOut { get; set; }
-    public string? Payload { get; }
-    public string ServiceName { get; set; }
-    public string ServiceType { get; set; }
-    public string ServiceDescription { get; set; }
+    public void AddHeader(string key, string value)
+    {
+        _headers ??= new Dictionary<string, string>();
+        _headers.Add(key, value);
+    }
+    public bool ExpectContinue { get; set; } = true;
+    public Uri Uri { get; } = uri;
+    public HttpMethod HttpMethod { get; set; } = httpMethod;
+    public IReadOnlyDictionary<string, string>? Headers => _headers;
+    public string Format { get; set; } = ApiRequestService.ContentTypeJson;
+    public int TimeOut { get; set; } = 0;
+    public string? Payload { get; } = payload;
+    public string? ServiceName { get; set; }
+    public string? ServiceType { get; set; }
+    public string? ServiceDescription { get; set; }
         
-    public string NamedHttpClient { get; set; }
+    public string? NamedHttpClient { get; set; }
     
     public bool? LogTrace { get; set; }
 }

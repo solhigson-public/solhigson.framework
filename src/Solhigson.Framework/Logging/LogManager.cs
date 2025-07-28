@@ -13,11 +13,13 @@ public static class LogManager
     private static readonly ConcurrentDictionary<string, LogWrapper> LogWrappers =
         new ();
     private static ILogger? _logger;
-    
-    public static void SetLoggerFactory(ILoggerFactory loggerFactory)
+    internal static string? ServiceName;
+
+    public static void SetLoggerFactory(ILoggerFactory loggerFactory, string? serviceName = null)
     {   
         _loggerFactory = loggerFactory;
         _logger = _loggerFactory.CreateLogger("Solhigson.LogManager");
+        ServiceName = serviceName;
     }
     
     public static void SetLogLevel(string? level)
