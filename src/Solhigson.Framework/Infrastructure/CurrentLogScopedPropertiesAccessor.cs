@@ -55,12 +55,10 @@ internal class ScopedProperties
     private const string ChainId = nameof(ChainId);
     private const string Email = nameof(Email);
 
-    private Dictionary<string, string?>? _properties;
-
-    public void AddProperty(string key, string? value)
+    public void AddProperty(string key, string value)
     {
-        _properties ??= new Dictionary<string, string?>();
-        _properties.TryAdd(key, value);
+        Properties ??= new Dictionary<string, object>();
+        Properties.TryAdd(key, value);
     }
 
     internal void AddChainId(string chainId)
@@ -75,20 +73,20 @@ internal class ScopedProperties
 
     internal string? GetChainId()
     {
-        return GetProperty(ChainId);
+        return GetProperty(ChainId)?.ToString();
     }
 
     internal string? GetEmail()
     {
-        return GetProperty(Email);
+        return GetProperty(Email)?.ToString();
     }
     
-    private string? GetProperty(string key)
+    private object? GetProperty(string key)
     {
-        string? value = null;
-        _properties?.TryGetValue(key, out value);
+        object? value = null;
+        Properties?.TryGetValue(key, out value);
         return value;
     }
 
-    internal IReadOnlyDictionary<string, string?>? Properties => _properties;
+    internal Dictionary<string, object>? Properties { get; private set; }
 }

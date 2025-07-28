@@ -10,7 +10,7 @@
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>8.16.21</PackageVersion>
+        <PackageVersion>8.16.22</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>12</LangVersion>
@@ -22,7 +22,8 @@
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.16" />
         <PackageReference Include="NewId" Version="4.0.1" />
-        <PackageReference Include="NLog" Version="5.4.0" />
+        <PackageReference Include="NLog" Version="6.0.2" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="6.0.2" />
         <PackageReference Include="NSubstitute" Version="5.3.0" />
         <PackageReference Include="Solhigson.Utilities" Version="8.16.16" />
         <PackageReference Include="StackExchange.Redis" Version="2.8.37" />

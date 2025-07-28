@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.Extensions.DependencyInjection;
@@ -94,18 +95,19 @@ public class LogWrapper
             //     message += " {exception}";
             // }
         }
+        logger.Log(logLevel, exception, message, args!);
 
         //args = Merge(exception, otherArgs, args);
-        var customProperties = ServiceProviderWrapper.GetScopedProperties()?.Properties;
-        if (customProperties is null)
-        {
-            logger.Log(logLevel, exception, message, args!);
-            return;
-        }
-        using (logger.BeginScope(customProperties))
-        {
-            logger.Log(logLevel, exception, message, args!);
-        }
+        // var customProperties = ServiceProviderWrapper.GetScopedProperties()?.Properties;
+        // if (customProperties is null)
+        // {
+        //     logger.Log(logLevel, exception, message, args!);
+        //     return;
+        // }
+        // using (logger.BeginScope(customProperties))
+        // {
+        //     logger.Log(logLevel, exception, message, args!);
+        // }
 
         // using (logger.BeginScope(customProperties))
         // {
