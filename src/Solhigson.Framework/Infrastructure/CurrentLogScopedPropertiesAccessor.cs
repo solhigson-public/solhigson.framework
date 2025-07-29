@@ -52,8 +52,8 @@ internal class CurrentLogScopedPropertiesAccessor
 }
 internal class ScopedProperties
 {
-    private const string ChainId = nameof(ChainId);
-    private const string Email = nameof(Email);
+    private const string ChainId = "chainId";
+    private const string Email = "email";
 
     public void AddProperty(string key, string value)
     {
