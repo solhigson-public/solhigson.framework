@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
@@ -510,7 +511,7 @@ public static class Extensions
 
     }
     
-    public static bool HasData<T>(this IEnumerable<T>? data)
+    public static bool HasData<T>([NotNullWhen(true)]this IEnumerable<T>? data)
     {
         return data switch
         {
