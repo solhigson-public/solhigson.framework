@@ -448,23 +448,70 @@ public static class HelperFunctions
 
     public static string SeparatePascalCaseWords(string input)
     {
-        //"((?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z]))"
+        if (string.IsNullOrEmpty(input))
+            return input;
 
-        var result = Regex.Replace(
-            input,
-            @"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])",
-            " ",
-            RegexOptions.Compiled).Trim();
-        return result[..1].ToUpper() + result[1..];
+        // 1) Count required length = original chars + number of spaces
+        var spaceCount = 0;
+        for (var i = 1; i < input.Length; i++)
+        {
+            char prev = input[i - 1], curr = input[i];
+            var boundary =
+                (char.IsLower(prev) && char.IsUpper(curr))
+                || (char.IsUpper(prev)
+                    && char.IsUpper(curr)
+                    && i + 1 < input.Length
+                    && char.IsLower(input[i + 1]))
+                || (char.IsLetter(prev) && !char.IsLetter(curr))
+                || (!char.IsLetter(prev) && char.IsLetter(curr));
+
+            if (boundary) spaceCount++;
+        }
+
+        var resultLength = input.Length + spaceCount;
+
+        // 2) Build exactly that many chars
+        return string.Create(resultLength, input, (span, s) =>
+        {
+            var dst = 0;
+            span[dst++] = char.ToUpper(s[0]);
+
+            for (var i = 1; i < s.Length; i++)
+            {
+                char prev = s[i - 1], curr = s[i];
+                var boundary =
+                    (char.IsLower(prev) && char.IsUpper(curr))
+                    || (char.IsUpper(prev)
+                        && char.IsUpper(curr)
+                        && i + 1 < s.Length
+                        && char.IsLower(s[i + 1]))
+                    || (char.IsLetter(prev) && !char.IsLetter(curr))
+                    || (!char.IsLetter(prev) && char.IsLetter(curr));
+
+                if (boundary)
+                    span[dst++] = ' ';
+
+                span[dst++] = curr;
+            }
+        });
+
+        // var result = Regex.Replace(
+        //     input,
+        //     @"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])",
+        //     " ",
+        //     RegexOptions.Compiled).Trim();
+        // return result[..1].ToUpper() + result[1..];
     }
 
-    public static string ReplacePlaceHolders(string text, IDictionary<string, string> placeHolders)
+    public static string ReplacePlaceHolders(string text, IDictionary<string, string>? placeholders)
     {
-        if (!string.IsNullOrWhiteSpace(text) && placeHolders?.Count > 0)
+        if (string.IsNullOrWhiteSpace(text) || placeholders == null || placeholders.Count == 0)
+            return text;
+
+        // Enumerate KeyValuePair so we only do one dictionary lookup per entry
+        foreach (var kv in placeholders)
         {
-            text = placeHolders.Keys.Aggregate(text,
-                (current, placeHolder) =>
-                    current.Replace(placeHolder, placeHolders[placeHolder]));
+            text = text.Replace(kv.Key, kv.Value);
         }
 
         return text;
