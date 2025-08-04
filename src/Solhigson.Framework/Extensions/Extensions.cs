@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Net.Http;
@@ -309,14 +310,15 @@ public static class Extensions
         
     #region DateTime
         
-    public static string ToClientTime(this DateTime dt, string? format = null)
+    public static string ToClientTime(this DateTime dt, string? format = null, CultureInfo? cultureInfo = null)
     {
-        return dt.AddMinutes(LocaleUtil.GetTimeZoneOffset()).ToString(format);
+        cultureInfo ??= CultureInfo.InvariantCulture;
+        return dt.AddMinutes(LocaleUtil.GetTimeZoneOffset()).ToString(format, cultureInfo);
     }
         
-    public static string ToClientTime(this DateTime? dt, string? format = null)
+    public static string ToClientTime(this DateTime? dt, string? format = null, CultureInfo? cultureInfo = null)
     {
-        return dt.HasValue ? dt.Value.ToClientTime(format) : "-";
+        return dt.HasValue ? dt.Value.ToClientTime(format, cultureInfo) : "-";
     }
         
     public static DateTime ToClientDateTime(this DateTime dt, int offSet)
@@ -324,19 +326,19 @@ public static class Extensions
         return dt.AddMinutes(offSet);
     }
 
-    public static DateTime ToClientDateTime(this DateTime? dt, int offSet)
+    public static DateTime? ToClientDateTime(this DateTime? dt, int offSet)
     {
-        return dt?.ToClientDateTime(offSet) ?? DateTime.UtcNow.ToClientDateTime(offSet);
+        return dt?.ToClientDateTime(offSet);
     }
 
     public static DateTime ToClientDateTime(this DateTime dt)
     {
-        return dt.AddMinutes(LocaleUtil.GetTimeZoneOffset());
+        return dt.ToClientDateTime(LocaleUtil.GetTimeZoneOffset());
     }
         
-    public static DateTime ToClientDateTime(this DateTime? dt)
+    public static DateTime? ToClientDateTime(this DateTime? dt)
     {
-        return dt?.ToClientDateTime() ?? DateTime.UtcNow.ToClientDateTime();
+        return dt?.ToClientDateTime();
     }
 
         
