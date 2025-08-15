@@ -17,9 +17,9 @@ public class ApiTraceData
 
     public string StatusCode { get; set; }
     public string StatusCodeDescription { get; set; }
-    public string RequestMessage { get; set; }
+    public string? RequestMessage { get; set; }
     public JObject RequestHeaders { get; set; }
-    public string ResponseMessage { get; set; }
+    public string? ResponseMessage { get; set; }
     public JObject? ResponseHeaders { get; set; }
     public DateTime RequestTime { get; set; }
     public DateTime ResponseTime { get; set; }

@@ -111,8 +111,8 @@ internal static class EfCoreCacheManager
         }
         catch (Exception e)
         {
-            _logger?.LogError(e, "[{CacheType}]: Unable to add data of type {Type} to cache, " +
-                                 "type might not serializable to json consider using CacheType.Memory", _cacheType.ToString(), typeof(T).FullName);
+            _logger?.LogError(e, "[{CacheType}]: Unable to add data of type {Type} to cache",
+                _cacheType.ToString(), typeof(T).FullName);
             return resp.Fail(e.Message);
         }
 

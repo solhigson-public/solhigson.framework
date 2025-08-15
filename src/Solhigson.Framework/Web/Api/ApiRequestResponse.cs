@@ -4,10 +4,24 @@ using System.Net;
 using System.Net.Http;
 
 namespace Solhigson.Framework.Web.Api;
+public enum RequestOutcome
+{
+    Success,
+    HttpError,
+    VendorNetworkLikeHttpError,   // e.g., 522, 599
+    TransportNetworkError,        // DNS/TCP/TLS/timeout etc. (no HTTP response)
+}
+
+public sealed record HttpCallResult(
+    RequestOutcome Outcome,
+    HttpStatusCode StatusCode,
+    string? Reason = null,
+    bool IsRetryable = false,
+    string? errorType = null);
 
 public class ApiRequestResponse
 {
-    public HttpStatusCode HttpStatusCode { get; set; }
+    public HttpStatusCode HttpStatusCode => HttpCallResult.StatusCode;
 
     public string? HttpStatusDescription { get; set; }
 
@@ -33,8 +47,8 @@ public class ApiRequestResponse
     }
         
     public TimeSpan TimeTaken { get; set; }
-        
-        
+
+    public HttpCallResult HttpCallResult { get; set; } = null!;
 }
 
 public class ApiRequestResponse<T> : ApiRequestResponse
