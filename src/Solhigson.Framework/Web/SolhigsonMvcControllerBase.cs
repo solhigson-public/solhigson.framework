@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Primitives;
 using Solhigson.Framework.Dto;
@@ -19,13 +20,21 @@ public class SolhigsonMvcControllerBase : Controller
 {
     protected bool IsChecked(string name)
     {
-        if (!HttpMethods.IsPost(Request.Method))
+        StringValues isChecked;
+        bool value;
+        if (HttpMethods.IsPost(Request.Method))
         {
-            return false;
+            isChecked = Request.Form[name];
+            value = isChecked.Any(t => string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0);
         }
-
-        var isChecked = Request.Form[name];
-        return isChecked.Any(t => string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0);
+        else
+        {
+            isChecked = Request.Query[name];
+            value = isChecked.Any(t => string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0
+                                       || string.Compare("true", t, StringComparison.OrdinalIgnoreCase) == 0);
+        }
+        ModelState.SetModelValue(name, new ValueProviderResult(value.ToString()));
+        return value;
     }
 
     protected string IsChecked(bool value)
