@@ -146,7 +146,7 @@ public static class Extensions
         return services;
     }
     
-    private static IServiceCollection AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
+    private static IdentityBuilder AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
         Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<TKey, TRole>
         where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
@@ -154,34 +154,34 @@ public static class Extensions
         where TRoleGroup : SolhigsonRoleGroup, new()
         where TKey : IEquatable<TKey>
     {
-        services.AddIdentity<TUser, TRole>(setupAction).AddEntityFrameworkStores<TContext>()
+        var identityBuilder = services.AddIdentity<TUser, TRole>(setupAction!).AddEntityFrameworkStores<TContext>()
             .AddDefaultTokenProviders();
         //services.TryAddScoped<SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey>>();
         services.TryAddScoped<RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey>>();
         services.TryAddScoped<PermissionManager<TUser, TRole, TContext, TKey>>();
         services.TryAddScoped<IPermissionMiddleware, PermissionsMiddleware<TUser, TRole, TKey, TContext>>();
-        return services;
+        return identityBuilder;
     }
         
-    public static IServiceCollection AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
+    public static IdentityBuilder AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
         Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
         where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
     {
-        services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole, SolhigsonRoleGroup, string, TContext>(setupAction);
+        var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole, SolhigsonRoleGroup, string, TContext>(setupAction);
         services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
-        return services;
+        return builder;
     }
         
-    public static IServiceCollection AddSolhigsonIdentityManager<TUser, TKey, TContext>(this IServiceCollection services,
+    public static IdentityBuilder AddSolhigsonIdentityManager<TUser, TKey, TContext>(this IServiceCollection services,
         Action<IdentityOptions>? setupAction = null) 
         where TUser : SolhigsonUser<TKey>
         where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
         where TKey : IEquatable<TKey>
     {
-        services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
+        var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
         services.TryAddScoped<SolhigsonIdentityManager<TUser, TKey, TContext>>();
-        return services;
+        return builder;
     }
         
     public static IApplicationBuilder UseSolhigsonPermissionMiddleware(this IApplicationBuilder app)
