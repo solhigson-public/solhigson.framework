@@ -10,7 +10,7 @@
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>8.16.29</PackageVersion>
+        <PackageVersion>8.16.30</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>12</LangVersion>
@@ -25,7 +25,7 @@
         <PackageReference Include="NLog" Version="6.0.2" />
         <PackageReference Include="NLog.Extensions.Logging" Version="6.0.2" />
         <PackageReference Include="NSubstitute" Version="5.3.0" />
-        <PackageReference Include="Solhigson.Utilities" Version="8.16.16" />
+        <PackageReference Include="Solhigson.Utilities" Version="8.16.30" />
         <PackageReference Include="StackExchange.Redis" Version="2.8.37" />
         <PackageReference Include="xunit" Version="2.9.3" />
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />

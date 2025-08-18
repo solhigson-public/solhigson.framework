@@ -10,7 +10,7 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <PackageVersion>8.16.18</PackageVersion>
+        <PackageVersion>8.16.30</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>12</LangVersion>
@@ -69,7 +69,7 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.16" />
-      <PackageReference Include="Solhigson.Utilities" Version="8.16.16" />
+      <PackageReference Include="Solhigson.Utilities" Version="8.16.30" />
       <PackageReference Include="System.CodeDom" Version="8.0.0" />
     </ItemGroup>
 
