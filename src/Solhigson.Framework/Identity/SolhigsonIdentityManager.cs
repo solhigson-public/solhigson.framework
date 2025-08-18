@@ -146,6 +146,10 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         }
             
         response.User = await GetUserDetailsByUsernameAsync(userName, cancellationToken);
+        if (response.User is null)
+        {
+            response.IsSuccessful = false;
+        }
         return response;
     }
 

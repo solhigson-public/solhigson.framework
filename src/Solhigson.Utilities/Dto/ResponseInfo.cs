@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
@@ -133,6 +134,7 @@ public struct ResponseInfo<T>(
 
     [Newtonsoft.Json.JsonIgnore] 
     [System.Text.Json.Serialization.JsonIgnore]
+    [MemberNotNullWhen(true, nameof(Data))]
     public bool IsSuccessful => _responseInfo.IsSuccessful;
 
     public ResponseInfo<T> Success(T result, string? message = "")
@@ -168,9 +170,9 @@ public struct ResponseInfo<T>(
     [System.Text.Json.Serialization.JsonIgnore]
     public ResponseInfo InfoResult => _responseInfo;
         
-    public TK? GetError<TK>()
+    public Tk? GetError<Tk>()
     {
-        return _responseInfo.GetError<TK>();
+        return _responseInfo.GetError<Tk>();
     }
         
     public ResponseInfo<T> SetStatusCode(string statusCode)
