@@ -460,7 +460,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
     {
         if (IsVendorNetworkLike(resp.StatusCode))
         {
-            return new HttpCallResult(
+            return HttpCallResult.New(
                 RequestOutcome.VendorNetworkLikeHttpError,
                 resp.StatusCode,
                 resp.ReasonPhrase,
@@ -469,14 +469,14 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
 
         if (!resp.IsSuccessStatusCode)
         {
-            return new HttpCallResult(
+            return HttpCallResult.New(
                 RequestOutcome.HttpError,
                 resp.StatusCode,
                 resp.ReasonPhrase,
                 IsPotentiallyTransient(resp));
         }
 
-        return new HttpCallResult(RequestOutcome.Success, resp.StatusCode, resp.ReasonPhrase);
+        return HttpCallResult.New(RequestOutcome.Success, resp.StatusCode, resp.ReasonPhrase);
     }
 
     private static bool IsPotentiallyTransient(HttpResponseMessage resp)
@@ -510,22 +510,22 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
         {
             // Timed out (HttpClient.Timeout or CTS-based timeout when token not flagged here)
             OperationCanceledException
-                => new HttpCallResult(RequestOutcome.TransportNetworkError, 0, "Request timeout", true, ex.GetType().FullName),
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, "Request timeout", true, ex.GetType().FullName),
 
             // DNS/connect/refused/etc.
             HttpRequestException { InnerException: SocketException se }
-                => new HttpCallResult(RequestOutcome.TransportNetworkError, 0, se.SocketErrorCode.ToString(), true, ex.GetType().FullName),
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, se.SocketErrorCode.ToString(), true, ex.GetType().FullName),
 
             // TLS/SSL handshake failures (usually not retryable until fixed)
             AuthenticationException aex
-                => new HttpCallResult(RequestOutcome.TransportNetworkError, 0, $"TLS: {aex.Message}", errorType: ex.GetType().FullName),
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, $"TLS: {aex.Message}", errorType: ex.GetType().FullName),
 
             // Other transport issues surfaced by HttpClient
             HttpRequestException hrex
-                => new HttpCallResult(RequestOutcome.TransportNetworkError, 0, hrex.Message, true, ex.GetType().FullName),
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, hrex.Message, true, ex.GetType().FullName),
 
             // Fallback
-            _ => new HttpCallResult(RequestOutcome.TransportNetworkError, 0, ex.Message, errorType: ex.GetType().FullName)
+            _ => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, ex.Message, errorType: ex.GetType().FullName)
         };
     #endregion
 }
