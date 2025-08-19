@@ -108,7 +108,7 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         
     public async Task<T> AddAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default)
     {
-        return await DoActionAndSaveChangesAsync(DbContext.Set<T>().Add, entity, cancellationToken);
+        return await DoActionAndSaveChangesAsync(DbContext.Add, entity, cancellationToken);
     }
 
     public void AddRange(IEnumerable<T> entities)
@@ -118,7 +118,7 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
  
     public async Task AddRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
     {
-        await DoActionAndSaveChangesAsync(DbContext.Set<T>().AddRange, entities, cancellationToken);
+        await DoActionAndSaveChangesAsync(DbContext.AddRange, entities, cancellationToken);
     }
     #endregion
 
