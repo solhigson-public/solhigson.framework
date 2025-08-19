@@ -372,8 +372,8 @@ public static class Extensions
         var serializedMessages = tempData[PageMessage.MessageKey];
 
         return serializedMessages == null
-            ? new List<PageMessage>()
-            : ((string)serializedMessages).DeserializeFromJson<List<PageMessage>>();
+            ? []
+            : ((string)serializedMessages).DeserializeFromJson<List<PageMessage>>() ?? [];;
     }
 
     private static void SetDisplayMessages(this ITempDataDictionary tempData, List<PageMessage> messages)
@@ -409,6 +409,13 @@ public static class Extensions
             });
         }
 
+        tempData.SetDisplayMessages(messages);
+    }
+    
+    public static void ClearDisplayMessages(this ITempDataDictionary tempData)
+    {
+        var messages = tempData.GetDisplayMessages();
+        messages.Clear();
         tempData.SetDisplayMessages(messages);
     }
 

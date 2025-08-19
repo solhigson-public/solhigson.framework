@@ -53,6 +53,11 @@ public class SolhigsonMvcControllerBase : Controller
         this.SetDisplayMessage(message, PageMessageType.Info, closeOnClick, clearBeforeAdd, encodeHtml);
     }
 
+    protected void ClearMessages()
+    {
+        TempData.ClearDisplayMessages();
+    }
+
     protected int TryGetRequestParameterAsInteger(string name, int defaultValue)
     {
         var vals = StringValues.Empty;
