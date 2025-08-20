@@ -18,6 +18,7 @@ public static class AdoNetUtils
         bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
+        SqlTransaction? transaction = null,
         CancellationToken cancellationToken = new())
     {
         await using var conn = new SqlConnection(connectionString);
@@ -26,6 +27,10 @@ public static class AdoNetUtils
             conn.RetryLogicProvider = retryLogicBaseProvider;
         }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
+        if (transaction is not null)
+        {
+            cmd.Transaction = transaction;
+        }
         if (commandTimeout is not null)
         {
             cmd.CommandTimeout = commandTimeout.Value;
@@ -40,6 +45,7 @@ public static class AdoNetUtils
         List<SqlParameter>? parameters = null, bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
+        SqlTransaction? transaction = null,
         CancellationToken cancellationToken = new())
     {
         await using var conn = new SqlConnection(connectionString);
@@ -48,6 +54,10 @@ public static class AdoNetUtils
             conn.RetryLogicProvider = retryLogicBaseProvider;
         }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
+        if (transaction is not null)
+        {
+            cmd.Transaction = transaction;
+        }
         if (commandTimeout is not null)
         {
             cmd.CommandTimeout = commandTimeout.Value;
@@ -61,6 +71,7 @@ public static class AdoNetUtils
         List<SqlParameter>? parameters = null, bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
+        SqlTransaction? transaction = null,
         CancellationToken cancellationToken = new())
     {
         await using var conn = new SqlConnection(connectionString);
@@ -69,6 +80,10 @@ public static class AdoNetUtils
             conn.RetryLogicProvider = retryLogicBaseProvider;
         }
         await using var cmd = new SqlCommand(spNameOrCommand, conn);
+        if (transaction is not null)
+        {
+            cmd.Transaction = transaction;
+        }
         if (commandTimeout is not null)
         {
             cmd.CommandTimeout = commandTimeout.Value;

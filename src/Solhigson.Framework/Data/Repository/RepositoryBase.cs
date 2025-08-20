@@ -13,46 +13,44 @@ using Solhigson.Utilities.Extensions;
 
 namespace Solhigson.Framework.Data.Repository;
 
-public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T : class, new() where TDbContext : DbContext
+public abstract class RepositoryBase<T, TDbContext>(TDbContext dbContext) : IRepositoryBase<T>
+    where T : class, new()
+    where TDbContext : DbContext
 {
-    protected TDbContext DbContext { get; set; }
-    private string ConnectionString { get; }
-
-    public RepositoryBase(TDbContext dbContext)
-    {
-        DbContext = dbContext;
-        var connectionString = dbContext.Database.GetDbConnection().ConnectionString;
-        ConnectionString = connectionString;
-    }
+    protected TDbContext DbContext { get; init; } = dbContext;
+    private string ConnectionString { get; } = dbContext.Database.GetDbConnection().ConnectionString;
 
     public async Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
+        SqlTransaction? transaction = null,
         CancellationToken cancellationToken = default)
     {
         return await AdoNetUtils.ExecuteNonQueryAsync(ConnectionString,
-            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, cancellationToken);
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, transaction, cancellationToken);
     }
     
-    public async Task<TK?> ExecuteSingleOrDefaultAsync<TK>(string spName, List<SqlParameter>? parameters = null,
+    public async Task<Tk?> ExecuteSingleOrDefaultAsync<Tk>(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
+        SqlTransaction? transaction = null,
         CancellationToken cancellationToken = default)
     {
-        return await AdoNetUtils.ExecuteSingleOrDefaultAsync<TK>(ConnectionString,
-            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, cancellationToken);
+        return await AdoNetUtils.ExecuteSingleOrDefaultAsync<Tk>(ConnectionString,
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, transaction, cancellationToken);
     }
 
-    public async Task<List<TK>> ExecuteListAsync<TK>(string spName, List<SqlParameter>? parameters = null,
+    public async Task<List<Tk>> ExecuteListAsync<Tk>(string spName, List<SqlParameter>? parameters = null,
         bool isStoredProcedure = true,
         SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
         int? commandTimeout = null,
+        SqlTransaction? transaction = null,
         CancellationToken cancellationToken = default)
     {
-        return await AdoNetUtils.ExecuteListAsync<TK>(ConnectionString,
-            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, cancellationToken);
+        return await AdoNetUtils.ExecuteListAsync<Tk>(ConnectionString,
+            spName, parameters, isStoredProcedure, retryLogicBaseProvider, commandTimeout, transaction, cancellationToken);
     }
     
     protected SqlParameter GetParameter(string name, object value)
@@ -79,9 +77,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
     }
     
     [Obsolete("This property is obsolete. Use Where<TK>() instead.")]
-    public IQueryable<TK> Get<TK>(Expression<Func<T, bool>> expression) where TK : class
+    public IQueryable<Tk> Get<Tk>(Expression<Func<T, bool>> expression) where Tk : class
     {
-        return Where<TK>(expression);
+        return Where<Tk>(expression);
     }
     
     public IQueryable<T> Where(Expression<Func<T, bool>> expression)
@@ -89,9 +87,9 @@ public abstract class RepositoryBase<T, TDbContext> : IRepositoryBase<T> where T
         return DbContext.Set<T>().Where(expression);
     }
     
-    public IQueryable<TK> Where<TK>(Expression<Func<T, bool>> expression) where TK : class
+    public IQueryable<Tk> Where<Tk>(Expression<Func<T, bool>> expression) where Tk : class
     {
-        return DbContext.Set<T>().Where(expression).AsNoTracking().ProjectToType<TK>();
+        return DbContext.Set<T>().Where(expression).AsNoTracking().ProjectToType<Tk>();
     }
 
 
