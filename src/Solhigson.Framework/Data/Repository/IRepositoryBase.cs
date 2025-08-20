@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 namespace Solhigson.Framework.Data.Repository;
 
@@ -30,4 +31,25 @@ public interface IRepositoryBase<T> where T : class, new()
     void RemoveRange(IEnumerable<T> entities);
     Task<T> RemoveAndSaveChangesAsync(T entity, CancellationToken cancellationToken = default);
     Task RemoveRangeAndSaveChangesAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default);
+
+    Task<int> ExecuteNonQueryAsync(string spName, List<SqlParameter>? parameters = null,
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
+        int? commandTimeout = null,
+        SqlTransaction? transaction = null,
+        CancellationToken cancellationToken = default);
+
+    Task<Tk?> ExecuteSingleOrDefaultAsync<Tk>(string spName, List<SqlParameter>? parameters = null,
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
+        int? commandTimeout = null,
+        SqlTransaction? transaction = null,
+        CancellationToken cancellationToken = default);
+
+    Task<List<Tk>> ExecuteListAsync<Tk>(string spName, List<SqlParameter>? parameters = null,
+        bool isStoredProcedure = true,
+        SqlRetryLogicBaseProvider? retryLogicBaseProvider = null,
+        int? commandTimeout = null,
+        SqlTransaction? transaction = null,
+        CancellationToken cancellationToken = default);
 }
