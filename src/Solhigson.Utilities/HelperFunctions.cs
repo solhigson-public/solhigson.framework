@@ -115,17 +115,22 @@ public static class HelperFunctions
         double value;
         string postfix;
         var determinePlural = true;
-        if (timeSpan.TotalMinutes < 1)
+        if (timeSpan.TotalSeconds < 1)
         {
-            if (timeSpan.TotalSeconds < 1)
+            determinePlural = false;
+            if (timeSpan.TotalMilliseconds < 1)
             {
                 value = 1;
             }
             else
             {
-                value = Math.Round(timeSpan.TotalSeconds, 2, MidpointRounding.AwayFromZero);
+                value = Math.Round(timeSpan.TotalMilliseconds, 0, MidpointRounding.AwayFromZero);
             }
-
+            postfix = " ms";
+        }
+        else if (timeSpan.TotalMinutes < 1)
+        {
+            value = Math.Round(timeSpan.TotalSeconds, 2, MidpointRounding.AwayFromZero);
             postfix = " sec";
         }
         else if (timeSpan.TotalHours < 1)
