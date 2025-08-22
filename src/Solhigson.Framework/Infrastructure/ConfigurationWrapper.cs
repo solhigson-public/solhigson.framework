@@ -168,8 +168,17 @@ public class ConfigurationWrapper
         {
             if (defaultValue == null) throw;
             this.LogError(e,
-                "Invalid value set for setting, using default value of {defaultValue} instead.", defaultValue);
-            return (T) defaultValue;
+                "Invalid value set for setting {groupName}:{key}, using default value of {defaultValue} instead.", groupName, key, defaultValue);
+            try
+            {
+                return ChangeType<T>(key, defaultValue, groupName);
+            }
+            catch (Exception ex)
+            {
+                this.LogError(ex,
+                    "Invalid [Default value] set for setting {groupName}:{key}={defaultValue}.", groupName, key, defaultValue);
+                throw;
+            }
         }
     }
 
