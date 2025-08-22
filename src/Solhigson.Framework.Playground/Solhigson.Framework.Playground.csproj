@@ -6,12 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Audit.EntityFramework.Core" Version="29.0.1" />
+        <PackageReference Include="Audit.EntityFramework.Core" Version="31.0.0" />
         <PackageReference Include="Audit.NET.AzureCosmos" Version="29.0.1" />
         <PackageReference Include="Audit.NET.MongoDB" Version="29.0.1" />
         <PackageReference Include="ClosedXML" Version="0.105.0" />
         <PackageReference Include="FastExcel" Version="3.0.13" />
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.16" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.19" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="8.0.16" />
         <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.2" />
         <PackageReference Include="Open.Text" Version="6.3.0" />
