@@ -438,8 +438,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
         }
         catch (Exception e)
         {
-            _logger.LogError(e, $"While deserializing response: " +
-                                $"{apiRequestResponse.Response} from: {format}");
+            _logger.LogError(e, "While deserializing response: {Response} from: {Format}", apiRequestResponse.Response, format);
         }
     }
 
@@ -483,7 +482,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
     {
         var code = (int)resp.StatusCode;
         if (resp.StatusCode is HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable
-            or HttpStatusCode.GatewayTimeout)
+            or HttpStatusCode.GatewayTimeout or HttpStatusCode.RequestTimeout)
             return true;
         if (resp.Headers.RetryAfter != null) return true;
         if (resp.StatusCode == (HttpStatusCode)429) return true;
@@ -510,11 +509,11 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
         {
             // Timed out (HttpClient.Timeout or CTS-based timeout when token not flagged here)
             OperationCanceledException
-                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, "Request timeout", true, ex.GetType().FullName),
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, HttpStatusCode.RequestTimeout, "Request timeout", true, ex.GetType().FullName),
 
             // DNS/connect/refused/etc.
             HttpRequestException { InnerException: SocketException se }
-                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0, se.SocketErrorCode.ToString(), true, ex.GetType().FullName),
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, HttpStatusCode.ServiceUnavailable, se.SocketErrorCode.ToString(), true, ex.GetType().FullName),
 
             // TLS/SSL handshake failures (usually not retryable until fixed)
             AuthenticationException aex
