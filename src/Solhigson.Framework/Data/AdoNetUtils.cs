@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
@@ -143,7 +144,11 @@ public static class AdoNetUtils
             {
                 try
                 {
-                    var fieldName = pInfo.Name;
+                    var fieldName = pInfo.GetCustomAttribute<ReaderCol>()?.Name;
+                    if (string.IsNullOrWhiteSpace(fieldName))
+                    {
+                        fieldName = pInfo.Name;
+                    }
                     var value = reader.GetValue(fieldName);
                     if (value is DBNull) continue;
 
