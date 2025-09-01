@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,20 +14,17 @@ using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.EntityModels;
 using Solhigson.Framework.Services;
+using Solhigson.Utilities;
 using Solhigson.Utilities.Security;
 
 namespace Solhigson.Framework.Infrastructure;
 
-public class ConfigurationWrapper
+public class ConfigurationWrapper(
+    IConfiguration configuration,
+    DbContextOptionsBuilder<SolhigsonDbContext>? optionsBuilder)
 {
-    public IConfiguration Configuration { get; }
-    private readonly DbContextOptionsBuilder<SolhigsonDbContext>? _optionsBuilder;
-
-    public ConfigurationWrapper(IConfiguration configuration, DbContextOptionsBuilder<SolhigsonDbContext>? optionsBuilder)
-    {
-        Configuration = configuration;
-        _optionsBuilder = optionsBuilder;
-    }
+    public IConfiguration Configuration { get; } = configuration;
+    private readonly AsyncLock _asyncLock = new(1);
 
     public async ValueTask<T> GetFromAppSettingFileOnlyAsync<T>(string group, string? key = null, string? defaultValue = null)
     {
@@ -64,7 +62,7 @@ public class ConfigurationWrapper
         }
 
         // ReSharper disable once InconsistentlySynchronizedField
-        if (useAppSettingsFileOnly || _optionsBuilder is null)
+        if (useAppSettingsFileOnly || optionsBuilder is null)
         {
             if (defaultValue is not null)
             {
@@ -74,7 +72,7 @@ public class ConfigurationWrapper
                 $"Configuration [{configKey}] not found in appSettings.");
         }
 
-        var dbContext = new SolhigsonDbContext(_optionsBuilder.Options);
+        var dbContext = new SolhigsonDbContext(optionsBuilder.Options);
         
         // ReSharper disable once InconsistentlySynchronizedField
         var query = dbContext.AppSettings.Where(t => t.Name == configKey);//
@@ -108,7 +106,7 @@ public class ConfigurationWrapper
             throw new Exception($"Configuration [{configKey}] not found in appSettings or database.");
         }
 
-        AddSettingToDb(dbContext, configKey, defaultValue);
+        _ = _asyncLock.WithLockAsync(async _ => await AddSettingToDbAsync(configKey, defaultValue));
         return defaultValue;
 
     }
@@ -125,15 +123,16 @@ public class ConfigurationWrapper
     }
 
 
-    private void AddSettingToDb(SolhigsonDbContext dbContext, string key, string value)
+    private async Task AddSettingToDbAsync(string key, string value)
     {
+        if (optionsBuilder is null)
+        {
+            return;
+        }
         try
         {
-            /*
-            lock (SyncHelper)
-            {
-                */
-            if (dbContext.Set<AppSetting>().Any(t => t.Name == key))
+            var dbContext = new SolhigsonDbContext(optionsBuilder.Options);
+            if (await dbContext.Set<AppSetting>().AnyAsync(t => t.Name == key))
             {
                 return;
             }
@@ -144,13 +143,8 @@ public class ConfigurationWrapper
                 Value = value
             };
             dbContext.AppSettings.Add(setting);
-            dbContext.SaveChanges();
-            //await _dbContext.SaveChangesAsync();
-            //this.ELogWarn($"Adding default AppSetting [{key} - {value}] to database");
-            //CacheManager.AddToCacheAsync(query.GetCacheKey(), value, new List<Type> {typeof(AppSetting)});
-            /*
-            }
-        */
+            await dbContext.SaveChangesAsync();
+            await AddToCacheAsync(key, value);
         }
         catch (Exception e)
         {
