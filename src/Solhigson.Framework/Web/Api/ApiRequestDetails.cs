@@ -13,18 +13,22 @@ public class ApiRequestDetails(Uri uri, HttpMethod httpMethod, string? payload =
         _headers ??= new Dictionary<string, string>();
         _headers.TryAdd(key, value);
     }
+    
     public bool ExpectContinue { get; set; } = true;
     public Uri Uri { get; } = uri;
     public HttpMethod HttpMethod { get; set; } = httpMethod;
     public IReadOnlyDictionary<string, string>? Headers => _headers;
     public string Format { get; set; } = ApiRequestService.ContentTypeJson;
-    public int TimeOut { get; set; } = 0;
-    public string? Payload { get; } = payload;
+    public int TimeOut { get; set; }
+    public string? Payload { get; set; } = payload;
     public string? ServiceName { get; set; }
     public string? ServiceType { get; set; }
     public string? ServiceDescription { get; set; }
         
     public string? NamedHttpClient { get; set; }
     
+    public HttpContent? HttpContent { get; set; }
+    
+    public bool ReadResponseContent { get; set; } = true;
     public bool? LogTrace { get; set; }
 }

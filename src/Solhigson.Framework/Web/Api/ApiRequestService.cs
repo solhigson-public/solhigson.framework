@@ -267,13 +267,20 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
         {
             request.Method = method;
             request.RequestUri = apiRequestDetails.Uri;
-            if (!string.IsNullOrWhiteSpace(data))
+            if (apiRequestDetails.HttpContent is not null)
             {
-                request.Content = new StringContent(data, Encoding.UTF8, format);
+                request.Content = apiRequestDetails.HttpContent;
             }
-            else if (method == HttpMethod.Delete || method == HttpMethod.Put)
+            else
             {
-                request.Content ??= new StringContent("", Encoding.UTF8, format);
+                if (!string.IsNullOrWhiteSpace(data))
+                {
+                    request.Content = new StringContent(data, Encoding.UTF8, format);
+                }
+                else if (method == HttpMethod.Delete || method == HttpMethod.Put)
+                {
+                    request.Content ??= new StringContent("", Encoding.UTF8, format);
+                }
             }
 
             if (timeOut > 0)
@@ -304,8 +311,11 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
                 await MakeHttpCall<T>(apiRequestDetails, client, request); // client.SendAsync(request);
             apiRequestHelperResponse.HttpCallResult = GetHttpCallResult(apiRequestHelperResponse.HttpResponseMessage);
             apiRequestHelperResponse.EndTime = DateTime.UtcNow;
-            apiRequestHelperResponse.Response =
-                await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
+            if (apiRequestDetails.ReadResponseContent)
+            {
+                apiRequestHelperResponse.Response =
+                    await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync();
+            }
         }
         catch (Exception e)
         {
