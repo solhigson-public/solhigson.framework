@@ -148,7 +148,7 @@ public class ConfigurationWrapper(
         }
         catch (Exception e)
         {
-            this.LogError(e, "ConfigWrapper, saving {key} to AppSettings", key);
+            this.LogError(e, "ConfigWrapper, saving configuration [{key}] to database", key);
         }
     }
 
