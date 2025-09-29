@@ -6,6 +6,10 @@ namespace Solhigson.Framework.Logging;
 
 public record ExceptionInfo
 {
+    [JsonProperty("Type")]
+    [JsonPropertyName("Type")]
+    public string? Type { get; set; }
+
     [JsonProperty("Message")]
     [JsonPropertyName("Message")]
     public string? Message { get; set; }
