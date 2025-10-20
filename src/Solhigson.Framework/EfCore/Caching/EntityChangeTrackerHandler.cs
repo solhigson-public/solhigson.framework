@@ -2,15 +2,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Microsoft.Extensions.Primitives;
 using Solhigson.Framework.Extensions;
 
 namespace Solhigson.Framework.EfCore.Caching;
 
 public class EntityChangeTrackerHandler : IDisposable
 {
-    public event EventHandler? OnChanged;
     private readonly MemoryCacheProvider _memoryCacheProvider;
-
+    private volatile CancellationTokenSource _sentinel = new();
     private readonly Dictionary<string, int> _changeIds = new();
 
     public EntityChangeTrackerHandler(MemoryCacheProvider memoryCacheProvider, Type[] types)
@@ -24,6 +25,9 @@ public class EntityChangeTrackerHandler : IDisposable
 
         _memoryCacheProvider.OnTableChangeTimerElapsed += OnTableChangeTimerElapsed;
     }
+    
+    internal CancellationChangeToken Sentinel() => new(_sentinel.Token);
+
     internal string TableNames => MemoryCacheProvider.Flatten(_changeIds.Keys.ToList());
 
     private void OnTableChangeTimerElapsed(object? sender, EventArgs e)
@@ -42,32 +46,30 @@ public class EntityChangeTrackerHandler : IDisposable
 
             _changeIds[key] = changeId;
             this.LogTrace("Change tracker changed for [{Key}]", key);
-            OnChanged?.Invoke(null, EventArgs.Empty);
+            var old = _sentinel;
+            _sentinel = new CancellationTokenSource();
+            try
+            {
+                old.Cancel();
+            }
+            finally
+            {
+                old.Dispose(); 
+            }        
         }
-
-
-        /*
-        if (!ce.ChangeIds.TryGetValue(TableName, out var changeId))
-        {
-            return;
-        }
-
-        if (changeId == _currentChangeTrackId)
-        {
-            return;
-        }
-
-        */
-        /*
-        _currentChangeTrackId = changeId;
-        this.ELogDebug($"Change tracker changed for [{TableName}]");
-        OnChanged?.Invoke(null, new EventArgs());
-    */
     }
 
     public void Dispose()
     {
         _memoryCacheProvider.OnTableChangeTimerElapsed -= OnTableChangeTimerElapsed;
-        OnChanged = null;
+        try
+        {
+            _sentinel.Cancel();
+        }
+        finally
+        {
+            _sentinel.Dispose();
+        }
+        GC.SuppressFinalize(this);
     }
 }

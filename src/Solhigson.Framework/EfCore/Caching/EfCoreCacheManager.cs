@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Solhigson.Framework.Data.Caching;
 using Solhigson.Framework.Dto;
@@ -22,7 +23,7 @@ internal static class EfCoreCacheManager
     private static CacheType _cacheType;
     
 
-    internal static void Initialize(ILoggerFactory? loggerFactory = null, IConnectionMultiplexer? connectionMultiplexer = null, 
+    internal static void Initialize(IMemoryCache memoryCache, ILoggerFactory? loggerFactory = null, IConnectionMultiplexer? connectionMultiplexer = null, 
         Func<IConnectionMultiplexer?>? connectionMultiplexerFactory = null, string? prefix = null,
         int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
@@ -42,8 +43,8 @@ internal static class EfCoreCacheManager
             _cacheType = CacheType.Memory;
             _prefix = $"{prefix}.solhigson.efcore.caching.{_cacheType.ToString()}.";
             _cacheProvider = connectionMultiplexerFactory is null
-                ? new MemoryCacheProvider(connectionMultiplexer!, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds)
-                : new MemoryCacheProvider(connectionMultiplexerFactory!, _prefix, expirationInMinutes,
+                ? new MemoryCacheProvider(memoryCache, connectionMultiplexer!, _prefix, expirationInMinutes, changeTrackerTimerIntervalInSeconds)
+                : new MemoryCacheProvider(memoryCache, connectionMultiplexerFactory!, _prefix, expirationInMinutes,
                     changeTrackerTimerIntervalInSeconds);
 
         }

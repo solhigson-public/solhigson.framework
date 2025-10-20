@@ -2,11 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Caching;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
-using Solhigson.Framework.Dto;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
 using Solhigson.Framework.Extensions;
 using Solhigson.Utilities;
 using Solhigson.Utilities.Dto;
@@ -18,20 +18,22 @@ namespace Solhigson.Framework.EfCore.Caching;
 public class MemoryCacheProvider : CacheProviderBase
 {
     private static Timer? _timer;
-    private static MemoryCache DefaultMemoryCache { get; } = new("Solhigson::EfCore::Memory::Cache::Manager");
+    private readonly IMemoryCache _memoryCache;
     private static readonly ConcurrentDictionary<string, EntityChangeTrackerHandler> ChangeTrackers = new();
     private string? _cacheKey;
     public event EventHandler? OnTableChangeTimerElapsed;
 
-    internal MemoryCacheProvider(IConnectionMultiplexer redis, string prefix, int expirationInMinutes = 1440,
+    internal MemoryCacheProvider(IMemoryCache memoryCache, IConnectionMultiplexer redis, string prefix, int expirationInMinutes = 1440,
         int changeTrackerTimerIntervalInSeconds = 5) : base(redis, prefix, expirationInMinutes)
     {
+        _memoryCache = memoryCache;
         Initialize(prefix, changeTrackerTimerIntervalInSeconds);
     }
     
-    internal MemoryCacheProvider(Func<IConnectionMultiplexer> connectionMultiplexerFactory, string prefix, int expirationInMinutes = 1440,
+    internal MemoryCacheProvider(IMemoryCache memoryCache, Func<IConnectionMultiplexer> connectionMultiplexerFactory, string prefix, int expirationInMinutes = 1440,
         int changeTrackerTimerIntervalInSeconds = 5) : base(connectionMultiplexerFactory, prefix, expirationInMinutes)
     {
+        _memoryCache = memoryCache;
         Initialize(prefix, changeTrackerTimerIntervalInSeconds);
     }
 
@@ -40,7 +42,6 @@ public class MemoryCacheProvider : CacheProviderBase
         _cacheKey = $"{prefix}memory.tracker";
         StartCacheTimer(changeTrackerTimerIntervalInSeconds);
     }
-
 
     private void StartCacheTimer(int changeTrackerTimerIntervalInSeconds)
     {
@@ -73,7 +74,7 @@ public class MemoryCacheProvider : CacheProviderBase
             }
             else
             {
-                trackerInfo.Add(key, changeId);
+                trackerInfo.Add(key, ++changeId);
             }
         }
 
@@ -83,18 +84,22 @@ public class MemoryCacheProvider : CacheProviderBase
 
     public override async Task<bool> AddToCacheAsync<T>(string cacheKey, T data, Type[] types, CancellationToken cancellationToken = default)
     {
-        var policy = new CacheItemPolicy();
-        var changeMonitor = new EntityChangeMonitor(GetEntityChangeTrackerHandler(types));
-        policy.ChangeMonitors.Add(changeMonitor);
-
-        DefaultMemoryCache.Set(cacheKey, data, policy);
+        _memoryCache.Set(cacheKey, data, new MemoryCacheEntryOptions
+        {
+            Priority = CacheItemPriority.NeverRemove,
+            ExpirationTokens =
+            {
+                GetEntityChangeTrackerHandler(types).Sentinel()
+            }
+        });
+        
         return await Task.FromResult(true);
     }
 
     public override async Task<ResponseInfo<T?>> GetFromCacheAsync<T>(string cacheKey, CancellationToken cancellationToken = default) where T : class
     {
         var responseInfo = new ResponseInfo<T?>();
-        var result = DefaultMemoryCache.Get(cacheKey) is T entry 
+        var result = _memoryCache.Get(cacheKey) is T entry 
             ? responseInfo.Success(entry) 
             : responseInfo.Fail();
         return await Task.FromResult(result);

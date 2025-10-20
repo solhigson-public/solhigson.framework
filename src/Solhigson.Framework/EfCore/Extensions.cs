@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Solhigson.Framework.Data;
@@ -50,21 +51,12 @@ public static class Extensions
         }
     }
     
-    [Obsolete("This method has been depreciated and will be removed in future releases")]
-    public static IApplicationBuilder InitializeEfCoreRedisCache(this IApplicationBuilder app, 
-        IConnectionMultiplexer? connectionMultiplexer,
-        string? prefix = null, int expirationInMinutes = 1440)
-    {
-        var loggerFactory = app.ApplicationServices.GetRequiredService<ILoggerFactory>();
-        EfCoreCacheManager.Initialize(loggerFactory, connectionMultiplexer, null, prefix, expirationInMinutes);
-        return app;
-    }
-    
     public static IApplicationBuilder InitializeEfCoreMemoryCache(this IApplicationBuilder app, 
         IConnectionMultiplexer? connectionMultiplexer, ILoggerFactory? loggerFactory = null,
         string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
-        EfCoreCacheManager.Initialize(loggerFactory, connectionMultiplexer, null, prefix, expirationInMinutes, 
+        var memoryCache = app.ApplicationServices.GetRequiredService<IMemoryCache>();
+        EfCoreCacheManager.Initialize(memoryCache, loggerFactory, connectionMultiplexer, null, prefix, expirationInMinutes, 
             changeTrackerTimerIntervalInSeconds);
         return app;
     }
@@ -73,7 +65,8 @@ public static class Extensions
         Func<IConnectionMultiplexer?>? connectionMultiplexerFactory, ILoggerFactory? loggerFactory = null,
         string? prefix = null, int expirationInMinutes = 1440, int changeTrackerTimerIntervalInSeconds = 5)
     {
-        EfCoreCacheManager.Initialize(loggerFactory, null, connectionMultiplexerFactory, prefix, expirationInMinutes, 
+        var memoryCache = app.ApplicationServices.GetRequiredService<IMemoryCache>();
+        EfCoreCacheManager.Initialize(memoryCache, loggerFactory, null, connectionMultiplexerFactory, prefix, expirationInMinutes, 
             changeTrackerTimerIntervalInSeconds);
         return app;
     }
