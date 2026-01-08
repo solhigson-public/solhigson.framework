@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>solhigson-ef</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
@@ -10,10 +10,10 @@
         <Authors>Solhigson</Authors>
         <Description>Code gen for repository pattern from efcore models</Description>
         <IsPackable>true</IsPackable>
-        <PackageVersion>8.16.37</PackageVersion>
+        <PackageVersion>10.0.1</PackageVersion>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-        <LangVersion>12</LangVersion>
+        <LangVersion>14</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -68,9 +68,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.19" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.1" />
       <PackageReference Include="Solhigson.Utilities" Version="8.16.41" />
-      <PackageReference Include="System.CodeDom" Version="8.0.0" />
+      <PackageReference Include="System.CodeDom" Version="10.0.1" />
     </ItemGroup>
 
 </Project>
