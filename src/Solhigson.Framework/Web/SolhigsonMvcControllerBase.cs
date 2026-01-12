@@ -119,12 +119,12 @@ public class SolhigsonMvcControllerBase : Controller
     }
 
     [NonAction]
-    public void AddPaginationParameters(PagedSearchParameters parameters)
+    public void AddPaginationParameters(PagedSearchParameters? parameters)
     {
         TempData[Constants.PaginationParameters] = parameters?.SerializeToJson();
     }
 
-    protected void SetMessage(ResponseInfo response, string successMessage = null)
+    protected void SetMessage(ResponseInfo response, string? successMessage = null)
     {
         var message = response.Message;
         if (response.IsSuccessful && !string.IsNullOrWhiteSpace(successMessage))
@@ -135,7 +135,7 @@ public class SolhigsonMvcControllerBase : Controller
         SetMessage(message, !response.IsSuccessful);
     }
 
-    protected void SetMessage<T>(ResponseInfo<T> response, string successMessage = null)
+    protected void SetMessage<T>(ResponseInfo<T> response, string?successMessage = null)
     {
         var message = response.Message;
         if (response.IsSuccessful && !string.IsNullOrWhiteSpace(successMessage))
@@ -143,7 +143,7 @@ public class SolhigsonMvcControllerBase : Controller
         SetMessage(message, !response.IsSuccessful);
     }
 
-    protected void SetMessage(string message, bool isError)
+    protected void SetMessage(string? message, bool isError)
     {
         var messageType = isError ? PageMessageType.Error : PageMessageType.Info;
         this.SetDisplayMessage(message, messageType);

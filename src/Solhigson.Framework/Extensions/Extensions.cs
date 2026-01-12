@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
@@ -25,15 +24,12 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Config;
-using Polly;
-using Solhigson.Framework.Dto;
 using Solhigson.Framework.Identity;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Infrastructure.Dependency;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
-using Solhigson.Framework.Services;
 using Solhigson.Utilities;
 using Solhigson.Utilities.Security;
 using Solhigson.Framework.Web;
@@ -62,65 +58,67 @@ public static class Extensions
 
     #region Application Startup
 
-      
-    public static ContainerBuilder RegisterSolhigsonDependencies(this ContainerBuilder builder, IConfiguration configuration, string? connectionString = null)
-    {
-        builder.RegisterModule(new SolhigsonAutofacModule(configuration, connectionString));
-        return builder;
-    }
-        
-    /// <summary>
-    /// Registers types in specified assembly that implements <see cref="IDependencyInject"/> using
-    /// <see cref="DependencyInjectAttribute"/> attributes to detemine scope (optional - defaults to scoped or LifeTimescope)
-    /// </summary>
     /// <param name="builder"></param>
-    /// <param name="assembly"></param>
-    /// <returns></returns>
-    public static ContainerBuilder RegisterIndicatedDependencies(this ContainerBuilder builder, Assembly? assembly)
+    extension(ContainerBuilder builder)
     {
-        if (assembly is null)
+        public ContainerBuilder RegisterSolhigsonDependencies(IConfiguration configuration, string? connectionString = null)
         {
+            builder.RegisterModule(new SolhigsonAutofacModule(configuration, connectionString));
             return builder;
         }
-        var coreServicesAssemblyTypes = assembly.GetTypes()
-            .Where(t => t is { IsClass: true, IsAbstract: false });
-        foreach (var type in coreServicesAssemblyTypes)
+
+        /// <summary>
+        /// Registers types in specified assembly that implements <see cref="DependencyInject"/> using
+        /// <see cref="DependencyInjectAttribute"/> attributes to detemine scope (optional - defaults to scoped or LifeTimescope)
+        /// </summary>
+        /// <param name="assembly"></param>
+        /// <returns></returns>
+        public ContainerBuilder RegisterIndicatedDependencies(Assembly? assembly)
         {
-            var attr = type.GetCustomAttribute<DependencyInjectAttribute>();
-            if (attr is null)
+            if (assembly is null)
             {
-                continue;
+                return builder;
             }
+            var coreServicesAssemblyTypes = assembly.GetTypes()
+                .Where(t => t is { IsClass: true, IsAbstract: false });
+            foreach (var type in coreServicesAssemblyTypes)
+            {
+                var attr = type.GetCustomAttribute<DependencyInjectAttribute>();
+                if (attr is null)
+                {
+                    continue;
+                }
 
-            var regBuilder = builder.RegisterType(type).PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+                var regBuilder = builder.RegisterType(type).PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
             
-            Logger.LogDebug($"Registering Dependency: {type.FullName} as {attr.DependencyLifetime}");
-            switch (attr.DependencyLifetime)
-            {
-                case DependencyLifetime.Singleton:
-                    regBuilder.SingleInstance();
-                    break;
-                case DependencyLifetime.NewInstance:
-                    regBuilder.InstancePerDependency();
-                    break;
-                case DependencyLifetime.Scoped:
-                default:
-                    regBuilder.InstancePerLifetimeScope();
-                    break;
-            }
+                Logger.LogDebug($"Registering Dependency: {type.FullName} as {attr.DependencyLifetime}");
+                switch (attr.DependencyLifetime)
+                {
+                    case DependencyLifetime.Singleton:
+                        regBuilder.SingleInstance();
+                        break;
+                    case DependencyLifetime.NewInstance:
+                        regBuilder.InstancePerDependency();
+                        break;
+                    case DependencyLifetime.Scoped:
+                    default:
+                        regBuilder.InstancePerLifetimeScope();
+                        break;
+                }
 
-            if (attr.RegisteredTypes.HasData())
-            {
-                regBuilder.As(attr.RegisteredTypes!);
+                if (attr.RegisteredTypes.HasData())
+                {
+                    regBuilder.As(attr.RegisteredTypes!);
+                }
+                else
+                {
+                    regBuilder.AsSelf();
+                }
             }
-            else
-            {
-                regBuilder.AsSelf();
-            }
+            return builder;
         }
-        return builder;
     }
-    
+
     public static void ConfigureNLogConsoleOutputTarget(this ITestOutputHelper outputHelper)
     {
         var config = new LoggingConfiguration();
@@ -132,96 +130,95 @@ public static class Extensions
         NLog.LogManager.Configuration = config;
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
     /// <param name="services"></param>
-    /// <param name="smtpConfiguration"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="Exception"></exception>
-    public static IServiceCollection AddSolhigsonSmtpMailProvider(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        services.AddSingleton<IMailProvider, SolhigsonSmtpMailProvider>();
-        return services;
-    }
-    
-    private static IdentityBuilder AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(this IServiceCollection services,
-        Action<IdentityOptions>? setupAction = null) 
-        where TUser : SolhigsonUser<TKey, TRole>
-        where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
-        where TRole : SolhigsonAspNetRole<TKey>, new()
-        where TRoleGroup : SolhigsonRoleGroup, new()
-        where TKey : IEquatable<TKey>
-    {
-        var identityBuilder = services.AddIdentity<TUser, TRole>(setupAction!).AddEntityFrameworkStores<TContext>()
-            .AddDefaultTokenProviders();
-        //services.TryAddScoped<SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey>>();
-        services.TryAddScoped<RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey>>();
-        services.TryAddScoped<PermissionManager<TUser, TRole, TContext, TKey>>();
-        services.TryAddScoped<IPermissionMiddleware, PermissionsMiddleware<TUser, TRole, TKey, TContext>>();
-        return identityBuilder;
-    }
-        
-    public static IdentityBuilder AddSolhigsonIdentityManager<TUser, TContext>(this IServiceCollection services,
-        Action<IdentityOptions>? setupAction = null) 
-        where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
-        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
-    {
-        var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole, SolhigsonRoleGroup, string, TContext>(setupAction);
-        services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
-        return builder;
-    }
-        
-    public static IdentityBuilder AddSolhigsonIdentityManager<TUser, TKey, TContext>(this IServiceCollection services,
-        Action<IdentityOptions>? setupAction = null) 
-        where TUser : SolhigsonUser<TKey>
-        where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
-        where TKey : IEquatable<TKey>
-    {
-        var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
-        services.TryAddScoped<SolhigsonIdentityManager<TUser, TKey, TContext>>();
-        return builder;
-    }
-        
-    public static IApplicationBuilder UseSolhigsonPermissionMiddleware(this IApplicationBuilder app)
-    {
-        app.UseMiddleware<IPermissionMiddleware>();
-        return app;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="smtpConfiguration"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="Exception"></exception>
+        public IServiceCollection AddSolhigsonSmtpMailProvider()
+        {
+            services.AddSingleton<IMailProvider, SolhigsonSmtpMailProvider>();
+            return services;
+        }
+
+        private IdentityBuilder AddSolhigsonIdentityManager<TUser, TRole, TRoleGroup, TKey, TContext>(Action<IdentityOptions>? setupAction = null) 
+            where TUser : SolhigsonUser<TKey, TRole>
+            where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
+            where TRole : SolhigsonAspNetRole<TKey>, new()
+            where TRoleGroup : SolhigsonRoleGroup, new()
+            where TKey : IEquatable<TKey>
+        {
+            var identityBuilder = services.AddIdentity<TUser, TRole>(setupAction!).AddEntityFrameworkStores<TContext>()
+                .AddDefaultTokenProviders();
+            //services.TryAddScoped<SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContext, TKey>>();
+            services.TryAddScoped<RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey>>();
+            services.TryAddScoped<PermissionManager<TUser, TRole, TContext, TKey>>();
+            services.TryAddScoped<IPermissionMiddleware, PermissionsMiddleware<TUser, TRole, TKey, TContext>>();
+            return identityBuilder;
+        }
+
+        public IdentityBuilder AddSolhigsonIdentityManager<TUser, TContext>(Action<IdentityOptions>? setupAction = null) 
+            where TUser : SolhigsonUser<string, SolhigsonAspNetRole>
+            where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole, string>
+        {
+            var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole, SolhigsonRoleGroup, string, TContext>(setupAction);
+            services.TryAddScoped<SolhigsonIdentityManager<TUser, TContext>>();
+            return builder;
+        }
+
+        public IdentityBuilder AddSolhigsonIdentityManager<TUser, TKey, TContext>(Action<IdentityOptions>? setupAction = null) 
+            where TUser : SolhigsonUser<TKey>
+            where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
+            where TKey : IEquatable<TKey>
+        {
+            var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
+            services.TryAddScoped<SolhigsonIdentityManager<TUser, TKey, TContext>>();
+            return builder;
+        }
     }
 
-    public static IApplicationBuilder UseSolhigsonSmtpProvider(this IApplicationBuilder app,
-        Action<SmtpConfiguration>? configuration)
+    extension(IApplicationBuilder app)
     {
-        if (configuration is null)
+        public IApplicationBuilder UseSolhigsonPermissionMiddleware()
         {
+            app.UseMiddleware<IPermissionMiddleware>();
             return app;
         }
-        if (app.ApplicationServices.GetRequiredService<IMailProvider>() is not SolhigsonSmtpMailProvider provider)
+
+        public IApplicationBuilder UseSolhigsonSmtpProvider(Action<SmtpConfiguration>? configuration)
         {
-            throw new Exception(
-                $"{nameof(SolhigsonSmtpMailProvider)} service has not been registered, kindly include " +
-                $"services.AddSolhigsonSmtpMailProvider() under ConfigureServices in Startup.");
+            if (configuration is null)
+            {
+                return app;
+            }
+            if (app.ApplicationServices.GetRequiredService<IMailProvider>() is not SolhigsonSmtpMailProvider provider)
+            {
+                throw new Exception(
+                    $"{nameof(SolhigsonSmtpMailProvider)} service has not been registered, kindly include " +
+                    $"services.AddSolhigsonSmtpMailProvider() under ConfigureServices in Startup.");
+            }
+            provider.UseConfiguration(configuration);
+
+            return app;
         }
-        provider.UseConfiguration(configuration);
 
-        return app;
+        public IApplicationBuilder ConfigureSolhigsonServiceProviderWrapper()
+        {
+            ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
+            return app;
+        }
+
+        public IApplicationBuilder ConfigureSolhigsonLogManager()
+        {
+            LogManager.SetLoggerFactory(app.ApplicationServices.GetRequiredService<ILoggerFactory>());
+            return app;
+        }
     }
-
-
-    public static IApplicationBuilder ConfigureSolhigsonServiceProviderWrapper(this IApplicationBuilder app)
-    {
-        ServiceProviderWrapper.ServiceProvider = app.ApplicationServices;
-        return app;
-    }
-    
-    public static IApplicationBuilder ConfigureSolhigsonLogManager(this IApplicationBuilder app)
-    {
-        LogManager.SetLoggerFactory(app.ApplicationServices.GetRequiredService<ILoggerFactory>());
-        return app;
-    }
-
-
 
     #endregion
 
@@ -243,22 +240,23 @@ public static class Extensions
         return CryptoHelper.GenerateJwtToken(claims, key, expirationMinutes, algorithm);
     }
         
-    public static string? Email(this ClaimsPrincipal principal)
+    extension(ClaimsPrincipal? principal)
     {
-        return principal?.Identity?.GetClaimValue(ClaimTypes.Email);
+        public string? Email()
+        {
+            return principal?.Identity?.GetClaimValue(ClaimTypes.Email);
+        }
+
+        public string? Id()
+        {
+            return principal?.Identity?.GetClaimValue(ClaimTypes.NameIdentifier);
+        }
+
+        public string? Role()
+        {
+            return principal?.Identity?.GetClaimValue(ClaimTypes.Role);
+        }
     }
-
-    public static string? Id(this ClaimsPrincipal principal)
-    {
-        return principal?.Identity?.GetClaimValue(ClaimTypes.NameIdentifier);
-    }
-
-    public static string? Role(this ClaimsPrincipal principal)
-    {
-        return principal?.Identity?.GetClaimValue(ClaimTypes.Role);
-    }
-
-
 
 
     public static ClaimsPrincipal? GetPrincipal(string jwtTokenString, string secret,
@@ -360,63 +358,66 @@ public static class Extensions
         return result.Success;
     }
         
-    public static void SetDisplayMessage(this SolhigsonMvcControllerBase controller, string message, PageMessageType messageType,
+    public static void SetDisplayMessage(this SolhigsonMvcControllerBase controller, string? message, PageMessageType messageType,
         bool closeOnClick = true,
         bool clearBeforeAdd = false, bool encodeHtml = true)
     {
-        SetDisplayMessage(controller.TempData, message, messageType, closeOnClick, clearBeforeAdd, encodeHtml);
+        controller.TempData.SetDisplayMessage(message, messageType, closeOnClick, clearBeforeAdd, encodeHtml);
     }
 
-    public static List<PageMessage> GetDisplayMessages(this ITempDataDictionary tempData)
+    extension(ITempDataDictionary tempData)
     {
-        var serializedMessages = tempData[PageMessage.MessageKey];
-
-        return serializedMessages == null
-            ? []
-            : ((string)serializedMessages).DeserializeFromJson<List<PageMessage>>() ?? [];;
-    }
-
-    private static void SetDisplayMessages(this ITempDataDictionary tempData, List<PageMessage> messages)
-    {
-        tempData[PageMessage.MessageKey] = messages.SerializeToJson();
-    }
-
-    public static void SetDisplayMessage(this ITempDataDictionary tempData, string message,
-        PageMessageType messageType,
-        bool closeOnClick = true,
-        bool clearBeforeAdd = false, bool encodeHtml = true)
-    {
-        if (string.IsNullOrWhiteSpace(message))
+        public List<PageMessage> GetDisplayMessages()
         {
-            return;
-        }
-            
-        var messages = tempData.GetDisplayMessages();
+            var serializedMessages = tempData[PageMessage.MessageKey];
 
-        if (clearBeforeAdd)
-        {
-            messages.Clear();
+            return serializedMessages == null
+                ? []
+                : ((string)serializedMessages).DeserializeFromJson<List<PageMessage>>() ?? [];;
         }
 
-        if (messages.All(t => string.Compare(t.Message, message, StringComparison.OrdinalIgnoreCase) != 0))
+        private void SetDisplayMessages(List<PageMessage> messages)
         {
-            messages.Add(new PageMessage
+            tempData[PageMessage.MessageKey] = messages.SerializeToJson();
+        }
+
+        public void SetDisplayMessage(string? message,
+            PageMessageType messageType,
+            bool closeOnClick = true,
+            bool clearBeforeAdd = false, bool encodeHtml = true)
+        {
+            if (string.IsNullOrWhiteSpace(message))
             {
-                Message = message,
-                Type = messageType,
-                CloseOnClick = closeOnClick,
-                EncodeHtml = encodeHtml,
-            });
+                return;
+            }
+            
+            var messages = tempData.GetDisplayMessages();
+
+            if (clearBeforeAdd)
+            {
+                messages.Clear();
+            }
+
+            if (messages.All(t => string.Compare(t.Message, message, StringComparison.OrdinalIgnoreCase) != 0))
+            {
+                messages.Add(new PageMessage
+                {
+                    Message = message,
+                    Type = messageType,
+                    CloseOnClick = closeOnClick,
+                    EncodeHtml = encodeHtml,
+                });
+            }
+
+            tempData.SetDisplayMessages(messages);
         }
 
-        tempData.SetDisplayMessages(messages);
-    }
-    
-    public static void ClearDisplayMessages(this ITempDataDictionary tempData)
-    {
-        var messages = tempData.GetDisplayMessages();
-        messages.Clear();
-        tempData.SetDisplayMessages(messages);
+        public void ClearDisplayMessages()
+        {
+            var messages = tempData.GetDisplayMessages();
+            messages.Clear();
+            tempData.SetDisplayMessages(messages);
+        }
     }
 
     public static string? GetHeaderValue(this ControllerBase controller, string header)
@@ -436,7 +437,7 @@ public static class Extensions
 
     #endregion
         
-    public static bool IsAsyncMethod(this MethodInfo method)
+    public static bool IsAsyncMethod(this MethodInfo? method)
     {
         return method?.GetCustomAttribute<AsyncStateMachineAttribute>() != null;
     }
