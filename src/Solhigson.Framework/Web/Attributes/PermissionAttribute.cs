@@ -2,17 +2,13 @@
 
 namespace Solhigson.Framework.Web.Attributes;
 
-[AttributeUsage(AttributeTargets.Method)]
-public class PermissionAttribute : Attribute
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public class PermissionAttribute(string name) : Attribute
 {
-    public PermissionAttribute(string name)
-    {
-        Name = name;
-    }
-
-    public string Name { get; }
-    public string Description { get; set; }
+    public string Name { get; } = name;
+    public string Description { get; set; } = null!;
     public bool IsMenuRoot { get; set; }
     public bool IsMenu { get; set; }
-
+    public int MenuIndex { get; set; }
+    public string? Icon { get; set; }
 }
