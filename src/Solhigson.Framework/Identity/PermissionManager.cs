@@ -19,14 +19,15 @@ using Solhigson.Utilities.Dto;
 
 namespace Solhigson.Framework.Identity;
 
-public class PermissionManager<TUser, TRole, TContext, TKey> 
-    where TUser : SolhigsonUser<TKey, TRole> 
+public class PermissionManager<TUser, TRole, TContext, TKey>
+    where TUser : SolhigsonUser<TKey, TRole>
     where TContext : SolhigsonIdentityDbContext<TUser, TRole, TKey>
     where TRole : SolhigsonAspNetRole<TKey>
     where TKey : IEquatable<TKey>
 {
     private readonly TContext _dbContext;
     private readonly IActionDescriptorCollectionProvider _actionDescriptorCollectionProvider;
+
     public PermissionManager(TContext dbContext, IActionDescriptorCollectionProvider actionDescriptorCollectionProvider)
     {
         _dbContext = dbContext;
@@ -42,19 +43,20 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
 
         return await VerifyPermissionAsync(permissionName, claimsPrincipal?.FindAll(ClaimTypes.Role)
             .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList());
-
     }
-        
+
     public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, string? role)
     {
         if (string.IsNullOrWhiteSpace(role))
         {
             return ResponseInfo.FailedResult();
         }
+
         return await VerifyPermissionAsync(permissionName, [role]);
     }
 
-    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, IReadOnlyCollection<string>? roles, CancellationToken cancellationToken = default)
+    public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, IReadOnlyCollection<string>? roles,
+        CancellationToken cancellationToken = default)
     {
         if (!roles.HasData())
         {
@@ -71,11 +73,10 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             typeof(SolhigsonRolePermission<TKey>), typeof(TRole));
 
         return query is not null
-            ? ResponseInfo.SuccessResult() 
+            ? ResponseInfo.SuccessResult()
             : ResponseInfo.FailedResult("User does not have the required permission");
-       
     }
-    
+
     public async Task AddPermissionAsync(SolhigsonPermission permission)
     {
         _dbContext.Permissions.Add(permission);
@@ -89,19 +90,22 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         {
             return response.Fail("Role or Permission Name is empty.");
         }
+
         var role = await _dbContext.Roles.FirstOrDefaultAsync(t => t.Name == roleName);
         if (role is null)
         {
             return response.Fail($"Role does not exist: {roleName}");
         }
+
         var permission = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permissionName);
         if (permission is null)
         {
             return response.Fail($"Permission does not exist: {permissionName}");
         }
 
-        var existing = await _dbContext.RolePermissions.FirstOrDefaultAsync(
-            t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
+        var existing =
+            await _dbContext.RolePermissions.FirstOrDefaultAsync(t =>
+                t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
         if (existing is null)
         {
             await AddRolePermissionAsync(new SolhigsonRolePermission<TKey>
@@ -110,9 +114,10 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 PermissionId = permission.Id
             });
         }
+
         return response.Success();
     }
-        
+
     public async Task<ResponseInfo> RemoveAccessFromRoleAsync(string roleName, string permissionName)
     {
         var response = new ResponseInfo();
@@ -121,18 +126,21 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         {
             return response.Fail($"Role does not exist: {roleName}");
         }
+
         var permission = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permissionName);
         if (permission is null)
         {
             return response.Fail($"Permission does not exist: {permissionName}");
         }
 
-        var existing = await _dbContext.RolePermissions.FirstOrDefaultAsync(
-            t => t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
+        var existing =
+            await _dbContext.RolePermissions.FirstOrDefaultAsync(t =>
+                t.RoleId.Equals(role.Id) && t.PermissionId == permission.Id);
         if (existing is not null)
         {
             await RemoveRolePermissionAsync(existing);
         }
+
         return response.Success();
     }
 
@@ -153,7 +161,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         _dbContext.RolePermissions.Remove(rolePermission);
         await _dbContext.SaveChangesAsync();
     }
-        
+
     public async Task RemoveRolePermissionsAsync(IEnumerable<SolhigsonRolePermission<TKey>> rolePermissions)
     {
         _dbContext.RolePermissions.RemoveRange(rolePermissions);
@@ -177,6 +185,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         {
             return [];
         }
+
         return await (from p in _dbContext.Permissions
             join rp in _dbContext.RolePermissions
                 on p.Id equals rp.PermissionId
@@ -185,13 +194,14 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             where ar.Name == roleName
             select p).ToListAsync();
     }
-        
+
     public async Task<IList<string>> GetAllowedRolesForPermissionAsync(string? permissionName)
     {
         if (permissionName is null)
         {
             return [];
         }
+
         return await (from ar in _dbContext.Roles
             join rp in _dbContext.RolePermissions
                 on ar.Id equals rp.RoleId
@@ -200,23 +210,27 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             where p.Name == permissionName
             select ar.Name).ToListAsync();
     }
-        
-    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string? roleName, CancellationToken cancellationToken = default)
+
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(string? roleName,
+        CancellationToken cancellationToken = default)
     {
         if (roleName is null)
         {
             return [];
         }
+
         return await (from rolePerm in _dbContext.RolePermissions
             join role in _dbContext.Roles
                 on rolePerm.RoleId equals role.Id
             join perm in _dbContext.Permissions
                 on rolePerm.PermissionId equals perm.Id
             where role.Name == roleName
-            select perm).FromCacheListAsync(cancellationToken, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+            select perm).FromCacheListAsync(cancellationToken, typeof(SolhigsonRolePermission<TKey>), typeof(TRole),
+            typeof(SolhigsonPermission));
     }
 
-    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(ClaimsPrincipal claimsPrincipal)
+    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(
+        ClaimsPrincipal claimsPrincipal)
     {
         if (claimsPrincipal?.Identity?.IsAuthenticated == false)
         {
@@ -224,26 +238,30 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         }
 
         var role = claimsPrincipal?.FindFirstValue(ClaimTypes.Role);
-            
+
         return await GetMenuPermissionsForRoleCachedAsync(role);
     }
 
-    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName, CancellationToken cancellationToken = default)
+    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName,
+        CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(roleName))
         {
             return [];
         }
-            
+
         var query = from rolePerm in _dbContext.RolePermissions
             join role in _dbContext.Roles
                 on rolePerm.RoleId equals role.Id
             join perm in _dbContext.Permissions
                 on rolePerm.PermissionId equals perm.Id
-            where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName && string.IsNullOrWhiteSpace(perm.ParentId)
+            where perm.IsMenu && perm.IsMenuRoot && perm.Enabled && role.Name == roleName &&
+                  string.IsNullOrWhiteSpace(perm.ParentId)
             select perm;
 
-        var result = await query.GetCustomResultFromCacheAsync<List<SolhigsonPermissionDto>, SolhigsonPermission>(cancellationToken: cancellationToken);
+        var result =
+            await query.GetCustomResultFromCacheAsync<List<SolhigsonPermissionDto>, SolhigsonPermission>(
+                cancellationToken: cancellationToken);
         if (result != null)
         {
             return result;
@@ -252,18 +270,20 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         var topLevel = query.AsNoTracking().ToList();
 
         var children = await (from rolePerm in _dbContext.RolePermissions
-            join role in _dbContext.Roles
-                on rolePerm.RoleId equals role.Id
-            join perm in _dbContext.Permissions
-                on rolePerm.PermissionId equals perm.Id
-            where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName && !string.IsNullOrWhiteSpace(perm.ParentId)
-            select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking().ToListAsync(cancellationToken: cancellationToken);
-            
-        foreach(var parent in topLevel)
+                join role in _dbContext.Roles
+                    on rolePerm.RoleId equals role.Id
+                join perm in _dbContext.Permissions
+                    on rolePerm.PermissionId equals perm.Id
+                where perm.IsMenu && !perm.IsMenuRoot && perm.Enabled && role.Name == roleName &&
+                      !string.IsNullOrWhiteSpace(perm.ParentId)
+                select perm).OrderBy(t => t.MenuIndex).ThenBy(t => t.Name).AsNoTracking()
+            .ToListAsync(cancellationToken: cancellationToken);
+
+        foreach (var parent in topLevel)
         {
             parent.Children ??= new List<SolhigsonPermission>();
         }
-            
+
         foreach (var child in children)
         {
             var parent = topLevel.FirstOrDefault(t => t.Id == child.ParentId);
@@ -274,6 +294,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 {
                     continue;
                 }
+
                 parent.Children ??= new List<SolhigsonPermission>();
                 topLevel.Add(parent);
             }
@@ -295,6 +316,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             {
                 permissionDto.Children.Add(child.Adapt<SolhigsonPermissionDto>());
             }
+
             result.Add(permissionDto);
         }
 
@@ -303,11 +325,12 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             item.Children = item.Children.OrderBy(t => t.MenuIndex)
                 .ThenBy(t => t.Name).ToList();
         }
-        
+
         result = result.OrderBy(t => t.MenuIndex)
             .ThenBy(t => t.Name).ToList();
 
-        _ = query.AddCustomResultToCacheAsync(result, cancellationToken, typeof(SolhigsonRolePermission<TKey>), typeof(TRole), typeof(SolhigsonPermission));
+        _ = query.AddCustomResultToCacheAsync(result, cancellationToken, typeof(SolhigsonRolePermission<TKey>),
+            typeof(TRole), typeof(SolhigsonPermission));
         return result;
     }
 
@@ -339,7 +362,8 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         continue;
                     }
 
-                    if (permissionList.ContainsKey(permissionAttribute.Name) || _dbContext.Permissions.Any(t =>
+                    if (permissionList.ContainsKey(permissionAttribute.Name) ||
+                        await _dbContext.Permissions.AnyAsync(t =>
                             t.Name == permissionAttribute.Name))
                     {
                         continue;
@@ -349,7 +373,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         x is ControllerActionDescriptor controllerActionDescriptor
                         && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
                         && controllerActionDescriptor.ActionName == methodInfo.Name);
-                    
+
                     var permission = new SolhigsonPermission();
                     permission = permissionAttribute.Adapt(permission);
                     if (permission.IsMenuRoot)
@@ -370,7 +394,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 }
             }
 
-            if (customPermissions != null && customPermissions.Any())
+            if (customPermissions != null && customPermissions.Count != 0)
             {
                 foreach (var key in customPermissions.Keys.Where(key => !permissionList.ContainsKey(key)
                                                                         && !_dbContext.Permissions.Any(t =>
@@ -393,7 +417,8 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                     await _dbContext.SaveChangesAsync();
                     count++;
                     this.LogInformation(
-                        "Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]", permission.Name, permission.Url);
+                        "Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]",
+                        permission.Name, permission.Url);
                 }
                 catch (Exception e)
                 {
@@ -412,5 +437,140 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         return response.Fail();
     }
 
+    public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly? controllerAssembly,
+        List<PermissionInfoAttribute>? customPermissions = null)
+    {
+        var response = new ResponseInfo<int>();
+        try
+        {
+            if (controllerAssembly is null)
+            {
+                return response.Fail("Controller assembly is null");
+            }
+
+            var permissionList = new Dictionary<string, PermissionInfoAttribute>();
+            if (customPermissions.HasData())
+            {
+                foreach (var solhigsonPermission in customPermissions)
+                {
+                    if (permissionList.ContainsKey(solhigsonPermission.Name) ||
+                        await _dbContext.Permissions.AnyAsync(t =>
+                            t.Name == solhigsonPermission.Name))
+                    {
+                        continue;
+                    }
+
+                    if (solhigsonPermission.IsMenuRoot)
+                    {
+                        solhigsonPermission.IsMenu = true;
+                    }
+
+                    permissionList.Add(solhigsonPermission.Name, solhigsonPermission);
+                }
+            }
+
+            var controllerTypes = from type in controllerAssembly.GetTypes()
+                where type.IsSubclassOf(typeof(ControllerBase))
+                select type;
+            var count = 0;
+
+            foreach (var controllerType in controllerTypes)
+            {
+                var methodInfos = controllerType.GetMethods()
+                    .Where(t => t.ReturnType != typeof(void) && t.DeclaringType == controllerType && t.IsPublic);
+
+                foreach (var methodInfo in methodInfos)
+                {
+                    var permissionAttribute = methodInfo.GetAttribute<PermissionAttribute>(false);
+                    if (permissionAttribute is null)
+                    {
+                        continue;
+                    }
+
+                    if (await _dbContext.Permissions.AnyAsync(t =>
+                            t.Name == permissionAttribute.Name))
+                    {
+                        continue;
+                    }
+
+                    var actionInfo = _actionDescriptorCollectionProvider.ActionDescriptors.Items.FirstOrDefault(x =>
+                        x is ControllerActionDescriptor controllerActionDescriptor
+                        && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
+                        && controllerActionDescriptor.ActionName == methodInfo.Name);
+
+                    var permission = permissionList.GetValueOrDefault(permissionAttribute.Name);
+                    if (permission is null)
+                    {
+                        permission = permissionAttribute.Adapt<PermissionInfoAttribute>();
+                        permissionList.Add(permission.Name, permission);
+                        if (permission.IsMenuRoot)
+                        {
+                            permission.IsMenu = true;
+                        }
+                    }
+
+                    if (!permission.IsMenu || (actionInfo as ControllerActionDescriptor).IsApiController())
+                    {
+                        continue;
+                    }
+                    permission.Url = actionInfo?.AttributeRouteInfo?.Template;
+                    if (!string.IsNullOrWhiteSpace(permission.Url))
+                    {
+                        permission.Url = $"~/{permission.Url}";
+                    }
+                }
+            }
+
+            foreach (var permission in from key in permissionList.Keys select permissionList[key])
+            {
+                var permissionEntity = permission.Adapt<SolhigsonPermission>();
+                permissionEntity.Enabled = true;
+                _dbContext.Permissions.Add(permissionEntity);
+                try
+                {
+                    await _dbContext.SaveChangesAsync();
+                    count++;
+                    this.LogInformation(
+                        "Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]",
+                        permission.Name, permission.Url);
+                    
+                    if (permission.AllowedRoles.HasData())
+                    {
+                        foreach (var role in permission.AllowedRoles)
+                        {
+                            await GiveAccessToRoleAsync(role, permission.Name);
+                        }
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(permission.ParentName))
+                    {
+                        await AddPermissionToParentAsync(permission.Name, permission.ParentName);
+                    }
+                }
+                catch (Exception e)
+                {
+                    this.LogError(e, "While saving permission {permission}", permission);
+                }
+            }
+            return response.Success(count);
+        }
+        catch (Exception e)
+        {
+            this.LogError(e);
+        }
+
+        return response.Fail();
+    }
+    
+    private async Task AddPermissionToParentAsync(string permission, string parentPermission)
+    {
+        var perm = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permission);
+        var parentPerm =
+            await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == parentPermission);
+        if (perm is null || parentPerm is null) return;
+
+        perm.ParentId = parentPerm.Id;
+        await _dbContext.SaveChangesAsync();
+    }
 
 }
