@@ -460,11 +460,6 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         continue;
                     }
 
-                    if (solhigsonPermission.IsMenuRoot)
-                    {
-                        solhigsonPermission.IsMenu = true;
-                    }
-
                     permissionList.Add(solhigsonPermission.Name, solhigsonPermission);
                 }
             }
@@ -503,10 +498,6 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                     {
                         permission = permissionAttribute.Adapt<PermissionInfoAttribute>();
                         permissionList.Add(permission.Name, permission);
-                        if (permission.IsMenuRoot)
-                        {
-                            permission.IsMenu = true;
-                        }
                     }
 
                     if (!permission.IsMenu || (actionInfo as ControllerActionDescriptor).IsApiController())
@@ -525,6 +516,10 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             {
                 var permissionEntity = permission.Adapt<SolhigsonPermission>();
                 permissionEntity.Enabled = true;
+                if (permissionEntity.IsMenuRoot)
+                {
+                    permissionEntity.IsMenu = true;
+                }
                 _dbContext.Permissions.Add(permissionEntity);
                 try
                 {
