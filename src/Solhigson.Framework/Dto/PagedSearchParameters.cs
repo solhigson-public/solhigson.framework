@@ -109,13 +109,20 @@ public class PagedSearchParameters
 
     public Dictionary<string, string>.KeyCollection Keys => this.OtherParameters.Keys;
         
-    public void Add(string name, object value)
+    public void Add(string name, object? value)
     {
-        var result = Convert.ToString(value);
-        if (!string.IsNullOrWhiteSpace(result))
+        if (value is null)
         {
-            OtherParameters[name] = result;
+            return;
         }
+        
+        var result = Convert.ToString(value);
+        if (string.IsNullOrWhiteSpace(result))
+        {
+            return;
+        }
+        
+        OtherParameters[name] = result;
     }
 
 }
