@@ -2,7 +2,7 @@ using System;
 
 namespace Solhigson.Framework.Identity;
 
-[AttributeUsage(AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class PermissionInfoAttribute(string name, string description) : Attribute
 {
     public string Name { get; } = name;
