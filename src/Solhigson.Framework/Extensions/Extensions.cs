@@ -30,6 +30,7 @@ using Solhigson.Framework.Infrastructure.Dependency;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
+using Solhigson.Framework.Utilities;
 using Solhigson.Utilities;
 using Solhigson.Utilities.Security;
 using Solhigson.Framework.Web;

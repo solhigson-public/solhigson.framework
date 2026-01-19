@@ -1,6 +1,6 @@
 using System;
 
-namespace Solhigson.Framework.Identity;
+namespace Solhigson.Framework.Web.Attributes;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
 public sealed class PermissionInfoAttribute(string name, string description) : Attribute
