@@ -493,6 +493,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         && controllerActionDescriptor.ControllerTypeInfo.AsType() == controllerType
                         && controllerActionDescriptor.ActionName == methodInfo.Name);
 
+
                     var permission = permissionList.GetValueOrDefault(permissionAttribute.Name);
                     if (permission is null)
                     {
@@ -505,6 +506,13 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                     {
                         continue;
                     }
+
+                    if (!permissionAttribute.IsPrimaryUrl && (!string.IsNullOrWhiteSpace(permission.Url) ||
+                                                              !string.IsNullOrWhiteSpace(permission.OnClickFunction)))
+                    {
+                        continue;
+                    }
+                    
                     permission.Url = actionInfo?.AttributeRouteInfo?.Template;
                     if (!string.IsNullOrWhiteSpace(permission.Url))
                     {
@@ -521,15 +529,16 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 {
                     permissionEntity.IsMenu = true;
                 }
+
                 _dbContext.Permissions.Add(permissionEntity);
                 try
                 {
                     await _dbContext.SaveChangesAsync();
                     count++;
-                    this.LogInformation(
+                    this.LogTrace(
                         "Discovered permission protected endpoint: [{permission.Name}] - [{permission.Url}]",
                         permission.Name, permission.Url);
-                    
+
                     if (permission.AllowedRoles.HasData())
                     {
                         foreach (var role in permission.AllowedRoles)
@@ -548,6 +557,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                     this.LogError(e, "While saving permission {permission}", permission);
                 }
             }
+
             return response.Success(count);
         }
         catch (Exception e)
@@ -557,7 +567,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
 
         return response.Fail();
     }
-    
+
     private async Task AddPermissionToParentAsync(string permission, string parentPermission)
     {
         var perm = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permission);
@@ -568,5 +578,4 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         perm.ParentId = parentPerm.Id;
         await _dbContext.SaveChangesAsync();
     }
-
 }

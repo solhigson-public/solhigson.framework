@@ -12,5 +12,4 @@ public record PermissionInfoDto
     public string? Url { get; set; }
     public string? Icon { get; init; }
     public string? ParentName { get; init; }
-
 }
