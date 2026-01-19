@@ -72,6 +72,12 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
 
             roleGroupId = roleGroup.Id;
         }
+        
+        var existingRole = await RoleManager.FindByNameAsync(roleName);
+        if (existingRole is not null)
+        {
+            return IdentityResult.Success;
+        }
 
         var role = new TRole
         {

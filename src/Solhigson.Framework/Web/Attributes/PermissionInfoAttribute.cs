@@ -19,37 +19,13 @@ public class PermissionInfoAttribute(string name, string description) : Attribut
     internal string? ParentName { get; init; }
 }
 
-public class PermissionInfoMenuRootAttribute : PermissionInfoMenuAttribute
-{
-    public PermissionInfoMenuRootAttribute(string name, string description, string? icon = null) : base(name, description)
-    {
-        IsMenuRoot = true;
-        Icon = icon;
-    }
-}
+public abstract class PermissionInfoMenuAttribute(string name, string description) : PermissionInfoAttribute(name, description);
 
-public class PermissionInfoMenuAttribute : PermissionInfoAttribute
-{
-    public PermissionInfoMenuAttribute(string name, string description) : base(name, description)
-    {
-        IsMenu = true;
-    }
-}
 
-public class PermissionInfoChildMenuAttribute : PermissionInfoMenuAttribute
-{
-    public PermissionInfoChildMenuAttribute(string name, string description, string parent) : base(name, description)
-    {
-        ParentName = parent;
-    }
-}
+public class PermissionInfoMenuRootAttribute(string name, string description, string? icon = null)
+    : PermissionInfoMenuAttribute(name, description);
 
-public class PermissionInfoChildNonMenuAttribute : PermissionInfoAttribute
-{
-    public PermissionInfoChildNonMenuAttribute(string name, string description, string parent) : base(name, description)
-    {
-        ParentName = parent;
-        IsMenuRoot = false;
-        IsMenu = false;
-    }
-}
+public class PermissionInfoChildMenuAttribute(string name, string description, string parent)
+    : PermissionInfoMenuAttribute(name, description);
+
+public class PermissionInfoChildNonMenuAttribute(string name, string description, string parent) : PermissionInfoAttribute(name, description);

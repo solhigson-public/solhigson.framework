@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MassTransit;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Solhigson.Framework.EfCore;
@@ -37,13 +38,15 @@ public class RoleGroupManager<TRoleGroup, TRole, TUser, TContext, TKey>(TContext
             throw new Exception($"Role group name is empty");
         }
             
-        if (await RoleGroupExistsAsync(roleGroup.Name, cancellationToken))
+        var existingRoleGroup = await context.RoleGroups.FirstOrDefaultAsync(t => t.Name == roleGroup.Name, cancellationToken);
+        if (existingRoleGroup is not null)
         {
-            return roleGroup;
+            return existingRoleGroup;
         }
+        
         if (string.IsNullOrWhiteSpace(roleGroup.Id))
         {
-            roleGroup.Id = Guid.NewGuid().ToString();
+            roleGroup.Id = NewId.NextSequentialGuid().ToString();
         }
         context.Add(roleGroup);
         await context.SaveChangesAsync(cancellationToken);

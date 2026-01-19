@@ -381,7 +381,8 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         permission.IsMenu = true;
                     }
 
-                    if (permission.IsMenu && !(actionInfo as ControllerActionDescriptor).IsApiController())
+                    if (permission.IsMenu && !(actionInfo as ControllerActionDescriptor).IsApiController()
+                        && string.IsNullOrEmpty(permission.Url))
                     {
                         permission.Url = actionInfo?.AttributeRouteInfo?.Template;
                         if (!string.IsNullOrWhiteSpace(permission.Url))
