@@ -38,7 +38,7 @@ public class PermissionInfoMenuAttribute : PermissionInfoAttribute
 
 public class PermissionInfoChildMenuAttribute : PermissionInfoMenuAttribute
 {
-    public PermissionInfoChildMenuAttribute(string parent, string name, string description) : base(name, description)
+    public PermissionInfoChildMenuAttribute(string name, string description, string parent) : base(name, description)
     {
         ParentName = parent;
     }
