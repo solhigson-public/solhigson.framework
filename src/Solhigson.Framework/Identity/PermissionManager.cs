@@ -438,7 +438,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
     }
 
     public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly? controllerAssembly,
-        List<PermissionInfoAttribute>? customPermissions = null)
+        List<PermissionInfoDto>? customPermissions = null)
     {
         var response = new ResponseInfo<int>();
         try
@@ -448,7 +448,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 return response.Fail("Controller assembly is null");
             }
 
-            var permissionList = new Dictionary<string, PermissionInfoAttribute>();
+            var permissionList = new Dictionary<string, PermissionInfoDto>();
             if (customPermissions.HasData())
             {
                 foreach (var solhigsonPermission in customPermissions)
@@ -496,7 +496,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                     var permission = permissionList.GetValueOrDefault(permissionAttribute.Name);
                     if (permission is null)
                     {
-                        permission = permissionAttribute.Adapt<PermissionInfoAttribute>();
+                        permission = permissionAttribute.Adapt<PermissionInfoDto>();
                         permissionList.Add(permission.Name, permission);
                     }
 
