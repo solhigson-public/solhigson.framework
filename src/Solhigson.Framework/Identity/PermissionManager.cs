@@ -381,8 +381,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         permission.IsMenu = true;
                     }
 
-                    if (permission.IsMenu && !(actionInfo as ControllerActionDescriptor).IsApiController()
-                        && string.IsNullOrEmpty(permission.Url))
+                    if (permission.IsMenu && !(actionInfo as ControllerActionDescriptor).IsApiController())
                     {
                         permission.Url = actionInfo?.AttributeRouteInfo?.Template;
                         if (!string.IsNullOrWhiteSpace(permission.Url))
@@ -501,7 +500,8 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                         permissionList.Add(permission.Name, permission);
                     }
 
-                    if (!permission.IsMenu || (actionInfo as ControllerActionDescriptor).IsApiController())
+                    if (!permission.IsMenu || (actionInfo as ControllerActionDescriptor).IsApiController()
+                        && !string.IsNullOrEmpty(permission.Url))
                     {
                         continue;
                     }
