@@ -43,3 +43,13 @@ public class PermissionInfoChildMenuAttribute : PermissionInfoMenuAttribute
         ParentName = parent;
     }
 }
+
+public class PermissionInfoChildNonMenuAttribute : PermissionInfoAttribute
+{
+    public PermissionInfoChildNonMenuAttribute(string name, string description, string parent) : base(name, description)
+    {
+        ParentName = parent;
+        IsMenuRoot = false;
+        IsMenu = false;
+    }
+}
