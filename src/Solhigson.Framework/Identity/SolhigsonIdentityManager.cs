@@ -113,21 +113,28 @@ public abstract class SolhigsonIdentityManager<TUser, TRoleGroup, TRole, TContex
         {
             return;
         }
+
         var userRoles = await _dbContext.UserRoles.Where(t => t.UserId.Equals(user.Id))
             .FromCacheListAsync(cancellationToken: cancellationToken);
-            
-        if (userRoles.Any())
+
+        if (userRoles.Count == 0)
         {
-            user.Roles = new List<TRole>();
-            foreach (var role in userRoles.Select(userRole => _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId)).FromCacheSingleAsync(cancellationToken: cancellationToken).Result).Where(role => role is not null))
+            return;
+        }
+
+        user.Roles = [];
+        foreach (var userRole in userRoles)
+        {
+            var role = await _dbContext.Roles.Where(t => t.Id.Equals(userRole.RoleId))
+                .FromCacheSingleAsync(cancellationToken: cancellationToken);
+            if (role is null)
             {
-                if (role is null)
-                {
-                    continue;
-                }
-                role.RoleGroup = await _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId).FromCacheSingleAsync(cancellationToken: cancellationToken);
-                user.Roles.Add(role);
+                continue;
             }
+
+            role.RoleGroup = await _dbContext.RoleGroups.Where(t => t.Id == role.RoleGroupId)
+                .FromCacheSingleAsync(cancellationToken: cancellationToken);
+            user.Roles.Add(role);
         }
     }
         

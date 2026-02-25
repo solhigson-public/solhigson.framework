@@ -1,0 +1,1 @@
+All Claude-generated `.md` files (session notes, plans, reference docs, scratch files) must be created inside `.claude/`, never in the project root. The project root should only contain source code and standard config files (`.gitignore`, `package.json`, etc.).

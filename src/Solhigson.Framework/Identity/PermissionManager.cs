@@ -40,9 +40,13 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         {
             return ResponseInfo.FailedResult("User not authenticated.");
         }
+        
+        var roles = claimsPrincipal?.FindAll(ClaimTypes.Role)
+            .Where(t => !string.IsNullOrWhiteSpace(t.Value))
+            .Select(t => t.Value).ToList();
 
-        return await VerifyPermissionAsync(permissionName, claimsPrincipal?.FindAll(ClaimTypes.Role)
-            .Where(t => !string.IsNullOrWhiteSpace(t.Value)).Select(t => t.Value).ToList());
+
+        return await VerifyPermissionAsync(permissionName, roles);
     }
 
     public async Task<ResponseInfo> VerifyPermissionAsync(string permissionName, string? role)
@@ -181,7 +185,17 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
 
     public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleAsync(string? roleName)
     {
-        if (roleName is null)
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            return [];
+        }
+
+        return await GetAllPermissionsForRoleAsync((IReadOnlyCollection<string>) [roleName]);
+    }
+
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleAsync(IReadOnlyCollection<string>? roles)
+    {
+        if (!roles.HasData())
         {
             return [];
         }
@@ -191,8 +205,8 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 on p.Id equals rp.PermissionId
             join ar in _dbContext.Roles
                 on rp.RoleId equals ar.Id
-            where ar.Name == roleName
-            select p).ToListAsync();
+            where roles.Contains(ar.Name)
+            select p).Distinct().ToListAsync();
     }
 
     public async Task<IList<string>> GetAllowedRolesForPermissionAsync(string? permissionName)
@@ -229,6 +243,32 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             typeof(SolhigsonPermission));
     }
 
+    public async Task<IList<SolhigsonPermission>> GetAllPermissionsForRoleCached(
+        IReadOnlyCollection<string>? roles, CancellationToken cancellationToken = default)
+    {
+        if (!roles.HasData())
+        {
+            return [];
+        }
+
+        if (roles.Count == 1)
+        {
+            return await GetAllPermissionsForRoleCached(roles.First(), cancellationToken);
+        }
+
+        var merged = new Dictionary<string, SolhigsonPermission>();
+        foreach (var role in roles)
+        {
+            var perms = await GetAllPermissionsForRoleCached(role, cancellationToken);
+            foreach (var perm in perms)
+            {
+                merged.TryAdd(perm.Id, perm);
+            }
+        }
+
+        return merged.Values.ToList();
+    }
+
     public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(
         ClaimsPrincipal claimsPrincipal)
     {
@@ -237,12 +277,14 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             return new List<SolhigsonPermissionDto>();
         }
 
-        var role = claimsPrincipal?.FindFirstValue(ClaimTypes.Role);
+        var roles = claimsPrincipal?.FindAll(ClaimTypes.Role)
+            .Where(t => !string.IsNullOrWhiteSpace(t.Value))
+            .Select(t => t.Value).ToList();
 
-        return await GetMenuPermissionsForRoleCachedAsync(role);
+        return await GetMenuPermissionsForRoleCachedAsync(roles);
     }
 
-    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName,
+        public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(string? roleName,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(roleName))
@@ -267,7 +309,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             return result;
         }
 
-        var topLevel = query.AsNoTracking().ToList();
+        var topLevel = await query.AsNoTracking().ToListAsync(cancellationToken);
 
         var children = await (from rolePerm in _dbContext.RolePermissions
                 join role in _dbContext.Roles
@@ -289,7 +331,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             var parent = topLevel.FirstOrDefault(t => t.Id == child.ParentId);
             if (parent is null)
             {
-                parent = _dbContext.Permissions.FirstOrDefault(t => t.Id == child.ParentId);
+                parent = await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Id == child.ParentId, cancellationToken);
                 if (parent is null)
                 {
                     continue;
@@ -332,6 +374,56 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
         _ = query.AddCustomResultToCacheAsync(result, cancellationToken, typeof(SolhigsonRolePermission<TKey>),
             typeof(TRole), typeof(SolhigsonPermission));
         return result;
+    }
+
+    
+    public async ValueTask<IList<SolhigsonPermissionDto>> GetMenuPermissionsForRoleCachedAsync(IReadOnlyCollection<string>? roles,
+        CancellationToken cancellationToken = default)
+    {
+        if (!roles.HasData())
+        {
+            return [];
+        }
+
+        if (roles.Count == 1)
+        {
+            return await GetMenuPermissionsForRoleCachedAsync(roles.First(), cancellationToken);
+        }
+
+        var merged = new Dictionary<string, SolhigsonPermissionDto>();
+
+        foreach (var role in roles)
+        {
+            var roleMenus = await GetMenuPermissionsForRoleCachedAsync(role, cancellationToken);
+            foreach (var menu in roleMenus)
+            {
+                if (merged.TryGetValue(menu.Name, out var existing))
+                {
+                    if (menu.Children.HasData())
+                    {
+                        existing.Children ??= [];
+                        foreach (var child in menu.Children.Where(child =>
+                                     existing.Children.All(c => c.Name != child.Name)))
+                        {
+                            existing.Children.Add(child);
+                        }
+                    }
+                }
+                else
+                {
+                    merged[menu.Name] = menu;
+                }
+            }
+        }
+
+        foreach (var item in merged.Values.Where(item => item.Children.HasData()))
+        {
+            item.Children = item.Children.OrderBy(t => t.MenuIndex)
+                .ThenBy(t => t.Name).ToList();
+        }
+
+        return merged.Values.OrderBy(t => t.MenuIndex)
+            .ThenBy(t => t.Name).ToList();
     }
 
     public async Task<ResponseInfo<int>> DiscoverNewPermissionsAsync(Assembly? controllerAssembly,

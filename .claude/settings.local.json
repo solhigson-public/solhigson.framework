@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File \"$USERPROFILE/My Drive/claude-settings/setup.ps1\")",
+      "Bash(powershell.exe -ExecutionPolicy Bypass -File:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ]
+  }
+}
