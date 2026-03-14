@@ -66,6 +66,19 @@ Solhigson Framework is the shared foundation library consumed by all Solhigson .
 - Azure Pipelines auto-publishes to NuGet.org on `master` when pipeline variables are set
 - Three independent packages: `Solhigson.Framework.Core`, `Solhigson.Utilities`, `Solhigson.Framework.EfCoreToolGen`
 
+### Pipeline Push Flags (`azure-pipelines.yml`)
+Three boolean variables control which NuGet packages get pushed on a master build:
+- `packageFramework` — gates the `nuget_package_framework` stage (packs/pushes `Solhigson.Framework.Core`)
+- `packageTool` — gates the `nuget_package_efCoreTool` stage (packs/pushes `Solhigson.Framework.EfCoreToolGen`)
+- `packageUtilities` — gates the `nuget_package_utilities` stage (packs/pushes `Solhigson.Utilities`)
+
+Each stage builds the full solution (so build errors in any project fail the stage), but only packs and pushes the specific project for that stage.
+
+**Rules:**
+- Only enable the flag for the package being released — disable others to avoid failed pushes on unchanged versions
+- After a package is successfully pushed, disable its flag until the next release
+- When packages have cross-references (e.g., Framework depends on Utilities), push the dependency first, wait for NuGet availability, then push the dependent package in a separate commit
+
 ## Important Rules
 - **Never modify `.generated.cs` files** — place custom code in the corresponding partial class
 - **`ResponseInfo`/`ResponseInfo<T>` are structs** — they are value types, not reference types
