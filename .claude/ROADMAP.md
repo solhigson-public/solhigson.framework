@@ -26,13 +26,13 @@ Each test phase follows: **Plan → Write Tests → Build → Commit**
 - [x] Build
 - [x] Commit
 
-### Phase 2 — Framework: Newtonsoft Removal (Non-API)
-> Migrate non-API files: `ApiTraceData.cs` (JObject → Dictionary), `ExceptionInfo.cs`, `SolhigsonPermission.cs`, `PagedList.cs`, `XUnitTestOutputHelperTarget.cs`. Fix callers of changed return types in middleware and caching.
+### Phase 2 — Framework: Newtonsoft Removal (Non-API) ✅
+> Migrate non-API files: `ApiTraceData.cs` (JObject → Dictionary), `ExceptionInfo.cs`, `SolhigsonPermission.cs`, `PagedList.cs`, `XUnitTestOutputHelperTarget.cs`, `ApiRequestService.cs`. Pipeline flag flip to push Utilities 10.1.0 to NuGet. Bump Framework Utilities ref to 10.1.0.
 
-- [ ] Plan
-- [ ] Implement
-- [ ] Build
-- [ ] Commit
+- [x] Plan
+- [x] Implement
+- [x] Build
+- [x] Commit
 
 ### Phase 2t — Framework: Newtonsoft Removal Tests
 > Attribute serialization, protected field masking with JsonNode, trace data dictionary conversion, middleware integration.
