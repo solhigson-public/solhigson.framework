@@ -34,13 +34,13 @@ Each test phase follows: **Plan → Write Tests → Build → Commit**
 - [x] Build
 - [x] Commit
 
-### Phase 2t — Framework: Newtonsoft Removal Tests
-> Attribute serialization, protected field masking with JsonNode, trace data dictionary conversion, middleware integration.
+### Phase 2t — Framework: Newtonsoft Removal Tests ✅
+> ApiTraceData dictionary headers + GetUserIdentity, PagedList camelCase GetMetaData + pagination logic, ExceptionInfo STJ serialization. 24 tests.
 
-- [ ] Plan
-- [ ] Write tests
-- [ ] Build
-- [ ] Commit
+- [x] Plan
+- [x] Write tests (24 tests — ApiTraceData, PagedList, ExceptionInfo)
+- [x] Build
+- [x] Commit
 
 ### Phase 3 — ApiRequestService Redesign
 > Create `ApiRequest` builder (static factory + fluent chain). Redesign `IApiRequestService` to 2 methods (`SendAsync`, `SendAsync<T>`). Rewrite `ApiRequestService`: add CancellationToken, STJ deserialization, remove Task.Run(), remove exception swallowing, add `using` on HttpRequestMessage, ExpectContinue default false.
