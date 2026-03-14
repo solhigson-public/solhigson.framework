@@ -131,16 +131,10 @@ public static class Serializer
             return null;
         }
 
-        if (jsonSerializerOptions is not null)
-        {
-            if (indent && !jsonSerializerOptions.WriteIndented)
-            {
-                jsonSerializerOptions = new JsonSerializerOptions(jsonSerializerOptions) { WriteIndented = true };
-            }
-            return JsonSerializer.Serialize(obj, jsonSerializerOptions);
-        }
+        var options = jsonSerializerOptions
+            ?? (indent ? IndentedJsonSerializerOptions : DefaultJsonSerializerOptions);
 
-        return JsonSerializer.Serialize(obj, indent ? IndentedJsonSerializerOptions : DefaultJsonSerializerOptions);
+        return JsonSerializer.Serialize(obj, options);
     }
 
     public static T? DeserializeFromJson<T>(this string? jsonString)

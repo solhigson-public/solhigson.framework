@@ -80,15 +80,16 @@ public class SerializerTests
     }
 
     [Fact]
-    public void SerializeToJson_CustomOptions_WithIndent_CopiesAndIndents()
+    public void SerializeToJson_CustomOptions_UsesProvidedOptions()
     {
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = null,
+            WriteIndented = true,
         };
         var dto = new SimpleDto("Test", 25);
 
-        var json = dto.SerializeToJson(indent: true, jsonSerializerOptions: options);
+        var json = dto.SerializeToJson(jsonSerializerOptions: options);
 
         json.ShouldNotBeNull();
         json.ShouldContain("\"Name\"");
