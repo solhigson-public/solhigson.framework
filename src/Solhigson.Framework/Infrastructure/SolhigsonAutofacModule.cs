@@ -72,6 +72,9 @@ public class SolhigsonAutofacModule : Module
             
         #endregion
 
+        builder.RegisterInstance(new ApiConfiguration()).AsSelf().SingleInstance()
+            .PreserveExistingDefaults();
+
         builder.RegisterType<ApiRequestService>().As<IApiRequestService>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
