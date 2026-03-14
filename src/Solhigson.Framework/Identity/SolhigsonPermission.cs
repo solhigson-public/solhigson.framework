@@ -68,7 +68,6 @@ public record SolhigsonPermission : ICachedEntity
     public bool Enabled { get; set; }
         
     [ForeignKey(nameof(ParentId))]
-    [Newtonsoft.Json.JsonIgnore]
     [JsonIgnore]
     public SolhigsonPermission Parent { get; set; }
         

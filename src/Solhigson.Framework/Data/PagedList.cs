@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
+using Solhigson.Utilities;
 
 namespace Solhigson.Framework.Data;
 
@@ -14,24 +14,17 @@ public record PagedList
 }
 public record PagedList<T>
 {
-    [JsonProperty]
     public int CurrentPage { get; }
-        
-    [JsonProperty]
+
     public int TotalPages { get; }
-        
-    [JsonProperty]
+
     public int PageSize { get;  }
-        
-    [JsonProperty]
+
     public long TotalCount { get; }
-        
-    [JsonProperty]
+
     public bool HasPrevious => CurrentPage > 1;
-    [JsonProperty]
     public bool HasNext => CurrentPage < TotalPages;
 
-    [JsonProperty]
     public List<T> Results { get; } = new ();
 
     public bool Any()
@@ -41,7 +34,7 @@ public record PagedList<T>
 
     internal string GetMetaData()
     {
-        return JsonConvert.SerializeObject(new
+        return new
         {
             TotalCount,
             PageSize,
@@ -49,7 +42,7 @@ public record PagedList<T>
             TotalPages,
             HasNext,
             HasPrevious
-        });
+        }.SerializeToJson();
     }
 
     internal PagedList(IEnumerable<T> items, long count, int pageNumber, int pageSize)

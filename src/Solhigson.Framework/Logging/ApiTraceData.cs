@@ -1,9 +1,9 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace Solhigson.Framework.Logging;
 
@@ -18,9 +18,9 @@ public class ApiTraceData
     public string StatusCode { get; set; }
     public string StatusCodeDescription { get; set; }
     public string? RequestMessage { get; set; }
-    public JObject RequestHeaders { get; set; }
+    public Dictionary<string, string> RequestHeaders { get; set; }
     public string? ResponseMessage { get; set; }
-    public JObject? ResponseHeaders { get; set; }
+    public Dictionary<string, string>? ResponseHeaders { get; set; }
     public DateTime RequestTime { get; set; }
     public DateTime ResponseTime { get; set; }
     public string TimeTaken { get; set; }
@@ -29,11 +29,11 @@ public class ApiTraceData
     internal string GetUserIdentity()
     {
         string userIdentity = null;
-            
+
         if (RequestHeaders != null &&
-            RequestHeaders.TryGetValue(UserHttpHeaderIdentifier, out var jToken))
+            RequestHeaders.TryGetValue(UserHttpHeaderIdentifier, out var value))
         {
-            userIdentity = jToken.Value<string>();
+            userIdentity = value;
         }
 
         return userIdentity;

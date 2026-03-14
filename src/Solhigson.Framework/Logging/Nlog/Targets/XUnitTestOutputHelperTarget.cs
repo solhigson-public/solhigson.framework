@@ -1,5 +1,6 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
+using System;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using NLog;
 using NLog.Targets;
 using Xunit.Abstractions;
@@ -21,7 +22,7 @@ public class XUnitTestOutputHelperTarget : TargetWithLayout
         try
         {
             output = Layout.Render(logEvent);
-            _outputHelper.WriteLine(JToken.Parse(output).ToString());
+            _outputHelper.WriteLine(JsonNode.Parse(output)?.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
         }
         catch (Exception ex)
         {

@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
@@ -332,7 +331,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
                     apiRequestHelperResponse.EndTime.Value - apiRequestHelperResponse.StartTime;
 
                 var responseFormat = format;
-                JObject? responseHeaders = null;
+                Dictionary<string, string>? responseHeaders = null;
                 if (apiRequestHelperResponse.HttpResponseMessage != null)
                 {
                     responseHeaders =
@@ -388,7 +387,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory) : IApiReque
     protected virtual void SaveApiTraceData(string url, string method,
         IReadOnlyDictionary<string, string>? requestHeaders, DateTime startTime, DateTime endTime,
         string? requestMessage,
-        string? responseMessage, JObject? responseHeaders, HttpStatusCode statusCode, string? serviceDescription,
+        string? responseMessage, Dictionary<string, string>? responseHeaders, HttpStatusCode statusCode, string? serviceDescription,
         string serviceName, string serviceType)
     {
         var timeTaken = endTime - startTime;
