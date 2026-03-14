@@ -18,13 +18,13 @@ Each test phase follows: **Plan → Write Tests → Build → Commit**
 - [x] Build
 - [x] Commit
 
-### Phase 1t — Utilities: Serialization Tests
+### Phase 1t — Utilities: Serialization Tests ✅
 > Set up test infrastructure (TestBase, xUnit conventions) + verify STJ behavioral compatibility — camelCase serialization, null handling, reference loop ignoring, key-value flattening, protected field masking.
 
-- [ ] Plan
-- [ ] Write tests
-- [ ] Build
-- [ ] Commit
+- [x] Plan
+- [x] Write tests (34 tests — serializer, protected fields, ResponseInfo)
+- [x] Build
+- [x] Commit
 
 ### Phase 2 — Framework: Newtonsoft Removal (Non-API)
 > Migrate non-API files: `ApiTraceData.cs` (JObject → Dictionary), `ExceptionInfo.cs`, `SolhigsonPermission.cs`, `PagedList.cs`, `XUnitTestOutputHelperTarget.cs`. Fix callers of changed return types in middleware and caching.
