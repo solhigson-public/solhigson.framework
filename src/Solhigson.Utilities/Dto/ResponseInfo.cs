@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using Newtonsoft.Json;
 
 namespace Solhigson.Utilities.Dto;
 
@@ -11,15 +10,12 @@ public struct ResponseInfo
     private string? _message = DefaultMessage;
     private bool _initialized;
 
-    [Newtonsoft.Json.JsonIgnore] 
-    [System.Text.Json.Serialization.JsonIgnore]
+    [JsonIgnore]
     public object? ErrorData { get; set; }
 
-    [Newtonsoft.Json.JsonIgnore] 
-    [System.Text.Json.Serialization.JsonIgnore]
+    [JsonIgnore]
     public bool IsSuccessful => StatusCode == Solhigson.Utilities.StatusCode.Successful;
 
-    [JsonProperty("statusCode")]
     [JsonPropertyName("statusCode")]
     public string StatusCode
     {
@@ -31,7 +27,6 @@ public struct ResponseInfo
         }
     }
 
-    [JsonProperty("message")]
     [JsonPropertyName("message")]
     public string? Message
     {
@@ -42,9 +37,8 @@ public struct ResponseInfo
             _initialized = true;
         }
     }
-    
+
     //for consistency in resulting json string with ResponseInfo<T> - will always be null
-    [JsonProperty("data")] 
     [JsonPropertyName("data")]
     public object? Data { get; private set; }
 
@@ -93,8 +87,8 @@ public struct ResponseInfo
         _initialized = true;
         return this;
     }
-        
-    public ResponseInfo(string? message = DefaultMessage, 
+
+    public ResponseInfo(string? message = DefaultMessage,
         string statusCode = Solhigson.Utilities.StatusCode.UnExpectedError)
     {
         _message = message;
@@ -112,7 +106,6 @@ public struct ResponseInfo<T>(
 {
     private ResponseInfo _responseInfo = new(message, statusCode);
 
-    [JsonProperty("statusCode")] 
     [JsonPropertyName("statusCode")]
     public string StatusCode
     {
@@ -120,7 +113,6 @@ public struct ResponseInfo<T>(
         set => _responseInfo.StatusCode = value;
     }
 
-    [JsonProperty("message")] 
     [JsonPropertyName("message")]
     public string? Message
     {
@@ -128,12 +120,10 @@ public struct ResponseInfo<T>(
         set => _responseInfo.Message = value;
     }
 
-    [JsonProperty("data")] 
     [JsonPropertyName("data")]
     public T? Data { get; private set; } = result;
 
-    [Newtonsoft.Json.JsonIgnore] 
-    [System.Text.Json.Serialization.JsonIgnore]
+    [JsonIgnore]
     [MemberNotNullWhen(true, nameof(Data))]
     public bool IsSuccessful => _responseInfo.IsSuccessful;
 
@@ -158,7 +148,7 @@ public struct ResponseInfo<T>(
         _responseInfo.Fail(message, responseCode, errorData);
         return this;
     }
-        
+
     public ResponseInfo<T> Fail(ResponseInfo response, T? result = default)
     {
         Data = result;
@@ -166,30 +156,24 @@ public struct ResponseInfo<T>(
         return this;
     }
 
-    [Newtonsoft.Json.JsonIgnore] 
-    [System.Text.Json.Serialization.JsonIgnore]
+    [JsonIgnore]
     public ResponseInfo InfoResult => _responseInfo;
-        
+
     public Tk? GetError<Tk>()
     {
         return _responseInfo.GetError<Tk>();
     }
-        
+
     public ResponseInfo<T> SetStatusCode(string statusCode)
     {
         _responseInfo.StatusCode = statusCode;
         return this;
     }
-        
-    [Newtonsoft.Json.JsonIgnore] 
-    [System.Text.Json.Serialization.JsonIgnore]
+
+    [JsonIgnore]
     public object? ErrorData
     {
         get => _responseInfo.ErrorData;
         set => _responseInfo.ErrorData = value;
     }
-
-
-
-
 }

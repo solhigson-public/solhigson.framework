@@ -1,11 +1,9 @@
-﻿using System.Globalization;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Xml;
 using System.Xml.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Solhigson.Utilities;
 
@@ -14,49 +12,84 @@ public static class Serializer
     private static readonly XmlWriterSettings DefaultXmlWriterSettings = new () {OmitXmlDeclaration = true};
 
     private static readonly XmlSerializerNamespaces DefaultXmlSerializerNamespaces = new([XmlQualifiedName.Empty]);
-        
-    private static readonly JsonSerializerSettings DefaultJsonSerializerSettings = new ()
+
+    internal static readonly JsonSerializerOptions DefaultJsonSerializerOptions = new ()
     {
-        ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
     };
 
+    private static readonly JsonSerializerOptions IndentedJsonSerializerOptions =
+        new (DefaultJsonSerializerOptions)
+        {
+            WriteIndented = true,
+        };
+
+    // No CamelCase policy — preserves PascalCase property names for form encoding,
+    // matching prior Newtonsoft behavior where JObject.FromObject(obj) used defaults.
+    private static readonly JsonSerializerOptions KeyValueJsonSerializerOptions = new ()
+    {
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+    };
 
     public static IDictionary<string, string?>? SerializeToKeyValue(this object? obj)
     {
-        while (true)
+        if (obj is null) return null;
+
+        var node = obj as JsonNode ?? JsonSerializer.SerializeToNode(obj, KeyValueJsonSerializerOptions);
+        if (node is null) return null;
+
+        var result = new Dictionary<string, string?>();
+        FlattenNode(node, result);
+        return result;
+    }
+
+    private static void FlattenNode(JsonNode node, Dictionary<string, string?> result)
+    {
+        switch (node)
         {
-            if (obj == null) return null;
-
-            var token = obj as JToken;
-            if (token == null)
-            {
-                obj = JObject.FromObject(obj);
-                continue;
-            }
-
-            if (token.HasValues)
-            {
-                var contentData = new Dictionary<string, string?>();
-                foreach (var child in token.Children().ToList())
+            case JsonObject jsonObj:
+                foreach (var (_, value) in jsonObj)
                 {
-                    var childContent = child.SerializeToKeyValue();
-                    if (childContent != null)
-                        contentData = contentData.Concat(childContent)
-                            .ToDictionary(k => k.Key, v => v.Value);
+                    if (value is not null)
+                    {
+                        FlattenNode(value, result);
+                    }
+                }
+                break;
+
+            case JsonArray jsonArr:
+                foreach (var item in jsonArr)
+                {
+                    if (item is not null)
+                    {
+                        FlattenNode(item, result);
+                    }
+                }
+                break;
+
+            case JsonValue jsonVal:
+                var path = node.GetPath();
+                if (path.StartsWith("$."))
+                    path = path[2..];
+                else if (path == "$")
+                    path = string.Empty;
+
+                string? valueStr;
+                if (jsonVal.TryGetValue<JsonElement>(out var element))
+                {
+                    valueStr = element.ValueKind == JsonValueKind.String
+                        ? element.GetString()
+                        : element.GetRawText();
+                }
+                else
+                {
+                    valueStr = jsonVal.ToString();
                 }
 
-                return contentData;
-            }
-
-            var jValue = token as JValue;
-            if (jValue?.Value is null) return null;
-
-            var value = jValue.Type == JTokenType.Date
-                ? jValue.ToString("o", CultureInfo.InvariantCulture)
-                : jValue.ToString(CultureInfo.InvariantCulture);
-
-            return new Dictionary<string, string?> {{token.Path, value}};
+                result[path] = valueStr;
+                break;
         }
     }
 
@@ -89,37 +122,31 @@ public static class Serializer
         serializer.Serialize(writer, obj, xmlsn);
         return stream.ToString();
     }
-        
-    public static string? SerializeToJson(this object? obj, bool indent = false, JsonSerializerSettings? jsonSerializerSettings = null)
+
+    public static string? SerializeToJson(this object? obj, bool indent = false,
+        JsonSerializerOptions? jsonSerializerOptions = null)
     {
         if (obj is null)
         {
             return null;
         }
 
-        jsonSerializerSettings ??= DefaultJsonSerializerSettings;
-        var format = jsonSerializerSettings.Formatting;
-        if (indent)
+        if (jsonSerializerOptions is not null)
         {
-            format = Formatting.Indented;
+            if (indent && !jsonSerializerOptions.WriteIndented)
+            {
+                jsonSerializerOptions = new JsonSerializerOptions(jsonSerializerOptions) { WriteIndented = true };
+            }
+            return JsonSerializer.Serialize(obj, jsonSerializerOptions);
         }
-                
-        return JsonConvert.SerializeObject(obj, format, jsonSerializerSettings);
-    }
-        
-    private static object? DeserializeFromJson(this string? jsonString, Type objType)
-    {
-        if (string.IsNullOrEmpty(jsonString)) return null;
 
-        using var sReader = new StringReader(jsonString);
-        var xs = new JsonSerializer();
-        var theObject = xs.Deserialize(sReader, objType);
-        return theObject;
+        return JsonSerializer.Serialize(obj, indent ? IndentedJsonSerializerOptions : DefaultJsonSerializerOptions);
     }
 
     public static T? DeserializeFromJson<T>(this string? jsonString)
     {
-        return (T?) DeserializeFromJson(jsonString, typeof(T));
+        if (string.IsNullOrEmpty(jsonString)) return default;
+        return JsonSerializer.Deserialize<T>(jsonString, DefaultJsonSerializerOptions);
     }
 
     private static object? DeserializeFromXml(this string? xmlString, Type objType)

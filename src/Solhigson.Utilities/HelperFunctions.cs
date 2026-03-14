@@ -10,7 +10,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Solhigson.Utilities.Pluralization;
 
 namespace Solhigson.Utilities;
@@ -207,47 +208,47 @@ public static class HelperFunctions
     }
 
 
-    public static JObject ToJsonObject(IEnumerable<KeyValuePair<string, string>> dictionary)
+    public static Dictionary<string, string> ToJsonObject(IEnumerable<KeyValuePair<string, string>> dictionary)
     {
         if (dictionary == null)
         {
             return null;
         }
 
-        var obj = new JObject();
+        var obj = new Dictionary<string, string>();
         foreach (var (key, value) in dictionary)
         {
-            obj.Add(key, value);
+            obj[key] = value;
         }
 
         return obj;
     }
 
-    public static JObject? ToJsonObject(HttpResponseHeaders? headers)
+    public static Dictionary<string, string>? ToJsonObject(HttpResponseHeaders? headers)
     {
         if (headers == null)
         {
             return null;
         }
 
-        var obj = new JObject();
+        var obj = new Dictionary<string, string>();
         foreach (var (key, value) in headers)
         {
-            obj.Add(key, string.Join(",", value));
+            obj[key] = string.Join(",", value);
         }
 
         return obj;
     }
 
 
-    public static JObject? ToJsonObject(IHeaderDictionary? dictionary)
+    public static Dictionary<string, string>? ToJsonObject(IHeaderDictionary? dictionary)
     {
         if (dictionary == null)
         {
             return null;
         }
 
-        var obj = new JObject();
+        var obj = new Dictionary<string, string>();
         foreach (var (key, value) in dictionary)
         {
             if (string.Compare(key, "cookie", StringComparison.OrdinalIgnoreCase) == 0)
@@ -255,7 +256,7 @@ public static class HelperFunctions
                 continue;
             }
 
-            obj.Add(key, value.ToString());
+            obj[key] = value.ToString();
         }
 
         return obj;
@@ -270,11 +271,13 @@ public static class HelperFunctions
 
         try
         {
-            var jObject = JToken.Parse(data);
-            var result = CheckForProtectedFields(jObject, protectedFields);
+            var jsonObject = JsonNode.Parse(data) as JsonObject;
+            if (jsonObject is null) return data;
+
+            var result = CheckForProtectedFields(jsonObject, protectedFields);
             if (result != null)
             {
-                return result.ToString();
+                return result.ToJsonString();
             }
         }
         catch (Exception e)
@@ -285,22 +288,21 @@ public static class HelperFunctions
         return data;
     }
 
-    public static JObject? CheckForProtectedFields(JObject? jObject, IReadOnlyCollection<string>? protectedFields)
+    public static JsonObject? CheckForProtectedFields(JsonObject? jsonObject, IReadOnlyCollection<string>? protectedFields)
     {
-        if (jObject == null || protectedFields?.Count == 0)
+        if (jsonObject == null || protectedFields?.Count == 0)
         {
-            return jObject;
+            return jsonObject;
         }
 
         try
         {
-            var fields = jObject.Properties();
-            foreach (var prop in fields)
+            foreach (var (key, value) in jsonObject.ToList())
             {
-                MaskProtectedProperties(jObject, prop, protectedFields);
+                MaskProtectedProperties(jsonObject, key, value, protectedFields);
             }
 
-            return jObject;
+            return jsonObject;
         }
         catch (Exception e)
         {
@@ -325,8 +327,9 @@ public static class HelperFunctions
             default:
                 try
                 {
-                    var jObject = JObject.FromObject(data);
-                    return CheckForProtectedFields(jObject, protectedFields);
+                    var jsonObject = JsonSerializer.SerializeToNode(data)?.AsObject();
+                    if (jsonObject is null) return data;
+                    return CheckForProtectedFields(jsonObject, protectedFields);
                 }
                 catch (Exception e)
                 {
@@ -337,55 +340,58 @@ public static class HelperFunctions
         }
     }
 
-    private static void MaskProtectedProperties(JObject? jObject, JProperty? jProperty, IReadOnlyCollection<string>? protectedFields)
+    private static void MaskProtectedProperties(JsonObject? jsonObject, string? propertyName,
+        JsonNode? propertyValue, IReadOnlyCollection<string>? protectedFields)
     {
-        if(jObject is null || string.IsNullOrWhiteSpace(jProperty?.Name) || protectedFields.Count == 0)
+        if (jsonObject is null || string.IsNullOrWhiteSpace(propertyName) || protectedFields?.Count == 0)
         {
             return;
         }
-        
-        if (protectedFields.Contains(jProperty.Name, StringComparer.OrdinalIgnoreCase))
+
+        if (protectedFields.Contains(propertyName, StringComparer.OrdinalIgnoreCase))
         {
-            jObject.Property(jProperty.Name)!.Value = "******";
+            jsonObject[propertyName] = "******";
+            return;
         }
 
-        if (jProperty.Value is JValue)
+        // Check if a string value contains embedded JSON
+        if (propertyValue is JsonValue jsonValue)
         {
             try
             {
-                var data = jProperty.Value.ToString();
-                if (IsValidJson(data, out var isArray))
+                if (jsonValue.TryGetValue<string>(out var stringValue) && IsValidJson(stringValue))
                 {
-                    jProperty.Value = isArray
-                        ? JArray.Parse(data)
-                        : JObject.Parse(data);
+                    var parsed = JsonNode.Parse(stringValue);
+                    if (parsed is not null)
+                    {
+                        jsonObject[propertyName] = parsed;
+                        propertyValue = parsed;
+                    }
                 }
             }
             catch (Exception e)
             {
-                //Logger.Error(e, $"Parsing {jProperty.Name} data");
+                //Logger.Error(e, $"Parsing {propertyName} data");
             }
         }
 
-        if (jProperty.Value is JArray array)
+        if (propertyValue is JsonArray array)
         {
-            foreach (var jChildObject in array)
+            foreach (var child in array)
             {
-                if (jChildObject is JObject obj)
+                if (child is JsonObject childObj)
                 {
-                    CheckForProtectedFields(obj, protectedFields);
+                    CheckForProtectedFields(childObj, protectedFields);
                 }
             }
 
             return;
         }
 
-        if (jProperty.Value is not JObject childObject)
+        if (propertyValue is JsonObject childObject)
         {
-            return;
+            CheckForProtectedFields(childObject, protectedFields);
         }
-
-        CheckForProtectedFields(childObject, protectedFields);
     }
 
     public static bool IsValidJson(string strInput)

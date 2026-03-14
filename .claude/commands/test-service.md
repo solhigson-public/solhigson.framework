@@ -1,76 +1,26 @@
 ---
-description: Generate unit tests for an ASP.NET Core service using xUnit, NSubstitute, and Shouldly.
+description: Generate unit tests for an ASP.NET Core service using xUnit and Shouldly.
 ---
 
-Generate unit tests for the specified service. Follow these conventions:
+Generate unit tests for the specified service. MUST follow the conventions in the `dotnet-test` skill — MUST invoke it first for the full test infrastructure reference (TestBase, TestContainerBuilder, fixtures, mocking strategy).
 
-## Test Project Structure
-- Tests go in the corresponding test project (e.g., `{AppName}.Application.Tests` or `{AppName}.Tests`).
-- Mirror the source folder structure in the test project.
-- Test class name: `{ServiceName}Tests`.
+## Governed By
 
-## Test Framework
-- **xUnit** for test framework
-- **NSubstitute** for mocking
-- **Shouldly** for assertions — use exclusively, never `Assert.*`
+- `test-pattern.md` — test infrastructure, assertion conventions, mock patterns
 
-## What to Mock
-- `IRepositoryWrapper` and its repositories
-- `ServicesWrapper` (if the service uses it)
-- External service dependencies
-- Never mock the service under test itself
+## Steps
 
-## Test Coverage Requirements
-For each service method, generate tests for:
+1. **Read existing test infrastructure** — MUST check for TestBase, fixtures, and seeder in the test project. If none exist, MUST set them up per the `dotnet-test` skill before writing tests.
 
-### Happy Path
-- Valid input returns `response.Success()` with correct data
-- Verify correct repository methods were called
-- Verify Mapster mapping produces expected output
+2. **Create test class** — MUST create `{ServiceName}Tests` inheriting TestBase, mirroring the source folder structure in the test project.
 
-### Failure Cases
-- Invalid/null input returns `response.Fail()`
-- Entity not found returns appropriate failure
-- Exception in repository is caught, logged, and returns `response.Fail()`
+3. **Generate tests** for each service method:
+   - **Happy path**: valid input → `response.IsSuccessful.ShouldBeTrue()`, correct data
+   - **Failure cases**: invalid/null input, entity not found, exception handling
+   - **Ownership validation**: if the method validates user ownership, MUST test both owner and non-owner
 
-### ResponseInfo Pattern
-- `response.IsSuccessful.ShouldBeTrue()` for success cases
-- `response.IsSuccessful.ShouldBeFalse()` for failure cases
-- `response.Data.ShouldNotBeNull()` and `response.Data.ShouldBe(expected)` for payload
-- `response.Message.ShouldContain("expected text")` for error messages
+4. **Naming**: `MethodName_Scenario_ExpectedResult` (e.g., `GetUserAsync_ValidId_ReturnsSuccess`)
 
-## Test Naming Convention
-```
-MethodName_Scenario_ExpectedResult
-```
-Examples:
-- `GetUserAsync_ValidId_ReturnsSuccess`
-- `GetUserAsync_InvalidId_ReturnsFail`
-- `CreateOrderAsync_NullInput_ReturnsFail`
-- `CreateOrderAsync_DuplicateEmail_ReturnsFail`
+5. **Assertions**: MUST use Shouldly exclusively — MUST NOT use `Assert.*`
 
-## Template
-```csharp
-public class {ServiceName}Tests
-{
-    private readonly IRepositoryWrapper _repoMock;
-    private readonly {ServiceName} _sut;
-
-    public {ServiceName}Tests()
-    {
-        _repoMock = Substitute.For<IRepositoryWrapper>();
-        _sut = new {ServiceName}();
-        // Wire up RepositoryWrapper via property injection or constructor
-    }
-
-    [Fact]
-    public async Task MethodName_Scenario_ExpectedResult()
-    {
-        // Arrange
-        // Act
-        // Assert — use Shouldly
-    }
-}
-```
-
-Check existing test files in the project first and follow their patterns.
+MUST check existing test files in the project first and MUST follow their patterns.

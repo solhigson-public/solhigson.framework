@@ -2,58 +2,51 @@
 description: Add a new ASP.NET Core endpoint following project conventions.
 ---
 
-Add a new endpoint to this project. Follow these steps in order:
+Add a new endpoint to this project. MUST follow these steps in order.
+
+## Governed By
+
+- `dotnet-conventions.md` — naming, record types, file-scoped namespaces
+- `service-patterns.md` — service method patterns, DTO conventions
+- `permissions-pattern.md` — auth attribute enforcement
+- `generated-files.md` — partial class rules
+- `seo-strategy.md` — SEO conventions for MVC views
 
 ## 1. Determine Endpoint Type
-- **MVC** (returns Razor views) — goes in `Controllers/Mvc/`, inherits `MvcBaseController`
-- **API** (returns JSON) — goes in `Controllers/Api/`, inherits `ApiBaseController`
-- Ask which type if unclear from context.
+- **MVC** (returns Razor views) — MUST go in `Controllers/Mvc/`, MUST inherit `MvcBaseController`
+- **API** (returns JSON) — MUST go in `Controllers/Api/`, MUST inherit `ApiBaseController`
+- MUST ask which type if unclear from context.
 
 ## 2. Identify or Create Controller
-- Check if an appropriate controller already exists for this resource/feature.
-- If creating new: follow naming `{Resource}Controller.cs`, correct folder, correct base class.
+- MUST check if a controller already exists for this resource/feature area.
+- If creating new: MUST follow naming `{Resource}Controller.cs`, correct folder, correct base class.
 
 ## 3. Define DTOs
-- Create `record` types for request/response DTOs in `Domain/ViewModels/` or appropriate DTO namespace.
+- MUST create `record` types in `Domain/ViewModels/` (MVC) or the DTO namespace for the feature area.
 - Name: `{Action}{Resource}ViewModel` for MVC, `{Resource}Dto` for API.
-- Use `required` properties, data annotations for validation (`[Required]`, `[StringLength]`).
-- Never abbreviate ViewModel as Vm.
+- MUST use `required` properties, data annotations for validation (`[Required]`, `[StringLength]`).
+- MUST NOT abbreviate ViewModel as Vm.
 
 ## 4. Add Service Method
-- Add method to appropriate service (inherits `ServiceBase`).
-- Return `ResponseInfo<T>` — follow the standard pattern:
-  ```csharp
-  var response = new ResponseInfo<T>();
-  try
-  {
-      // logic
-      return response.Success(data);
-  }
-  catch (Exception e)
-  {
-      this.LogError(e);
-  }
-  return response.Fail();
-  ```
-- Use Mapster for mapping: `entity.Adapt<Dto>()`.
-- Access DB via `RepositoryWrapper.DbContext`.
+- MUST add method to the service owning this resource — MUST comply with `service-patterns.md` and MUST invoke the `dotnet-app` skill for full code templates.
+- MUST return `ResponseInfo<T>`, MUST use Mapster for mapping, MUST access DB via `RepositoryWrapper.DbContext`.
 
 ## 5. Add Repository Interaction (if needed)
-- Use existing repository methods where possible.
-- For new queries: add to the appropriate repository interface and implementation.
-- Use `AsNoTracking()` for read-only queries.
-- Never edit `.generated.cs` files — use partial classes.
+- MUST use existing repository methods where possible.
+- For new queries: MUST add to the repository interface and implementation for this entity.
+- MUST use `AsNoTracking()` for read-only queries.
+- MUST NOT edit `.generated.cs` files — MUST use partial classes.
 
 ## 6. Wire Up Controller Action
-- Add route attribute: `[HttpGet("...")]` or `[HttpPost("...")]`.
-- Add auth attribute: `[AllowAnonymous]` or `[Permission("...")]`.
-- Call service via `ServicesWrapper`, return appropriate result.
+- MUST add route attribute: `[HttpGet("...")]` or `[HttpPost("...")]`.
+- MUST add auth attribute per `permissions-pattern.md`.
+- MUST call service via `ServicesWrapper`, MUST return the result type matching the endpoint type.
 
 ## 7. Add Razor View (MVC only)
-- Create view in matching `Views/{Controller}/` folder.
-- Follow SEO conventions: `ViewBag.Title`, `ViewBag.MetaDescription`, `ViewBag.Robots`.
-- Semantic HTML5 structure.
+- MUST create view in matching `Views/{Controller}/` folder.
+- MUST follow SEO conventions per `seo-strategy.md`: `ViewBag.Title`, `ViewBag.MetaDescription`, `ViewBag.Robots`.
+- MUST use semantic HTML5 structure.
 
 ## 8. Suggest Tests
-- List which unit tests should be added for the new service method.
-- List integration test scenarios for the endpoint.
+- MUST list which unit tests MUST be added for the new service method.
+- MUST list integration test scenarios for the endpoint.

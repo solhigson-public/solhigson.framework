@@ -2,46 +2,32 @@
 description: Review an entity or DTO for convention compliance.
 ---
 
-Review this entity/DTO for compliance with project conventions:
+Review this entity/DTO for compliance with project conventions.
 
-## Entity Rules (Domain layer)
-- Must be a `record` type (not `class`)
-- Must inherit `EntityBase` (which provides `Id`, `Created`, `Updated`)
-- `Id` must be `string` type, stored as `VARCHAR(450)`
-- IDs generated via `MassTransit.NewId.NextSequentialGuid()` — never `Guid.NewGuid()`
-- File-scoped namespace: `namespace X;`
+## Governed By
 
-## Data Annotations
-- `[Required]` on non-nullable fields
-- `[StringLength(n)]` with appropriate max lengths — never unbounded `nvarchar(max)`
-- `[Column(TypeName = "VARCHAR")]` or `[Column(TypeName = "VARCHAR(n)")]` for string columns
-- `[CachedProperty]` on properties that participate in caching
-- `[AuditIgnore]` on properties excluded from audit trail
-- Decimal precision: `[Column(TypeName = "decimal(18,2)")]`
+- `dotnet-conventions.md` — record types, naming, file-scoped namespaces
+- `service-patterns.md` — DTO patterns, Mapster mapping
+- `generated-files.md` — partial class rules
 
-## Naming
-- Entity: `{Name}` (e.g., `Campaign`, `Organisation`)
-- DTO: `{Name}Dto` (e.g., `CampaignDto`, `OrganisationDto`)
-- ViewModel: `{Name}ViewModel` — **never** `{Name}Vm`
-- Properties: PascalCase, private fields: `_camelCase`
+## Procedure
 
-## Immutability
-- Prefer `required` properties and `init` setters where possible
-- Use `record` positional syntax or property declarations — be consistent within the entity
+1. **Type** — MUST verify entity is a `record` type (not `class`). MUST verify it inherits `EntityBase`.
 
-## Relationships
-- Use explicit joins in LINQ queries, not navigation properties for complex queries
-- Foreign key properties: `{RelatedEntity}Id` as `string`
-- No bidirectional navigation properties unless necessary
+2. **Data annotations** — MUST verify:
+   - `[Required]` on non-nullable fields
+   - `[StringLength(n)]` with max lengths matching the database column definition — MUST NOT use unbounded `nvarchar(max)`
+   - `[Column(TypeName = "VARCHAR(n)")]` for string columns
+   - Decimal precision: `[Column(TypeName = "decimal(18,2)")]`
 
-## DTO Rules
-- Must be a `record` type
-- Must live in appropriate namespace (`Domain/ViewModels/` or DTO namespace)
-- Should contain only the fields needed for the use case — no full entity exposure
-- Use Mapster for mapping: `entity.Adapt<Dto>()`, `model.Adapt(entity)`
+3. **Naming** — MUST verify PascalCase for properties, `_camelCase` for private fields. Entity: `{Name}`, DTO: `{Name}Dto`, ViewModel: `{Name}ViewModel` — MUST NOT abbreviate as `Vm`.
 
-## Generated Files
-- If this entity has a `.generated.cs` partial — never edit it
-- Custom logic goes in the non-generated partial class
+4. **Immutability** — MUST verify `required` properties and `init` setters where possible.
 
-Flag any violations and suggest fixes with code examples.
+5. **Relationships** — MUST verify explicit joins in LINQ (not navigation properties for complex queries). Foreign keys: `{RelatedEntity}Id` as `string`.
+
+6. **DTO scope** — MUST verify DTOs contain only fields needed for the use case — MUST NOT expose full entity.
+
+7. **Generated files** — MUST verify no edits to `.generated.cs` — custom logic MUST go in the non-generated partial class.
+
+MUST flag any violations and MUST suggest fixes with code examples.

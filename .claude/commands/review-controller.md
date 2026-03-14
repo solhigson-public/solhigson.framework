@@ -2,40 +2,28 @@
 description: Review an ASP.NET Core controller for conventions and best practices.
 ---
 
-Review this controller for compliance with project conventions:
+Review this controller for compliance with project conventions.
 
-## Base Class & Inheritance
-- MVC controllers must inherit `MvcBaseController` (extends `SolhigsonMvcControllerBase`)
-- API controllers must inherit `ApiBaseController` (extends `SolhigsonApiControllerBase`)
-- Controller must be in correct folder: `Controllers/Mvc/` or `Controllers/Api/`
+## Governed By
 
-## Thin Controller Principle
-- No business logic in the controller — delegate to services via `ServicesWrapper`
-- Controller actions should: validate input, call service, return result
-- No direct `DbContext` or `RepositoryWrapper` access — use services
+- `dotnet-conventions.md` — naming, base classes, file-scoped namespaces
+- `permissions-pattern.md` — auth attribute enforcement
+- `facade-service-pattern.md` — service delegation, no inline business logic
+- `service-patterns.md` — service call patterns
+- `performance.md` — defensive programming, secure coding (OWASP)
 
-## Route & HTTP Conventions
-- Route attributes on every action: `[HttpGet("...")]`, `[HttpPost("...")]`
-- RESTful HTTP methods: GET for reads, POST for mutations
-- MVC returns `View()`, `RedirectToAction()`, or `Redirect()`
-- API returns `ResponseInfo<T>` via base controller helpers
+## Procedure
 
-## Auth & Security
-- Every action must have `[AllowAnonymous]` or `[Permission("...")]`
-- Throttling attributes where appropriate: `[ThrottleByParam]`, `[ThrottleByUser]`
-- `[Button("name")]` for multiple POST actions on the same route
-- Anti-forgery tokens on POST forms (CSRF protection)
-- No secrets, connection strings, or sensitive data in controller code
+1. **Base class** — MUST verify correct base class (`MvcBaseController` or `ApiBaseController`) and folder placement (`Controllers/Mvc/` or `Controllers/Api/`).
 
-## Patterns
-- `SessionUser` for current user context (not `HttpContext.User` directly)
-- `SetErrorMessage()`, `SetInfoMessage()` for flash messages (not `TempData` directly)
-- Property injection for `ServicesWrapper`: `public ServicesWrapper ServicesWrapper { get; set; }`
+2. **Thin controller** — MUST verify no business logic in actions. MUST verify all data access goes through services via `ServicesWrapper`, NEVER directly via `DbContext` or `RepositoryWrapper`.
 
-## OWASP Compliance
-- Input validation on all parameters
-- No raw SQL or string concatenation in queries
-- Proper encoding of user-supplied output (XSS prevention)
-- Authorization checks before data access
+3. **Auth attributes** — MUST verify every action has exactly one of: `[AllowAnonymous]`, `[Permission(Permission.X)]`, or `[Authorize]`. MUST verify throttling attributes on mutation and search endpoints.
 
-Flag any violations and suggest fixes with code examples.
+4. **Route conventions** — MUST verify route attributes on every action. MUST verify RESTful HTTP methods (GET for reads, POST for mutations).
+
+5. **Patterns** — MUST verify `SessionUser` for current user context (MUST NOT use `HttpContext.User` directly). MUST verify `SetErrorMessage()`/`SetInfoMessage()` for flash messages (MUST NOT use `TempData` directly).
+
+6. **OWASP compliance** — MUST verify input validation, no raw SQL/string concatenation, output encoding, authorization before data access.
+
+MUST flag any violations and MUST suggest fixes with code examples.
