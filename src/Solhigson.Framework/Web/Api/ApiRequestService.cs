@@ -17,15 +17,6 @@ namespace Solhigson.Framework.Web.Api;
 public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfiguration apiConfiguration)
     : IApiRequestService
 {
-    [Obsolete("Use ContentTypes.Plain instead. Will be removed in v11.")]
-    public const string ContentTypePlain = "text/plain";
-    [Obsolete("Use ContentTypes.Json instead. Will be removed in v11.")]
-    public const string ContentTypeJson = "application/json";
-    [Obsolete("Use ContentTypes.Xml instead. Will be removed in v11.")]
-    public const string ContentTypeXml = "application/xml";
-    [Obsolete("Use ContentTypes.FormUrlEncoded instead. Will be removed in v11.")]
-    public const string ContentTypeXWwwFormUrlencoded = "application/x-www-form-urlencoded";
-
     private readonly LogWrapper _logger = Logging.LogManager.GetLogger("ApiRequestHelper");
 
     public async Task<ApiRequestResponse> SendAsync(ApiRequest request, CancellationToken ct = default)

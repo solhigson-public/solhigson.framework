@@ -50,13 +50,13 @@ Each test phase follows: **Plan → Write Tests → Build → Commit**
 - [x] Build
 - [x] Commit
 
-### Phase 3t — ApiRequestService Tests
-> Builder construction, SendAsync with CT propagation, trace logging, error classification, named client resolution.
+### Phase 3t — ApiRequestService Tests ✅
+> Builder construction (18 tests), service behavior with testable subclass (10 tests), trace logging toggle, error/exception classification. Removed obsolete ContentType* constants.
 
-- [ ] Plan
-- [ ] Write tests
-- [ ] Build
-- [ ] Commit
+- [x] Plan
+- [x] Write tests (28 tests — ApiRequest builder, ApiRequestService behavior)
+- [x] Build
+- [x] Commit
 
 ### Phase 4 — Obsolete Removal, Version Bump & Final Verification
 > Delete 7 `ELog*` methods, 2 `RepositoryBase.Get()` overloads, 5 `PermissionAttribute` properties. Bump Framework to 10.1.0. Grep audit: zero Newtonsoft references. Full `dotnet test`.
