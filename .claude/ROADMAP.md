@@ -42,13 +42,13 @@ Each test phase follows: **Plan → Write Tests → Build → Commit**
 - [x] Build
 - [x] Commit
 
-### Phase 3 — ApiRequestService Redesign
-> Create `ApiRequest` builder (static factory + fluent chain). Redesign `IApiRequestService` to 2 methods (`SendAsync`, `SendAsync<T>`). Rewrite `ApiRequestService`: add CancellationToken, STJ deserialization, remove Task.Run(), remove exception swallowing, add `using` on HttpRequestMessage, ExpectContinue default false.
+### Phase 3 — ApiRequestService Redesign ✅
+> Consolidated into single `ApiRequest` class (static factory + fluent builder + properties). Redesigned `IApiRequestService` to 2 methods (`SendAsync`, `SendAsync<T>`) with CancellationToken. Rewrote `ApiRequestService`: linked CTS for timeout (thread-safe), sync trace logging, `using` on HttpRequestMessage, constructor-injected `ApiConfiguration`, ExpectContinue default false. Extracted `ContentTypes` constants.
 
-- [ ] Plan
-- [ ] Implement
-- [ ] Build
-- [ ] Commit
+- [x] Plan
+- [x] Implement
+- [x] Build
+- [x] Commit
 
 ### Phase 3t — ApiRequestService Tests
 > Builder construction, SendAsync with CT propagation, trace logging, error classification, named client resolution.
