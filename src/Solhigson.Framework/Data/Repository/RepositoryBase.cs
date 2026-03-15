@@ -70,18 +70,6 @@ public abstract class RepositoryBase<T, TDbContext>(TDbContext dbContext) : IRep
         return Add(entity);
     }
 
-    [Obsolete("This property is obsolete. Use Where() instead.")]
-    public IQueryable<T> Get(Expression<Func<T, bool>> expression)
-    {
-        return Where(expression);
-    }
-    
-    [Obsolete("This property is obsolete. Use Where<TK>() instead.")]
-    public IQueryable<Tk> Get<Tk>(Expression<Func<T, bool>> expression) where Tk : class
-    {
-        return Where<Tk>(expression);
-    }
-    
     public IQueryable<T> Where(Expression<Func<T, bool>> expression)
     {
         return DbContext.Set<T>().Where(expression);

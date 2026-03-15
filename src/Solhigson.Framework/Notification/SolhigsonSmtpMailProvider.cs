@@ -27,7 +27,7 @@ public class SolhigsonSmtpMailProvider : IMailProvider
     {
         if (_configuration is null)
         {
-            this.ELogWarn($"{nameof(SolhigsonSmtpMailProvider)} has not been configured, " +
+            this.LogWarning($"{nameof(SolhigsonSmtpMailProvider)} has not been configured, " +
                           $"use app.UseSolhigsonSmtpProvider({nameof(SmtpConfiguration)} in the Configure method in Startup");
             return;
         }
@@ -35,13 +35,13 @@ public class SolhigsonSmtpMailProvider : IMailProvider
         _configuration.Invoke(_smtpConfiguration);
         if (string.IsNullOrWhiteSpace(_smtpConfiguration.Server))
         {
-            this.ELogWarn($"{nameof(SmtpConfiguration)}.{nameof(_smtpConfiguration.Server)} cannot be empty");
+            this.LogWarning($"{nameof(SmtpConfiguration)}.{nameof(_smtpConfiguration.Server)} cannot be empty");
             return;
         }
             
         if (_smtpConfiguration.Port <= 0)
         {
-            this.ELogWarn($"{nameof(SmtpConfiguration)}.{nameof(_smtpConfiguration.Password)} cannot be 0");
+            this.LogWarning($"{nameof(SmtpConfiguration)}.{nameof(_smtpConfiguration.Password)} cannot be 0");
             return;
         }
 
@@ -90,14 +90,14 @@ public class SolhigsonSmtpMailProvider : IMailProvider
         }
         catch (Exception e)
         {
-            this.ELogError(e);
+            this.LogError(e);
         }
     }
 
 
     private void SendMail(MailMessage mail)
     {
-        this.ELogDebug("Sending via email client...");
+        this.LogDebug("Sending via email client...");
         try
         {
             var client = new SmtpClient
@@ -115,11 +115,11 @@ public class SolhigsonSmtpMailProvider : IMailProvider
 
             client.EnableSsl = _smtpConfiguration.EnableSsl;
             client.Send(mail);
-            this.ELogDebug("Mail has been sent.");
+            this.LogDebug("Mail has been sent.");
         }
         catch (Exception e)
         {
-            this.ELogError(e);
+            this.LogError(e);
         }
         finally
         {

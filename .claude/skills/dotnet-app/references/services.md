@@ -131,29 +131,39 @@ Facade services orchestrate multiple domain services into composite responses.
 - Controller action needs **2+ domain service calls** → use facade
 - Controller action needs **1 domain service call** → call domain service directly
 
+### Base Class
+Facades MUST inherit `FacadeServiceBase` (NOT `ServiceBase`). Facades are pure orchestrators — no direct repository access. `FacadeServiceBase` provides:
+- `ServicesWrapper` for domain service access
+- `WhenAllAsync` overloads (arity 2–9) with structured cancellation via linked `CancellationTokenSource`
+- Logging via `this.LogError(e)`
+
+Facades live in `src/Elfrique.Application/Facades/` (NOT in `Services/`).
+
 ### Example
 ```csharp
-public partial class PublicFacadeService(IRepositoryWrapper repositoryWrapper) : ServiceBase(repositoryWrapper)
+public partial class PublicFacadeService : FacadeServiceBase
 {
-    public async Task<ResponseInfo<EventDetailData>> GetEventDetailAsync(string slug)
+    public async Task<ResponseInfo<EventDetailData>> GetEventDetailAsync(
+        string slug, CancellationToken cancellationToken = default)
     {
         var response = new ResponseInfo<EventDetailData>();
         try
         {
-            var eventResponse = await ServicesWrapper.EventService.GetEventBySlugAsync<EventDto>(slug);
+            var eventResponse = await ServicesWrapper.EventService
+                .GetEventBySlugAsync<EventDto>(slug, cancellationToken: cancellationToken);
             if (!eventResponse.IsSuccessful || eventResponse.Data is null)
                 return response.Fail(eventResponse.Message);
 
             var ev = eventResponse.Data;
 
-            var highlightsTask = ServicesWrapper.EventService.GetHighlightsAsync<EventHighlightDto>(ev.Id);
-            var performersTask = ServicesWrapper.EventService.GetPerformersAsync<PerformerDto>(ev.Id);
-            var ticketsTask = ServicesWrapper.EventService.GetTicketTypesAsync<TicketTypeDto>(ev.Id);
-            var organizerTask = GetOrganizerInfoAsync(ev.CreatorId);
+            var (highlights, performers, tickets, organizer) = await WhenAllAsync(
+                ct => ServicesWrapper.EventService.GetHighlightsAsync<EventHighlightDto>(ev.Id, cancellationToken: ct),
+                ct => ServicesWrapper.EventService.GetPerformersAsync<PerformerDto>(ev.Id, cancellationToken: ct),
+                ct => ServicesWrapper.EventService.GetTicketTypesAsync<TicketTypeDto>(ev.Id, cancellationToken: ct),
+                ct => GetOrganizerInfoAsync(ev.CreatorId, ct),
+                cancellationToken);
 
-            await Task.WhenAll(highlightsTask, performersTask, ticketsTask, organizerTask);
-
-            return response.Success(new EventDetailData(ev, highlightsTask.Result, ...));
+            return response.Success(new EventDetailData(ev, highlights.Data, ...));
         }
         catch (Exception e)
         {

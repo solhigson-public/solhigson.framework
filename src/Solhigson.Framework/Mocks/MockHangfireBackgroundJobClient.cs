@@ -34,7 +34,7 @@ public class MockHangfireBackgroundJobClient : IBackgroundJobClient
         }
         catch(Exception e)
         {
-            this.ELogError(e);
+            this.LogError(e);
         }
         return Guid.NewGuid().ToString();
     }
