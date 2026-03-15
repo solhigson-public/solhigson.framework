@@ -106,7 +106,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
                 response.EndTime ??= DateTime.UtcNow;
                 response.TimeTaken = response.EndTime.Value - response.StartTime;
 
-                var responseFormat = apiRequest.Format;
+                var responseFormat = ContentTypes.Json;
                 if (response.HttpResponseMessage is not null)
                 {
                     if (response.HttpResponseMessage.Content.Headers.ContentType?.MediaType is { } mediaType)
