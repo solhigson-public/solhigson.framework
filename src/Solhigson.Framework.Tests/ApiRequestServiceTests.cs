@@ -201,14 +201,12 @@ public class ApiRequestServiceTests
                 ?? new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("") });
         }
 
-        protected override void SaveApiTraceData(string url, string method,
-            System.Collections.Generic.IReadOnlyDictionary<string, string>? requestHeaders,
-            DateTime startTime, DateTime endTime, string? requestMessage, string? responseMessage,
-            System.Collections.Generic.Dictionary<string, string>? responseHeaders,
-            HttpStatusCode statusCode, string? serviceDescription, string serviceName, string serviceType)
+        protected override void SaveApiTraceData(ApiRequestResponse response, ApiRequest apiRequest)
         {
             TraceCallCount++;
-            LastTracedServiceName = serviceName;
+            LastTracedServiceName = string.IsNullOrWhiteSpace(apiRequest.ServiceName)
+                ? apiRequest.Uri.Host
+                : apiRequest.ServiceName;
         }
     }
 

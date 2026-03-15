@@ -17,7 +17,7 @@ namespace Solhigson.Framework.Web.Api;
 public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfiguration apiConfiguration)
     : IApiRequestService
 {
-    private readonly LogWrapper _logger = Logging.LogManager.GetLogger("ApiRequestHelper");
+    private readonly LogWrapper _logger = Logging.LogManager.GetLogger(nameof(ApiRequestService));
 
     public async Task<ApiRequestResponse> SendAsync(ApiRequest request, CancellationToken ct = default)
     {
@@ -30,71 +30,50 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
     }
 
     protected async Task<ApiRequestResponse<T>> SendRequestInternalAsync<T>(
-        ApiRequest apiRequestDetails, CancellationToken ct)
+        ApiRequest apiRequest, CancellationToken ct)
     {
-        var logTrace = apiRequestDetails.LogTrace ?? apiConfiguration.LogOutBoundApiRequests;
+        var logTrace = apiRequest.LogTrace ?? apiConfiguration.LogOutBoundApiRequests;
 
-        var method = apiRequestDetails.HttpMethod;
-        var data = apiRequestDetails.Payload;
-        var format = apiRequestDetails.Format;
-        var timeOut = apiRequestDetails.TimeOut;
-        var url = apiRequestDetails.Uri.ToString();
-
-        var serviceName = apiRequestDetails.ServiceName;
-        if (string.IsNullOrWhiteSpace(serviceName))
-        {
-            serviceName = apiRequestDetails.Uri.Host;
-        }
-
-        var serviceType = apiRequestDetails.ServiceType;
-        if (string.IsNullOrWhiteSpace(serviceType))
-        {
-            serviceType = Constants.ServiceType.External;
-        }
-
-        var apiRequestHelperResponse = new ApiRequestResponse<T>
-        {
-            StartTime = DateTime.UtcNow
-        };
-        var client = httpClientFactory.CreateClient(apiRequestDetails.NamedHttpClient ?? "");
-        client.DefaultRequestHeaders.ExpectContinue = apiRequestDetails.ExpectContinue;
+        var response = new ApiRequestResponse<T>();
+        var client = httpClientFactory.CreateClient(apiRequest.NamedHttpClient ?? "");
         using var request = new HttpRequestMessage();
+        request.Headers.ExpectContinue = apiRequest.ExpectContinue;
 
         CancellationTokenSource? linkedCts = null;
         var effectiveCt = ct;
 
         try
         {
-            if (timeOut > 0)
+            if (apiRequest.TimeOut > 0)
             {
                 linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                linkedCts.CancelAfter(TimeSpan.FromSeconds(timeOut));
+                linkedCts.CancelAfter(TimeSpan.FromSeconds(apiRequest.TimeOut));
                 effectiveCt = linkedCts.Token;
             }
 
-            request.Method = method;
-            request.RequestUri = apiRequestDetails.Uri;
-            if (apiRequestDetails.HttpContent is not null)
+            request.Method = apiRequest.HttpMethod;
+            request.RequestUri = apiRequest.Uri;
+            if (apiRequest.HttpContent is not null)
             {
-                request.Content = apiRequestDetails.HttpContent;
+                request.Content = apiRequest.HttpContent;
             }
             else
             {
-                if (!string.IsNullOrWhiteSpace(data))
+                if (!string.IsNullOrWhiteSpace(apiRequest.Payload))
                 {
-                    request.Content = new StringContent(data, Encoding.UTF8, format);
+                    request.Content = new StringContent(apiRequest.Payload, Encoding.UTF8, apiRequest.Format);
                 }
-                else if (method == HttpMethod.Delete || method == HttpMethod.Put)
+                else if (apiRequest.HttpMethod == HttpMethod.Put)
                 {
-                    request.Content ??= new StringContent("", Encoding.UTF8, format);
+                    request.Content = new StringContent("", Encoding.UTF8, apiRequest.Format);
                 }
             }
 
-            if (apiRequestDetails.Headers is { Count: > 0 })
+            if (apiRequest.Headers is { Count: > 0 })
             {
-                foreach (var key in apiRequestDetails.Headers.Keys)
+                foreach (var key in apiRequest.Headers.Keys)
                 {
-                    if (apiRequestDetails.Headers.TryGetValue(key, out var value) &&
+                    if (apiRequest.Headers.TryGetValue(key, out var value) &&
                         !string.IsNullOrWhiteSpace(value))
                     {
                         request.Headers.TryAddWithoutValidation(key, value);
@@ -102,79 +81,63 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
                 }
             }
 
-            apiRequestHelperResponse.Request = request.Content != null
-                ? await request.Content.ReadAsStringAsync(effectiveCt)
-                : data;
+            response.Request = apiRequest.Payload;
 
-            apiRequestHelperResponse.ResponseHeaders = new Dictionary<string, string>();
-
-            apiRequestHelperResponse.StartTime = DateTime.UtcNow;
-            apiRequestHelperResponse.HttpResponseMessage =
-                await MakeHttpCall<T>(apiRequestDetails, client, request, effectiveCt);
-            apiRequestHelperResponse.HttpCallResult = GetHttpCallResult(apiRequestHelperResponse.HttpResponseMessage);
-            apiRequestHelperResponse.EndTime = DateTime.UtcNow;
-            if (apiRequestDetails.ReadResponseContent)
+            response.StartTime = DateTime.UtcNow;
+            response.HttpResponseMessage =
+                await MakeHttpCall<T>(apiRequest, client, request, effectiveCt);
+            response.HttpCallResult = GetHttpCallResult(response.HttpResponseMessage);
+            response.EndTime = DateTime.UtcNow;
+            if (apiRequest.ReadResponseContent)
             {
-                apiRequestHelperResponse.Response =
-                    await apiRequestHelperResponse.HttpResponseMessage.Content.ReadAsStringAsync(effectiveCt);
+                response.Response =
+                    await response.HttpResponseMessage.Content.ReadAsStringAsync(effectiveCt);
             }
         }
         catch (Exception e)
         {
-            OnAnyException(apiRequestDetails, apiRequestHelperResponse, e);
-
-            apiRequestHelperResponse.HttpCallResult = MapToResult(e);
+            OnAnyException(apiRequest, response, e);
+            response.HttpCallResult = MapToResult(e, ct);
         }
         finally
         {
             try
             {
-                apiRequestHelperResponse.EndTime ??= DateTime.UtcNow;
-                apiRequestHelperResponse.TimeTaken =
-                    apiRequestHelperResponse.EndTime.Value - apiRequestHelperResponse.StartTime;
+                response.EndTime ??= DateTime.UtcNow;
+                response.TimeTaken = response.EndTime.Value - response.StartTime;
 
-                var responseFormat = format;
-                Dictionary<string, string>? responseHeaders = null;
-                if (apiRequestHelperResponse.HttpResponseMessage != null)
+                var responseFormat = apiRequest.Format;
+                if (response.HttpResponseMessage is not null)
                 {
-                    responseHeaders =
-                        HelperFunctions.ToJsonObject(apiRequestHelperResponse.HttpResponseMessage.Headers);
-                    if (responseHeaders?.TryGetValue("Content-Type", out var header) == true)
+                    if (response.HttpResponseMessage.Content.Headers.ContentType?.MediaType is { } mediaType)
                     {
-                        responseFormat = header.ToString();
+                        responseFormat = mediaType;
                     }
 
-                    if (apiRequestHelperResponse.HttpResponseMessage.Headers.HasData())
+                    if (response.HttpResponseMessage.Headers.HasData())
                     {
-                        foreach (var (key, value) in apiRequestHelperResponse.HttpResponseMessage.Headers)
+                        response.ResponseHeaders = new Dictionary<string, string>();
+                        foreach (var (key, value) in response.HttpResponseMessage.Headers)
                         {
-                            apiRequestHelperResponse.ResponseHeaders?.Add(key, string.Join(",", value));
+                            response.ResponseHeaders.Add(key, string.Join(",", value));
                         }
                     }
 
-                    if (apiRequestHelperResponse.HttpResponseMessage.RequestMessage?.Headers != null)
+                    if (response.HttpResponseMessage.RequestMessage?.Headers is { } reqHeaders)
                     {
-                        apiRequestHelperResponse.RequestHeaders = new Dictionary<string, string>();
-                        foreach (var (key, value) in apiRequestHelperResponse.HttpResponseMessage.RequestMessage
-                                     .Headers)
+                        response.RequestHeaders = new Dictionary<string, string>();
+                        foreach (var (key, value) in reqHeaders)
                         {
-                            apiRequestHelperResponse.RequestHeaders.Add(key, string.Join(",", value));
+                            response.RequestHeaders.Add(key, string.Join(",", value));
                         }
                     }
                 }
 
-                ExtractObject(apiRequestHelperResponse, responseFormat);
+                ExtractObject(response, responseFormat);
 
                 if (logTrace)
                 {
-                    var requestHeaders = apiRequestHelperResponse.RequestHeaders ?? apiRequestDetails.Headers;
-                    SaveApiTraceData(url, method.ToString(), requestHeaders,
-                        apiRequestHelperResponse.StartTime,
-                        apiRequestHelperResponse.EndTime ?? DateTime.UtcNow,
-                        apiRequestHelperResponse.Request,
-                        apiRequestHelperResponse.Response, responseHeaders,
-                        apiRequestHelperResponse.HttpStatusCode,
-                        apiRequestDetails.ServiceDescription, serviceName, serviceType);
+                    SaveApiTraceData(response, apiRequest);
                 }
             }
             catch (Exception e)
@@ -185,40 +148,48 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
             linkedCts?.Dispose();
         }
 
-        return apiRequestHelperResponse;
+        return response;
     }
 
-    protected virtual void SaveApiTraceData(string url, string method,
-        IReadOnlyDictionary<string, string>? requestHeaders, DateTime startTime, DateTime endTime,
-        string? requestMessage,
-        string? responseMessage, Dictionary<string, string>? responseHeaders, HttpStatusCode statusCode,
-        string? serviceDescription, string serviceName, string serviceType)
+    protected virtual void SaveApiTraceData(ApiRequestResponse response, ApiRequest apiRequest)
     {
-        var timeTaken = endTime - startTime;
+        var serviceName = string.IsNullOrWhiteSpace(apiRequest.ServiceName)
+            ? apiRequest.Uri.Host
+            : apiRequest.ServiceName;
+
+        var serviceType = string.IsNullOrWhiteSpace(apiRequest.ServiceType)
+            ? Constants.ServiceType.External
+            : apiRequest.ServiceType;
+
+        var requestHeaders = response.RequestHeaders ?? apiRequest.Headers;
+        var responseHeaders = response.HttpResponseMessage is not null
+            ? HelperFunctions.ToJsonObject(response.HttpResponseMessage.Headers)
+            : null;
+
         var traceData = new ApiTraceData
         {
-            RequestTime = DateTime.UtcNow,
-            Url = url,
-            Method = method,
+            RequestTime = response.StartTime,
+            Url = apiRequest.Uri.ToString(),
+            Method = apiRequest.HttpMethod.ToString(),
             Caller = Constants.ServiceType.Self,
             RequestHeaders = HelperFunctions.ToJsonObject(requestHeaders!),
-            RequestMessage = requestMessage,
-            ResponseTime = endTime,
-            TimeTaken = HelperFunctions.TimespanToWords(timeTaken),
-            TimeSeconds = timeTaken.TotalSeconds,
-            ResponseMessage = responseMessage,
+            RequestMessage = response.Request,
+            ResponseTime = response.EndTime ?? DateTime.UtcNow,
+            TimeTaken = HelperFunctions.TimespanToWords(response.TimeTaken),
+            TimeSeconds = response.TimeTaken.TotalSeconds,
+            ResponseMessage = response.Response,
             ResponseHeaders = responseHeaders,
-            StatusCode = ((int)statusCode).ToString(),
-            StatusCodeDescription = statusCode.ToString(),
+            StatusCode = ((int)response.HttpStatusCode).ToString(),
+            StatusCodeDescription = response.HttpStatusCode.ToString(),
         };
 
-        var status = HelperFunctions.IsServiceUp(statusCode)
+        var status = HelperFunctions.IsServiceUp(response.HttpStatusCode)
             ? Constants.ServiceStatus.Up
             : Constants.ServiceStatus.Down;
 
-        var desc = string.IsNullOrWhiteSpace(serviceDescription)
+        var desc = string.IsNullOrWhiteSpace(apiRequest.ServiceDescription)
             ? "Outbound"
-            : serviceDescription;
+            : apiRequest.ServiceDescription;
 
         _logger.LogInformation("{description}, {url}, {serviceName}, {serviceType}, {status}, {traceData}", desc,
             traceData.Url, serviceName, serviceType, status, traceData);
@@ -228,7 +199,7 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
     {
         try
         {
-            if (typeof(T).Name == nameof(Object))
+            if (typeof(T) == typeof(object))
             {
                 return;
             }
@@ -240,11 +211,13 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
 
             var content = apiRequestResponse.Response.Trim();
 
-            if (HelperFunctions.IsValidJson(content))
+            if (format.Contains("json", StringComparison.OrdinalIgnoreCase)
+                || HelperFunctions.IsValidJson(content))
             {
                 apiRequestResponse.Result = content.DeserializeFromJson<T>();
             }
-            else if (HelperFunctions.IsValidXml(content))
+            else if (format.Contains("xml", StringComparison.OrdinalIgnoreCase)
+                     || HelperFunctions.IsValidXml(content))
             {
                 apiRequestResponse.Result = content.DeserializeFromXml<T>();
             }
@@ -256,18 +229,16 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
         }
     }
 
-    protected virtual async Task<HttpResponseMessage> MakeHttpCall<T>(ApiRequest apiRequestDetails,
+    protected virtual async Task<HttpResponseMessage> MakeHttpCall<T>(ApiRequest apiRequest,
         HttpClient client, HttpRequestMessage request, CancellationToken ct)
     {
         return await client.SendAsync(request, ct);
     }
 
-    private void OnAnyException(ApiRequest apiRequestDetails, ApiRequestResponse apiRequestHelperResponse,
-        Exception e)
+    private void OnAnyException(ApiRequest apiRequest, ApiRequestResponse response, Exception e)
     {
-        apiRequestHelperResponse.Response = e.Message;
-        _logger.LogError(e, "While sending request to url: {url}", apiRequestDetails.Uri);
-        apiRequestHelperResponse.HttpStatusDescription = e.Message;
+        response.Response ??= e.Message;
+        _logger.LogError(e, "While sending request to url: {url}", apiRequest.Uri);
     }
 
     private static HttpCallResult GetHttpCallResult(HttpResponseMessage resp)
@@ -295,13 +266,14 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
 
     private static bool IsPotentiallyTransient(HttpResponseMessage resp)
     {
-        var code = (int)resp.StatusCode;
-        if (resp.StatusCode is HttpStatusCode.BadGateway or HttpStatusCode.ServiceUnavailable
-            or HttpStatusCode.GatewayTimeout or HttpStatusCode.RequestTimeout)
+        if (resp.StatusCode is HttpStatusCode.InternalServerError
+            or HttpStatusCode.BadGateway
+            or HttpStatusCode.ServiceUnavailable
+            or HttpStatusCode.GatewayTimeout
+            or HttpStatusCode.RequestTimeout)
             return true;
-        if (resp.Headers.RetryAfter != null) return true;
-        if (resp.StatusCode == (HttpStatusCode)429) return true;
-        return code is >= 500 and <= 599;
+        if (resp.Headers.RetryAfter is not null) return true;
+        return resp.StatusCode == (HttpStatusCode)429;
     }
 
     private static bool IsVendorNetworkLike(HttpStatusCode code)
@@ -318,9 +290,13 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
         return n is 444 or 499 or 522 or 523 or 524 or 527 or 529 or 598 or 599;
     }
 
-    private static HttpCallResult MapToResult(Exception ex)
+    private static HttpCallResult MapToResult(Exception ex, CancellationToken callerCt)
         => ex switch
         {
+            OperationCanceledException when callerCt.IsCancellationRequested
+                => HttpCallResult.New(RequestOutcome.TransportNetworkError, 0,
+                    "Request cancelled by caller", errorType: ex.GetType().FullName),
+
             OperationCanceledException
                 => HttpCallResult.New(RequestOutcome.TransportNetworkError, HttpStatusCode.RequestTimeout,
                     "Request timeout", true, ex.GetType().FullName),
