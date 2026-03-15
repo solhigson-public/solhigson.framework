@@ -123,7 +123,7 @@ public class ApiRequest
 
     #endregion
 
-    #region Properties (read by ApiRequestService)
+    #region Properties
 
     public bool ExpectContinue { get; private set; }
     public Uri Uri { get; }
