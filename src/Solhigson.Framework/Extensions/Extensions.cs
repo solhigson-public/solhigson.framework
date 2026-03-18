@@ -33,6 +33,7 @@ using Solhigson.Framework.Notification;
 using Solhigson.Framework.Utilities;
 using Solhigson.Utilities;
 using Solhigson.Utilities.Security;
+using Solhigson.Framework.Throttling;
 using Solhigson.Framework.Web;
 using Solhigson.Framework.Web.Middleware;
 using Solhigson.Utilities.Dto;
@@ -172,7 +173,7 @@ public static class Extensions
             return builder;
         }
 
-        public IdentityBuilder AddSolhigsonIdentityManager<TUser, TKey, TContext>(Action<IdentityOptions>? setupAction = null) 
+        public IdentityBuilder AddSolhigsonIdentityManager<TUser, TKey, TContext>(Action<IdentityOptions>? setupAction = null)
             where TUser : SolhigsonUser<TKey>
             where TContext : SolhigsonIdentityDbContext<TUser, SolhigsonAspNetRole<TKey>, TKey>
             where TKey : IEquatable<TKey>
@@ -180,6 +181,21 @@ public static class Extensions
             var builder = services.AddSolhigsonIdentityManager<TUser, SolhigsonAspNetRole<TKey>, SolhigsonRoleGroup, TKey, TContext>(setupAction);
             services.TryAddScoped<SolhigsonIdentityManager<TUser, TKey, TContext>>();
             return builder;
+        }
+
+        public IServiceCollection AddSolhigsonThrottling(Action<ThrottleOptions>? configure = null)
+        {
+            services.AddSingleton<IThrottleService, RedisSlidingWindowThrottleService>();
+            if (configure is not null)
+            {
+                services.Configure(configure);
+            }
+            else
+            {
+                services.Configure<ThrottleOptions>(_ => { });
+            }
+
+            return services;
         }
     }
 
@@ -218,6 +234,11 @@ public static class Extensions
         {
             LogManager.SetLoggerFactory(app.ApplicationServices.GetRequiredService<ILoggerFactory>());
             return app;
+        }
+
+        public IApplicationBuilder UseSolhigsonThrottling()
+        {
+            return app.UseMiddleware<ThrottleMiddleware>();
         }
     }
 
