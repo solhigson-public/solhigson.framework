@@ -444,14 +444,7 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
             {
                 foreach (var solhigsonPermission in customPermissions)
                 {
-                    // if (permissionList.ContainsKey(solhigsonPermission.Name) ||
-                    //     await _dbContext.Permissions.AnyAsync(t =>
-                    //         t.Name == solhigsonPermission.Name))
-                    // {
-                    //     continue;
-                    // }
-
-                    permissionList.Add(solhigsonPermission.Name, solhigsonPermission);
+                    permissionList.TryAdd(solhigsonPermission.Name, solhigsonPermission);
                 }
             }
 
@@ -472,12 +465,6 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                     {
                         continue;
                     }
-
-                    // if (await _dbContext.Permissions.AnyAsync(t =>
-                    //         t.Name == permissionAttribute.Name))
-                    // {
-                    //     continue;
-                    // }
 
                     var actionInfo = _actionDescriptorCollectionProvider.ActionDescriptors.Items.FirstOrDefault(x =>
                         x is ControllerActionDescriptor controllerActionDescriptor
@@ -512,15 +499,17 @@ public class PermissionManager<TUser, TRole, TContext, TKey>
                 }
             }
 
+            var existingPermissionNames = (await _dbContext.Permissions
+                .Select(t => t.Name)
+                .ToListAsync()).ToHashSet();
+
             foreach (var permission in from key in permissionList.Keys select permissionList[key])
             {
                 try
                 {
-                    var permissionEntity =
-                        await _dbContext.Permissions.FirstOrDefaultAsync(t => t.Name == permission.Name);
-                    if (permissionEntity is null)
+                    if (!existingPermissionNames.Contains(permission.Name))
                     {
-                        permissionEntity = permission.Adapt<SolhigsonPermission>();
+                        var permissionEntity = permission.Adapt<SolhigsonPermission>();
                         permissionEntity.Enabled = true;
                         if (permissionEntity.IsMenuRoot)
                         {
