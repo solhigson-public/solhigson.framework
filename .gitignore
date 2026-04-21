@@ -345,3 +345,8 @@ src/Solhigson.Framework.Tests/BaseTest.generated.cs
 /src/Solhigson.Framework.Playground/Views/
 /src/Solhigson.Framework.Benchmarks/Whiteboard/
 
+# Claude
+.claude/
+
+
+

@@ -1,17 +1,22 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Solhigson.Framework.Logging;
 using StackExchange.Redis;
 
 namespace Solhigson.Framework.Throttling;
 
-public class RedisSlidingWindowThrottleService : IThrottleService
+public class RedisSlidingWindowThrottleService(
+    IHostEnvironment environment,
+    IConnectionMultiplexer connectionMultiplexer,
+    IOptions<ThrottleOptions> options)
+    : IThrottleService
 {
     private static readonly LogWrapper Logger = LogManager.GetLogger(typeof(RedisSlidingWindowThrottleService).FullName);
 
-    private const string KeyPrefix = "SolThrottle:";
+    private readonly string _keyPrefix = $"solhigson.throttle.{environment.EnvironmentName}.";
 
     private const string LuaScript = """
         local key = KEYS[1]
@@ -37,16 +42,8 @@ public class RedisSlidingWindowThrottleService : IThrottleService
         end
         """;
 
-    private readonly IDatabase _db;
-    private readonly bool _failOpen;
-
-    public RedisSlidingWindowThrottleService(
-        IConnectionMultiplexer connectionMultiplexer,
-        IOptions<ThrottleOptions> options)
-    {
-        _db = connectionMultiplexer.GetDatabase();
-        _failOpen = options.Value.FailOpen;
-    }
+    private readonly IDatabase _db = connectionMultiplexer.GetDatabase();
+    private readonly bool _failOpen = options.Value.FailOpen;
 
     public async Task<ThrottleResult> CheckAsync(
         string key,
@@ -62,7 +59,7 @@ public class RedisSlidingWindowThrottleService : IThrottleService
 
             var result = (RedisResult[]?)await _db.ScriptEvaluateAsync(
                 LuaScript,
-                [(RedisKey)$"{KeyPrefix}{key}"],
+                [(RedisKey)$"{_keyPrefix}{key}"],
                 [(RedisValue)windowSeconds, (RedisValue)limit, (RedisValue)now, (RedisValue)member]);
 
             if (result is { Length: 3 })
