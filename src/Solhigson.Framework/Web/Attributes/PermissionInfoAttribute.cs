@@ -10,7 +10,8 @@ public class PermissionInfoAttribute(string name, string description) : Attribut
     public int MenuIndex { get; set; }
     public string[] AllowedRoles { get; set; } = [];
     public string? OnClickFunction { get; set; }
-    
+    public string? FeatureFlag { get; set; }
+
     
     internal bool IsMenuRoot { get; init; }
     internal bool IsMenu { get; init; }
