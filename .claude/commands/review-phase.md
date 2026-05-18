@@ -18,7 +18,7 @@ Review the current phase for completeness and quality before committing.
 
 4. **Code formatting** — MUST run the stack's formatter in verify/check mode. If it reports changes needed, MUST run the formatter to fix them, then MUST re-verify.
 
-5. **Build gate** — MUST run the stack's build command. MUST pass with zero errors. MUST flag new warnings that indicate incorrect behavior (type mismatches, null reference risks, unused variables that shadow intent). Cosmetic warnings (naming style, whitespace) MUST be deferred.
+5. **Build gate** — MUST run the stack's build command. MUST pass with zero errors. MUST flag new warnings that indicate incorrect behavior (type mismatches, null reference risks, unused variables shadowing outer scope). Cosmetic warnings (naming style, whitespace) MUST be ignored at review time — do not block the report.
 
 6. **Scope check** — MUST compare files changed (via `git diff --name-only`) against the plan's scope section. MUST flag any files changed that are NOT listed in the plan scope. Unexpected changes MUST be flagged as potential scope creep.
 

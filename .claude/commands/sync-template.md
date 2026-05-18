@@ -24,7 +24,7 @@ See skill reference for detailed steps per mode.
 
 ## Rules
 
-- **Report-only by default** — MUST NEVER apply changes without explicit user request
+- **Report-only by default** — NEVER apply changes without explicit user request
 - **MUST skip `.generated.cs`** files and `bin/`, `obj/`, `.vs/`, `.idea/` directories
 - **csproj files MUST use surgical edits** — MUST NEVER use full-file replacement
 - **`ProjectName` substitution is case-sensitive literal** — MUST replace exact string `ProjectName`

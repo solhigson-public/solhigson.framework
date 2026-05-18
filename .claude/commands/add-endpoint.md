@@ -2,14 +2,14 @@
 description: Add a new ASP.NET Core endpoint following project conventions.
 ---
 
-Add a new endpoint to this project. MUST follow these steps in order.
+MUST add a new endpoint to this project. MUST follow these steps in order.
 
 ## Governed By
 
-- `dotnet-conventions.md` — naming, record types, file-scoped namespaces
-- `service-patterns.md` — service method patterns, DTO conventions
+- `dotnet-conventions.dotnet.md` — naming, record types, file-scoped namespaces
+- `service-patterns.dotnet.md` — service method patterns, DTO conventions
 - `permissions-pattern.md` — auth attribute enforcement
-- `generated-files.md` — partial class rules
+- `generated-files.dotnet.md` — partial class rules
 - `seo-strategy.md` — SEO conventions for MVC views
 
 ## 1. Determine Endpoint Type
@@ -28,7 +28,7 @@ Add a new endpoint to this project. MUST follow these steps in order.
 - MUST NOT abbreviate ViewModel as Vm.
 
 ## 4. Add Service Method
-- MUST add method to the service owning this resource — MUST comply with `service-patterns.md` and MUST invoke the `dotnet-app` skill for full code templates.
+- MUST add method to the service owning this resource — MUST comply with `service-patterns.dotnet.md` and MUST invoke the `dotnet-app` skill for full code templates.
 - MUST return `ResponseInfo<T>`, MUST use Mapster for mapping, MUST access DB via `RepositoryWrapper.DbContext`.
 
 ## 5. Add Repository Interaction (if needed)

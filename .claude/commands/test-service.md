@@ -2,11 +2,11 @@
 description: Generate unit tests for an ASP.NET Core service using xUnit and Shouldly.
 ---
 
-Generate unit tests for the specified service. MUST follow the conventions in the `dotnet-test` skill — MUST invoke it first for the full test infrastructure reference (TestBase, TestContainerBuilder, fixtures, mocking strategy).
+Generate unit tests for the specified service. MUST follow the conventions in the `dotnet-test` skill. MUST invoke the `dotnet-test` skill first to verify test infrastructure exists (TestBase, TestContainerBuilder, fixtures). If infrastructure is missing, MUST set it up per the skill's reference before generating tests.
 
 ## Governed By
 
-- `test-pattern.md` — test infrastructure, assertion conventions, mock patterns
+- `test-pattern.dotnet.md` — test infrastructure, assertion conventions, mock patterns
 
 ## Steps
 

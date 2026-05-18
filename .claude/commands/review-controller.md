@@ -2,14 +2,14 @@
 description: Review an ASP.NET Core controller for conventions and best practices.
 ---
 
-Review this controller for compliance with project conventions.
+MUST review this controller for compliance with project conventions. MUST flag all violations and MUST suggest fixes with code examples.
 
 ## Governed By
 
-- `dotnet-conventions.md` — naming, base classes, file-scoped namespaces
+- `dotnet-conventions.dotnet.md` — naming, base classes, file-scoped namespaces
 - `permissions-pattern.md` — auth attribute enforcement
 - `facade-service-pattern.md` — service delegation, no inline business logic
-- `service-patterns.md` — service call patterns
+- `service-patterns.dotnet.md` — service call patterns
 - `performance.md` — defensive programming, secure coding (OWASP)
 
 ## Procedure

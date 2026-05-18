@@ -2,13 +2,13 @@
 description: Review an entity or DTO for convention compliance.
 ---
 
-Review this entity/DTO for compliance with project conventions.
+MUST review this entity/DTO for compliance with project conventions. MUST flag all violations and MUST suggest fixes with code examples.
 
 ## Governed By
 
-- `dotnet-conventions.md` — record types, naming, file-scoped namespaces
-- `service-patterns.md` — DTO patterns, Mapster mapping
-- `generated-files.md` — partial class rules
+- `dotnet-conventions.dotnet.md` — record types, naming, file-scoped namespaces
+- `service-patterns.dotnet.md` — DTO patterns, Mapster mapping
+- `generated-files.dotnet.md` — partial class rules
 
 ## Procedure
 

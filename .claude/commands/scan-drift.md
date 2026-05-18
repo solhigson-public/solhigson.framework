@@ -2,7 +2,7 @@
 description: Deep compliance scan — verify code conforms to all loaded rules.
 ---
 
-Verify the codebase conforms to all loaded rules. MUST delegate to a Task agent for unbiased review (fresh context, no authoring bias). For grep-accelerator patterns and mechanical checks, MUST invoke the `scan-drift` skill.
+Verify the codebase conforms to all loaded rules. MUST delegate to a Task agent for unbiased review (fresh context, no authoring bias). Agent MUST read all rules from `.claude/rules/` and `cognia-meta/rules/` (resolved from repo root). MUST group findings by severity (Critical, Warning, Info) and report rule name, file, line, and violation. For grep-accelerator patterns and mechanical checks, MUST invoke the `scan-drift` skill.
 
 ## Procedure
 
