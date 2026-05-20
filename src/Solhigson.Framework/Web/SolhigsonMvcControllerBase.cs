@@ -21,19 +21,14 @@ public class SolhigsonMvcControllerBase : Controller
 {
     protected bool IsChecked(string name)
     {
-        StringValues isChecked;
-        bool value;
-        if (HttpMethods.IsPost(Request.Method))
-        {
-            isChecked = Request.Form[name];
-            value = isChecked.Any(t => string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0);
-        }
-        else
-        {
-            isChecked = Request.Query[name];
-            value = isChecked.Any(t => string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0
-                                       || string.Compare("true", t, StringComparison.OrdinalIgnoreCase) == 0);
-        }
+        var isChecked = HttpMethods.IsPost(Request.Method)
+            ? Request.Form[name]
+            : Request.Query[name];
+
+        var value = isChecked.Any(t =>
+            string.Compare("on", t, StringComparison.OrdinalIgnoreCase) == 0
+            || string.Compare("true", t, StringComparison.OrdinalIgnoreCase) == 0);
+
         ModelState.SetModelValue(name, new ValueProviderResult(value.ToString()));
         return value;
     }
@@ -78,7 +73,7 @@ public class SolhigsonMvcControllerBase : Controller
         }
 
         var requestValue = vals.FirstOrDefault();
-        
+
         return int.TryParse(requestValue, out int tryValue) ? tryValue : defaultValue;
     }
 
@@ -136,7 +131,7 @@ public class SolhigsonMvcControllerBase : Controller
         SetMessage(message, !response.IsSuccessful);
     }
 
-    protected void SetMessage<T>(ResponseInfo<T> response, string?successMessage = null)
+    protected void SetMessage<T>(ResponseInfo<T> response, string? successMessage = null)
     {
         var message = response.Message;
         if (response.IsSuccessful && !string.IsNullOrWhiteSpace(successMessage))
