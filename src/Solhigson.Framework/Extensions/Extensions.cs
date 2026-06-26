@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -30,6 +31,7 @@ using Solhigson.Framework.Infrastructure.Dependency;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Logging.Nlog.Targets;
 using Solhigson.Framework.Notification;
+using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Utilities;
 using Solhigson.Utilities;
 using Solhigson.Utilities.Security;
@@ -66,6 +68,19 @@ public static class Extensions
         public ContainerBuilder RegisterSolhigsonDependencies(IConfiguration configuration, string? connectionString = null)
         {
             builder.RegisterModule(new SolhigsonAutofacModule(configuration, connectionString));
+            return builder;
+        }
+
+        /// <summary>
+        /// Registers Solhigson dependencies with a caller-selected EF Core database provider.
+        /// Supply the provider inside the delegate, e.g. <c>opt =&gt; opt.UseNpgsql(connectionString)</c>
+        /// or <c>opt =&gt; opt.UseSqlServer(connectionString)</c>. Use this instead of the
+        /// connection-string overload when the consumer is not on SQL Server.
+        /// </summary>
+        public ContainerBuilder RegisterSolhigsonDependenciesWithProvider(IConfiguration configuration,
+            Action<DbContextOptionsBuilder<SolhigsonDbContext>> configureDbContext)
+        {
+            builder.RegisterModule(new SolhigsonAutofacModule(configuration, configureDbContext));
             return builder;
         }
 

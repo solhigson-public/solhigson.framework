@@ -1,5 +1,8 @@
-﻿using Autofac;
+﻿using System;
+using System.Linq;
+using Autofac;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.Repositories;
@@ -15,11 +18,19 @@ public class SolhigsonAutofacModule : Module
 {
     private readonly string? _connectionString;
     private readonly IConfiguration _configuration;
+    private readonly Action<DbContextOptionsBuilder<SolhigsonDbContext>>? _configureDbContext;
 
     public SolhigsonAutofacModule(IConfiguration configuration, string? connectionString)
     {
         _connectionString = connectionString;
         _configuration = configuration;
+    }
+
+    public SolhigsonAutofacModule(IConfiguration configuration,
+        Action<DbContextOptionsBuilder<SolhigsonDbContext>> configureDbContext)
+    {
+        _configuration = configuration;
+        _configureDbContext = configureDbContext;
     }
 
     public static void LoadDbSupport(ContainerBuilder builder, IConfiguration configuration,
@@ -41,7 +52,20 @@ public class SolhigsonAutofacModule : Module
     {
         #region Registed AsSelf(), no interface implementation
 
-        if (!string.IsNullOrWhiteSpace(_connectionString))
+        if (_configureDbContext is not null)
+        {
+            var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
+            _configureDbContext(opt);
+            if (!opt.Options.Extensions.OfType<RelationalOptionsExtension>().Any())
+            {
+                throw new InvalidOperationException(
+                    "RegisterSolhigsonDependenciesWithProvider: the configureDbContext delegate did not configure a database provider. " +
+                    "Call opt.UseNpgsql(...) or opt.UseSqlServer(...) inside the delegate.");
+            }
+            builder.Register(c => new SolhigsonDbContext(opt.Options)).AsSelf().InstancePerLifetimeScope();
+            LoadDbSupport(builder, _configuration, opt);
+        }
+        else if (!string.IsNullOrWhiteSpace(_connectionString))
         {
             var opt = new DbContextOptionsBuilder<SolhigsonDbContext>();
             opt.UseSqlServer(_connectionString);
