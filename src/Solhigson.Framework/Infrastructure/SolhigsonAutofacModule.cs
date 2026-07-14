@@ -114,5 +114,18 @@ public class SolhigsonAutofacModule : Module
         builder.RegisterType<AuditCaptureRegistry>().AsSelf().SingleInstance()
             .PreserveExistingDefaults();
 
+        // Audit-capture interceptors (F2). Registered for AVAILABILITY only — the consumer wires them
+        // onto its own AppDbContext via AddInterceptors (E2). They are NOT auto-wired onto
+        // SolhigsonDbContext, whose fixed model can never contain AuditTrail (the capture interceptor's
+        // FindEntityType gate would no-op there anyway). SingleInstance because a pooled DbContext
+        // captures the interceptor across scopes; both interceptors hold only singleton-safe, read-only
+        // seams (no per-save instance state). The masking overlay is a consumer-overridable singleton.
+        builder.RegisterType<AuditCaptureOptions>().AsSelf().SingleInstance()
+            .PreserveExistingDefaults();
+
+        builder.RegisterType<AuditCaptureSaveChangesInterceptor>().AsSelf().SingleInstance();
+
+        builder.RegisterType<AuditTrailAppendOnlyInterceptor>().AsSelf().SingleInstance();
+
     }
 }

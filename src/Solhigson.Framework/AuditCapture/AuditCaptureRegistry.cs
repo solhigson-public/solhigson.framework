@@ -56,4 +56,21 @@ public sealed class AuditCaptureRegistry
 
         return _included.ContainsKey(type);
     }
+
+    /// <summary>
+    /// True when <paramref name="type"/> has been explicitly opted OUT via <see cref="Ignore{T}"/>.
+    /// <para>
+    /// Distinct from <c>!IsIncluded(type)</c>, which conflates a registry-ignored type with a type
+    /// that was simply never registered. The F2 capture interceptor needs the distinction to honor
+    /// the pinned eligibility precedence "an ignore in EITHER source (attribute or registry) wins
+    /// over an include in EITHER source": a registry <see cref="Ignore{T}"/> must beat a class-level
+    /// <c>[SolhigsonAuditInclude]</c>, which <see cref="IsIncluded"/> alone cannot express because it
+    /// reports <c>false</c> for both the ignored and the absent case.
+    /// </para>
+    /// </summary>
+    public bool IsIgnored(Type type)
+    {
+        ArgumentNullException.ThrowIfNull(type);
+        return _ignored.ContainsKey(type);
+    }
 }
