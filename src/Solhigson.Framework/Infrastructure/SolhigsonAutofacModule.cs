@@ -4,6 +4,7 @@ using Autofac;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Solhigson.Framework.AuditCapture;
 using Solhigson.Framework.Persistence;
 using Solhigson.Framework.Persistence.Repositories;
 using Solhigson.Framework.Persistence.Repositories.Abstractions;
@@ -104,6 +105,14 @@ public class SolhigsonAutofacModule : Module
 
         builder.RegisterType<NotificationService>().As<INotificationService>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
+
+        // Audit-trail seams (F1). Both use PreserveExistingDefaults() so a consumer's own
+        // registration (a web/Hangfire actor provider, a pre-configured capture registry) wins.
+        builder.RegisterType<UnattributedAuditActorProvider>().As<IAuditActorProvider>().SingleInstance()
+            .PreserveExistingDefaults();
+
+        builder.RegisterType<AuditCaptureRegistry>().AsSelf().SingleInstance()
+            .PreserveExistingDefaults();
 
     }
 }
