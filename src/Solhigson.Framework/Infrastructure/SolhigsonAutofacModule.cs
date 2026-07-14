@@ -127,5 +127,17 @@ public class SolhigsonAutofacModule : Module
 
         builder.RegisterType<AuditTrailAppendOnlyInterceptor>().AsSelf().SingleInstance();
 
+        // Explicit audit logging (F3). Open generic so the consumer binds its OWN DbContext
+        // (IAuditTrailService<AppDbContext>) — the same availability-only posture as the F2
+        // interceptors above: SolhigsonDbContext never maps AuditTrail, so a framework-context
+        // binding no-ops (with a warning) at the service's FindEntityType gate.
+        // InstancePerLifetimeScope because the service holds the resolved (scoped) TContext.
+        // Consumer-override symmetry with the F1/F2 PreserveExistingDefaults() block is carried by
+        // Autofac's open-generic semantics instead (the API has no PreserveExistingDefaults for
+        // DynamicRegistrationStyle): an explicitly registered closed IAuditTrailService<TContext>
+        // always beats this open generic, and a consumer's own open-generic registration made after
+        // RegisterModule becomes the default.
+        builder.RegisterGeneric(typeof(AuditTrailService<>)).As(typeof(IAuditTrailService<>))
+            .InstancePerLifetimeScope();
     }
 }
