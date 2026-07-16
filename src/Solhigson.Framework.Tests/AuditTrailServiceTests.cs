@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -17,12 +18,16 @@ using Xunit;
 namespace Solhigson.Framework.Tests;
 
 /// <summary>
-/// F3 explicit-logging service behaviour, over a real SQLite in-memory DB (per test-pattern rule; NEVER
-/// the EF InMemory provider) — sibling of the F2 <c>TestAuditDbContext</c> pattern. A shared open
-/// connection lets the write context and the assertion read see one DB. The actor is passed EXPLICITLY
-/// per call (no ambient provider); the gate-miss test uses a second context type whose model omits the
-/// <see cref="AuditTrail"/> mapping block entirely.
+/// F3-prime explicit-logging service behaviour, over a real SQLite in-memory DB (per test-pattern rule; NEVER
+/// the EF InMemory provider) — sibling of the F2 <c>TestAuditDbContext</c> pattern. A shared open connection
+/// lets the write context and the assertion read see one DB. Under the never-block invariant <c>LogAsync</c>
+/// hands the built row to an out-of-band <see cref="IAuditSink"/> when one is wired; with NO sink it uses the
+/// transitional persisting-safe fallback (inline <c>Add</c>+<c>SaveChangesAsync</c> on the bound context, the
+/// shipped behaviour MINUS the rethrow). The success-path tests below exercise the fallback (no sink); the
+/// never-block routing and swallow contracts are exercised with an injected sink. Runs in a serialized
+/// collection so the process-global <c>audit_capture_failed</c> meter is observed without cross-class leakage.
 /// </summary>
+[Collection(AuditNeverBlockMetricsCollection.Name)]
 public sealed class AuditTrailServiceTests : IDisposable
 {
     private const string SubjectUserId = "subject-7";
@@ -337,7 +342,141 @@ public sealed class AuditTrailServiceTests : IDisposable
         ReadAuditRows().ShouldBeEmpty();
     }
 
+    // ── (11) never-block: routes through the sink, adds nothing to the bound context ──
+
+    [Fact]
+    public async Task LogAsync_WithSinkWired_RoutesToTheSink_AndAddsNothingToTheBoundContext()
+    {
+        var sink = new RecordingAuditSink();
+        using (var ctx = CreateMappedContext())
+        {
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx, sink);
+            await service.LogAsync(
+                AuditEventCategory.SecurityEvent,
+                entityType: "User",
+                entityId: SubjectUserId,
+                actor: Operator,
+                payloadOrDescriptor: new { eventType = "login.failed" },
+                cancellationToken: CancellationToken.None);
+
+            // Never-block: the row went to the out-of-band sink, not the bound (business) context.
+            ctx.ChangeTracker.Entries().ShouldBeEmpty();
+        }
+
+        var row = sink.Received.ShouldHaveSingleItem();
+        row.Category.ShouldBe(AuditEventCategory.SecurityEvent);
+        row.EntityId.ShouldBe(SubjectUserId);
+        ReadAuditRows().ShouldBeEmpty(); // nothing persisted to the bound context's DB
+    }
+
+    // ── (12) never-block: an injected sink failure is swallowed (LogAsync does NOT throw) ──
+
+    [Fact]
+    public async Task LogAsync_WhenTheSinkThrows_SwallowsAndEmitsMetric_WithoutThrowing()
+    {
+        var sink = new ThrowingAuditSink();
+        long failures = 0;
+        await Should.NotThrowAsync(() => CountCaptureFailedAsync(async () =>
+        {
+            using var ctx = CreateMappedContext();
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx, sink);
+            await service.LogAsync(
+                AuditEventCategory.SecurityEvent, "User", SubjectUserId, Operator,
+                new { eventType = "login.failed" },
+                cancellationToken: CancellationToken.None);
+        }, n => failures = n));
+
+        failures.ShouldBe(1);
+        ReadAuditRows().ShouldBeEmpty();
+    }
+
+    // ── (13) never-block: an injected payload-build failure is swallowed ────────
+
+    [Fact]
+    public async Task LogAsync_WhenTheDescriptorIsNonSerializable_SwallowsWithoutThrowing()
+    {
+        var cyclic = new CyclicDescriptor();
+        cyclic.Self = cyclic; // System.Text.Json throws on the reference cycle — a payload-build failure
+
+        using var ctx = CreateMappedContext();
+        var service = new AuditTrailService<ServiceAuditDbContext>(ctx); // fallback path (no sink)
+
+        await Should.NotThrowAsync(() => service.LogAsync(
+            AuditEventCategory.SecurityEvent, "User", SubjectUserId, Operator,
+            cyclic,
+            cancellationToken: CancellationToken.None));
+
+        ctx.ChangeTracker.Entries().ShouldBeEmpty(); // build failed before any Add
+        ReadAuditRows().ShouldBeEmpty();
+    }
+
+    // ── (14) transitional fallback: with no sink, persists inline on the bound context ──
+
+    [Fact]
+    public async Task LogAsync_WithNoSink_UsesThePersistingFallback_OnTheBoundContext()
+    {
+        using (var ctx = CreateMappedContext())
+        {
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx); // no sink
+            await service.LogAsync(
+                AuditEventCategory.BusinessEvent, "Report", "rep-1", Operator,
+                new { eventType = "report.exported" },
+                cancellationToken: CancellationToken.None);
+        }
+
+        var row = SingleAuditRow(); // the transitional fallback persisted it on the bound context
+        row.Category.ShouldBe(AuditEventCategory.BusinessEvent);
+        GetDiscriminator(row).ShouldBe("report.exported");
+    }
+
     // ── infrastructure ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Observes the process-global <c>audit_capture_failed</c> counter across a single asynchronous action.
+    /// The enclosing test class runs in a non-parallel collection (determinism seam).
+    /// </summary>
+    private static async Task CountCaptureFailedAsync(Func<Task> action, Action<long> onCount)
+    {
+        long total = 0;
+        using var listener = new MeterListener
+        {
+            InstrumentPublished = (instrument, l) =>
+            {
+                if (instrument.Meter.Name == AuditCaptureDiagnostics.MeterName
+                    && instrument.Name == "audit_capture_failed")
+                {
+                    l.EnableMeasurementEvents(instrument);
+                }
+            },
+        };
+        listener.SetMeasurementEventCallback<long>((_, measurement, _, _) => Interlocked.Add(ref total, measurement));
+        listener.Start();
+        await action();
+        listener.Dispose();
+        onCount(Interlocked.Read(ref total));
+    }
+
+    private sealed class RecordingAuditSink : IAuditSink
+    {
+        public List<AuditTrail> Received { get; } = [];
+
+        public Task PersistAsync(IReadOnlyList<AuditTrail> rows, CancellationToken cancellationToken)
+        {
+            Received.AddRange(rows);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class ThrowingAuditSink : IAuditSink
+    {
+        public Task PersistAsync(IReadOnlyList<AuditTrail> rows, CancellationToken cancellationToken)
+            => throw new InvalidOperationException("sink is down");
+    }
+
+    private sealed class CyclicDescriptor
+    {
+        public CyclicDescriptor? Self { get; set; }
+    }
 
     private ServiceAuditDbContext CreateMappedContext(bool withF2Interceptors = false)
     {

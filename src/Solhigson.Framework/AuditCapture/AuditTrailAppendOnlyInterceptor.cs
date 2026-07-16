@@ -17,9 +17,14 @@ namespace Solhigson.Framework.AuditCapture;
 /// is GDPR Art-17 actor pseudonymization, which runs as a set-based <c>ExecuteUpdate</c> that never passes
 /// through <c>SaveChanges</c> interceptors, so it is unaffected by this guard.</para>
 ///
-/// <para>The rows the capture interceptor inserts are in state <see cref="EntityState.Added"/>, which this
-/// guard permits, so the two interceptors coexist in either firing order. On any context that tracks no
-/// <see cref="AuditTrail"/> entities the guard is a natural no-op.</para>
+/// <para>Under the never-block invariant (§2 Tamper evidence [Guard-path adjusted 2026-07-15]) this guard
+/// rides the OUT-OF-BAND audit-write path — the sink's separate short-lived scope/DbContext and the deferred
+/// persist job — NOT a same-transaction business <c>ChangeTracker</c>. The F2-prime capture interceptor no
+/// longer <c>Add()</c>s audit rows into the business context (audit persistence has left the business
+/// transaction), so this guard is registered onto the sink's write context, where the rows it inserts are in
+/// state <see cref="EntityState.Added"/>, which this guard permits. The guard logic is context-agnostic —
+/// it iterates <c>ChangeTracker.Entries&lt;AuditTrail&gt;()</c> on whatever context it is wired onto — so on
+/// any context that tracks no <see cref="AuditTrail"/> entities it is a natural no-op.</para>
 /// </summary>
 public sealed class AuditTrailAppendOnlyInterceptor : SaveChangesInterceptor
 {
