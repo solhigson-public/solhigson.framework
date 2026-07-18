@@ -688,6 +688,132 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         change.GetProperty("new").GetInt32().ShouldBe(4);
     }
 
+    // ── (o) action + subject display-name stamping ─────────────────────────────
+    // Action disambiguates INSERT from DELETE (both ride Snapshot): Added → "created",
+    // Modified-with-genuine-delta → "updated", Deleted → "deleted" — pinned as LITERAL lowercase strings
+    // (the persisted wire contract that list surfaces filter on), deliberately not via the AuditActions
+    // constants, so a constant-value drift breaks these tests. SubjectDisplayName binds via
+    // IAuditSubjectNamed TYPE MEMBERSHIP (an `is` check on the tracked instance), so a base-class
+    // implementation binds where an inherit:false attribute probe would not; a non-implementing entity
+    // stamps null; an overlong name truncates to the declared 256 column width instead of faulting the
+    // consumer's audit INSERT; a THROWING consumer getter rides the capture phase's never-block swallow
+    // boundary like any consumer-seam failure (the (j) ThrowingActorProvider analogue).
+
+    [Fact]
+    public void Insert_OfAnIncludedEntity_StampsActionCreated()
+    {
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            write.Add(NewIncluded("inc-1", name: "Ada"));
+            write.SaveChanges();
+        }
+
+        sink.Received.ShouldHaveSingleItem().Action.ShouldBe("created");
+    }
+
+    [Fact]
+    public void Update_WithAGenuineChange_StampsActionUpdated()
+    {
+        Seed("inc-1", "Ada");
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            entity.Name = "Grace";
+            write.SaveChanges();
+        }
+
+        sink.Received.ShouldHaveSingleItem().Action.ShouldBe("updated");
+    }
+
+    [Fact]
+    public void Delete_OfAnIncludedEntity_StampsActionDeleted()
+    {
+        Seed("inc-1", "Ada");
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            write.Remove(entity);
+            write.SaveChanges();
+        }
+
+        sink.Received.ShouldHaveSingleItem().Action.ShouldBe("deleted");
+    }
+
+    [Fact]
+    public void Insert_OfAnEntityImplementingIAuditSubjectNamed_StampsSubjectDisplayName()
+    {
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            write.Add(new NamedEntity { Id = "named-1", DisplayName = "Ada Lovelace" });
+            write.SaveChanges();
+        }
+
+        sink.Received.ShouldHaveSingleItem().SubjectDisplayName.ShouldBe("Ada Lovelace");
+    }
+
+    [Fact]
+    public void Insert_OfAnEntityWhoseBaseClassImplementsIAuditSubjectNamed_StampsFromTheBaseImplementation()
+    {
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            write.Add(new DerivedNamedEntity { Id = "derived-1", DisplayName = "Grace Hopper" });
+            write.SaveChanges();
+        }
+
+        // Type membership binds through the base class — an inherit:false attribute probe would miss this.
+        sink.Received.ShouldHaveSingleItem().SubjectDisplayName.ShouldBe("Grace Hopper");
+    }
+
+    [Fact]
+    public void Insert_OfANonImplementingEntity_StampsNullSubjectDisplayName()
+    {
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            write.Add(NewIncluded("inc-1", name: "Ada"));
+            write.SaveChanges();
+        }
+
+        sink.Received.ShouldHaveSingleItem().SubjectDisplayName.ShouldBeNull();
+    }
+
+    [Fact]
+    public void Insert_WithAnOverlongSubjectDisplayName_TruncatesTo256Characters()
+    {
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            write.Add(new NamedEntity { Id = "named-1", DisplayName = new string('x', 300) });
+            write.SaveChanges();
+        }
+
+        // Truncated app-side instead of faulting the consumer's varchar(256) audit INSERT (row loss).
+        sink.Received.ShouldHaveSingleItem().SubjectDisplayName.ShouldBe(new string('x', 256));
+    }
+
+    [Fact]
+    public void Insert_WhenTheSubjectNameGetterThrows_SwallowsUnderNeverBlock_AndTheBusinessSaveStillCommits()
+    {
+        var sink = new RecordingAuditSink();
+        var failures = CountCaptureFailed(() =>
+        {
+            using var write = CreateContext(sink);
+            write.Add(new ThrowingNamedEntity { Id = "throw-1" });
+            write.SaveChanges(); // MUST NOT throw — the consumer getter bug rides the M2 boundary
+        });
+
+        failures.ShouldBe(1);          // audit_capture_failed emitted once (visible, not silently nulled)
+        sink.Received.ShouldBeEmpty(); // no row for the failed capture (guaranteed single-event loss, M3)
+        ThrowingNamedExists("throw-1").ShouldBeTrue(); // the business write still committed
+    }
+
     // ── infrastructure ─────────────────────────────────────────────────────────
 
     private TestAuditDbContext CreateContext(
@@ -731,6 +857,12 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
     {
         using var read = CreateContext(new RecordingAuditSink());
         return read.Set<IncludedEntity>().AsNoTracking().Any(x => x.Id == id);
+    }
+
+    private bool ThrowingNamedExists(string id)
+    {
+        using var read = CreateContext(new RecordingAuditSink());
+        return read.Set<ThrowingNamedEntity>().AsNoTracking().Any(x => x.Id == id);
     }
 
     private void SeedRawAuditRow(out Guid id, out DateTime created)
@@ -866,6 +998,40 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         public string Name { get; set; } = null!;
     }
 
+    /// <summary>Direct <see cref="IAuditSubjectNamed"/> implementor (subject-name stamping).</summary>
+    [SolhigsonAuditInclude]
+    private sealed class NamedEntity : IAuditSubjectNamed
+    {
+        public string Id { get; set; } = null!;
+        public string? DisplayName { get; set; }
+
+        /// <summary>Get-only, no backing field ⇒ EF never maps it; reads the mapped column.</summary>
+        public string? AuditSubjectDisplayName => DisplayName;
+    }
+
+    /// <summary>Base-class implementation: type membership must bind through inheritance.</summary>
+    private abstract class NamedEntityBase : IAuditSubjectNamed
+    {
+        public string? DisplayName { get; set; }
+
+        public string? AuditSubjectDisplayName => DisplayName;
+    }
+
+    [SolhigsonAuditInclude]
+    private sealed class DerivedNamedEntity : NamedEntityBase
+    {
+        public string Id { get; set; } = null!;
+    }
+
+    /// <summary>A consumer bug: the subject-name getter throws (the ThrowingActorProvider analogue).</summary>
+    [SolhigsonAuditInclude]
+    private sealed class ThrowingNamedEntity : IAuditSubjectNamed
+    {
+        public string Id { get; set; } = null!;
+
+        public string? AuditSubjectDisplayName => throw new InvalidOperationException("subject name getter blew up");
+    }
+
     private sealed class TestAuditDbContext(DbContextOptions<TestAuditDbContext> options) : DbContext(options)
     {
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -881,6 +1047,9 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
             modelBuilder.Entity<RegistryIncludedEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<IgnoredAndIncludedEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<UnauditedEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<NamedEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<DerivedNamedEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<ThrowingNamedEntity>().HasKey(x => x.Id);
         }
     }
 }

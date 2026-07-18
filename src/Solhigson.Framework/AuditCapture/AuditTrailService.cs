@@ -61,7 +61,9 @@ public sealed class AuditTrailService<TContext>(TContext context, IAuditSink? si
         string entityId,
         AuditActor actor,
         object payloadOrDescriptor,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? action = null,
+        string? subjectDisplayName = null)
     {
         if (category is not (AuditEventCategory.SecurityEvent or AuditEventCategory.BusinessEvent))
         {
@@ -85,8 +87,12 @@ public sealed class AuditTrailService<TContext>(TContext context, IAuditSink? si
             var row = new AuditTrail
             {
                 Category = category,
+                // Explicit-path pass-through: stamped VERBATIM (an eventType-as-action is never forced
+                // lowercase) within the declared column widths; an omitted param leaves the column null.
+                Action = AuditTrail.Truncate(action, AuditTrail.ActionMaxLength),
                 EntityType = entityType,
                 EntityId = entityId,
+                SubjectDisplayName = AuditTrail.Truncate(subjectDisplayName, AuditTrail.SubjectDisplayNameMaxLength),
                 // Serialization can throw on a non-serializable descriptor — inside the never-block boundary (M2).
                 Snapshot = JsonSerializer.Serialize(payloadOrDescriptor, PayloadJsonOptions),
                 // Changes stays null: explicit events carry a descriptor snapshot, never a field delta.

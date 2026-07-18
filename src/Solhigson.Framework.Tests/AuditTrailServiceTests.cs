@@ -429,6 +429,80 @@ public sealed class AuditTrailServiceTests : IDisposable
         GetDiscriminator(row).ShouldBe("report.exported");
     }
 
+    // ── (15) explicit-path action + subject-name pass-through ──────────────────
+    // The optional trailing params (AFTER the required cancellationToken — every caller passes the token
+    // by name, so extending rather than overloading breaks no call site) stamp AuditTrail.Action and
+    // AuditTrail.SubjectDisplayName. Action is VERBATIM — an eventType-as-action is NEVER forced
+    // lowercase, unlike the interceptor's pinned AuditActions data-change values; omitted params leave
+    // both columns null; overlong values truncate app-side to the declared 128/256 column widths instead
+    // of faulting the audit INSERT.
+
+    [Fact]
+    public async Task LogAsync_WithActionAndSubjectDisplayName_StampsBothVerbatim()
+    {
+        using (var ctx = CreateMappedContext())
+        {
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx);
+            await service.LogAsync(
+                AuditEventCategory.SecurityEvent,
+                entityType: "User",
+                entityId: SubjectUserId,
+                actor: Operator,
+                payloadOrDescriptor: new { eventType = "login.MfaEnrolled" },
+                cancellationToken: CancellationToken.None,
+                action: "login.MfaEnrolled",
+                subjectDisplayName: "Ada Lovelace");
+        }
+
+        var row = SingleAuditRow();
+        row.Action.ShouldBe("login.MfaEnrolled");        // VERBATIM: mixed case survives, NOT forced lowercase
+        row.SubjectDisplayName.ShouldBe("Ada Lovelace"); // the SUBJECT's name…
+        row.UserDisplayName.ShouldBe(ActorDisplayName);  // …never conflated with the ACTOR's
+    }
+
+    [Fact]
+    public async Task LogAsync_WithoutActionOrSubjectDisplayName_LeavesBothColumnsNull()
+    {
+        using (var ctx = CreateMappedContext())
+        {
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx);
+            await service.LogAsync(
+                AuditEventCategory.SecurityEvent,
+                entityType: "User",
+                entityId: SubjectUserId,
+                actor: Operator,
+                payloadOrDescriptor: new { eventType = "login.failed" },
+                cancellationToken: CancellationToken.None);
+        }
+
+        var row = SingleAuditRow();
+        row.Action.ShouldBeNull();
+        row.SubjectDisplayName.ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task LogAsync_WithOverlongActionAndSubjectDisplayName_PersistsBothTruncatedToTheColumnWidths()
+    {
+        using (var ctx = CreateMappedContext())
+        {
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx);
+            await service.LogAsync(
+                AuditEventCategory.SecurityEvent,
+                entityType: "User",
+                entityId: SubjectUserId,
+                actor: Operator,
+                payloadOrDescriptor: new { eventType = "attempt" },
+                cancellationToken: CancellationToken.None,
+                action: new string('a', 200),
+                subjectDisplayName: new string('s', 300));
+        }
+
+        // Truncated app-side (attacker-controlled length analogue) instead of faulting the audit INSERT.
+        var row = SingleAuditRow();
+        row.Action.ShouldBe(new string('a', 128));
+        row.SubjectDisplayName.ShouldBe(new string('s', 256));
+    }
+
     // ── infrastructure ─────────────────────────────────────────────────────────
 
     /// <summary>
@@ -553,6 +627,8 @@ public sealed class AuditTrailServiceTests : IDisposable
             string entityId,
             AuditActor actor,
             object payloadOrDescriptor,
-            CancellationToken cancellationToken) => Task.CompletedTask;
+            CancellationToken cancellationToken,
+            string? action = null,
+            string? subjectDisplayName = null) => Task.CompletedTask;
     }
 }

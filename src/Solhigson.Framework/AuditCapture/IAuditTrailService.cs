@@ -61,11 +61,26 @@ public interface IAuditTrailService<TContext> where TContext : DbContext
     /// <see cref="AuditTrail.Changes"/> is always null for explicit events.
     /// </param>
     /// <param name="cancellationToken">Propagated to <c>SaveChangesAsync</c>; observed before any write.</param>
+    /// <param name="action">
+    /// Optional action label stamped VERBATIM onto <see cref="AuditTrail.Action"/> — pass the event's
+    /// <c>eventType</c> (e.g. <c>"login.failed"</c>) so list surfaces can filter without parsing
+    /// <see cref="AuditTrail.Snapshot"/>. Never forced lowercase (unlike the interceptor's pinned
+    /// <see cref="AuditActions"/> data-change values). Truncated to 128; null leaves the column null.
+    /// Trailing-optional AFTER <paramref name="cancellationToken"/> by design: every existing caller
+    /// passes the token by name, so extending (not overloading) breaks no call site.
+    /// </param>
+    /// <param name="subjectDisplayName">
+    /// Optional display name of the SUBJECT (never the actor — the actor's name rides
+    /// <paramref name="actor"/>), stamped onto <see cref="AuditTrail.SubjectDisplayName"/>.
+    /// Truncated to 256; null leaves the column null.
+    /// </param>
     Task LogAsync(
         AuditEventCategory category,
         string entityType,
         string entityId,
         AuditActor actor,
         object payloadOrDescriptor,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        string? action = null,
+        string? subjectDisplayName = null);
 }

@@ -38,8 +38,10 @@ public class AuditTrailEntityTests
         var entity = new AuditTrail
         {
             Category = AuditEventCategory.DataChange,
+            Action = "updated",
             EntityType = "Order",
             EntityId = "42",
+            SubjectDisplayName = "Widget Bundle",
             ActorUserId = "user-1",
             UserDisplayName = "Jane Doe",
             UserIp = "203.0.113.5",
@@ -56,8 +58,10 @@ public class AuditTrailEntityTests
         restored.Id.ShouldBe(entity.Id);
         restored.Created.ShouldBe(entity.Created);
         restored.Category.ShouldBe(AuditEventCategory.DataChange);
+        restored.Action.ShouldBe("updated");
         restored.EntityType.ShouldBe("Order");
         restored.EntityId.ShouldBe("42");
+        restored.SubjectDisplayName.ShouldBe("Widget Bundle");
         restored.Snapshot.ShouldBe(entity.Snapshot);
         restored.Changes.ShouldBe(entity.Changes);
         restored.SourceType.ShouldBe("web");

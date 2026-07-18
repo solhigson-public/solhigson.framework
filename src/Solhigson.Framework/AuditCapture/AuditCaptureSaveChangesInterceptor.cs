@@ -622,8 +622,25 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
         var row = new AuditTrail
         {
             Category = AuditEventCategory.DataChange,
+            // Added → created, Modified → updated, Deleted → deleted: disambiguates INSERT from DELETE,
+            // which both ride Snapshot. Any other state was filtered out before this method; the null arm
+            // is unreachable-but-safe (the default arm of the switch below returns no row anyway).
+            Action = entry.State switch
+            {
+                EntityState.Added => AuditActions.Created,
+                EntityState.Modified => AuditActions.Updated,
+                EntityState.Deleted => AuditActions.Deleted,
+                _ => null,
+            },
             EntityType = entry.Metadata.ClrType.Name,
             EntityId = BuildEntityId(entry),
+            // TYPE-MEMBERSHIP check (not an inherit:false attribute probe), so a base-class implementation
+            // binds for every derived entity. A throwing consumer getter rides the capture phase's
+            // swallow-all boundary (M2/M3) like any consumer-seam failure — no nested guard, so the bug
+            // stays visible via the audit_capture_failed metric instead of silently nulling the name.
+            SubjectDisplayName = entry.Entity is IAuditSubjectNamed named
+                ? AuditTrail.Truncate(named.AuditSubjectDisplayName, AuditTrail.SubjectDisplayNameMaxLength)
+                : null,
             ActorUserId = actor.ActorUserId,
             UserDisplayName = actor.UserDisplayName,
             UserIp = actor.UserIp,

@@ -33,11 +33,23 @@ namespace Solhigson.Framework.Persistence.EntityModels;
 ///     <see cref="Snapshot"/> carries the full row on INSERT/DELETE; <see cref="Changes"/> carries
 ///     the per-field {old,new} delta on UPDATE.
 ///   </item>
+///   <item>
+///     <see cref="Action"/> (varchar 128) and <see cref="SubjectDisplayName"/> (varchar 256) are plain
+///     nullable columns adopted by an additive consumer migration; no index of their own. The framework
+///     stamp sites truncate to the declared widths app-side, so no consumer-sourced value can fault the
+///     audit INSERT.
+///   </item>
 /// </list>
 /// </para>
 /// </summary>
 public record AuditTrail : IEfCoreGenIgnore
 {
+    /// <summary>Declared column width of <see cref="Action"/>, enforced app-side at the stamp sites.</summary>
+    internal const int ActionMaxLength = 128;
+
+    /// <summary>Declared column width of <see cref="SubjectDisplayName"/>, enforced app-side at the stamp sites.</summary>
+    internal const int SubjectDisplayNameMaxLength = 256;
+
     /// <summary>
     /// Primary-key component 1. A sortable uuidv7 generated app-side at construction via
     /// <see cref="Guid.CreateVersion7()"/>; NOT a NewId varchar and NOT a bigint.
@@ -54,6 +66,17 @@ public record AuditTrail : IEfCoreGenIgnore
     public AuditEventCategory Category { get; set; }
 
     /// <summary>
+    /// Action label refining <see cref="Category"/>. Interceptor-captured
+    /// <see cref="AuditEventCategory.DataChange"/> rows carry the pinned lowercase
+    /// <see cref="Solhigson.Framework.AuditCapture.AuditActions"/> values (created / updated / deleted —
+    /// disambiguating INSERT from DELETE, which both ride <see cref="Snapshot"/>); explicit events carry
+    /// their eventType VERBATIM (never forced lowercase). Deliberately a string, not an enum, so consumer
+    /// event vocabularies extend without a framework change.
+    /// </summary>
+    [StringLength(ActionMaxLength)]
+    public string? Action { get; set; }
+
+    /// <summary>
     /// The audited entity's type name, or — for a security event — the subject type. Part of the
     /// <c>(EntityType, EntityId, Created)</c> lookup index. Sourced from one shared constant set by
     /// writer, query, and UI alike (consumer concern).
@@ -67,6 +90,18 @@ public record AuditTrail : IEfCoreGenIgnore
     /// </summary>
     [StringLength(450)]
     public string? EntityId { get; set; }
+
+    /// <summary>
+    /// Denormalized display name of the audited SUBJECT — the entity/user the row is about, keyed by
+    /// <see cref="EntityType"/>/<see cref="EntityId"/> — NOT the acting user (see
+    /// <see cref="UserDisplayName"/>). Stamped from
+    /// <see cref="Solhigson.Framework.AuditCapture.IAuditSubjectNamed"/> on interceptor capture, or passed
+    /// explicitly to <c>LogAsync</c>. Name-class personal data like <see cref="UserDisplayName"/>
+    /// (a pseudonymization target under GDPR Art-17); truncated to <see cref="SubjectDisplayNameMaxLength"/>
+    /// at the stamp sites so an overlong consumer value can never fault the audit INSERT.
+    /// </summary>
+    [StringLength(SubjectDisplayNameMaxLength)]
+    public string? SubjectDisplayName { get; set; }
 
     /// <summary>
     /// Full-row payload on INSERT and DELETE. Provider-agnostic <c>jsonb</c>-as-string; the consumer maps
@@ -105,4 +140,13 @@ public record AuditTrail : IEfCoreGenIgnore
     /// <summary>The source's correlation id when one exists (e.g. the Hangfire job id); otherwise null.</summary>
     [StringLength(256)]
     public string? SourceId { get; set; }
+
+    /// <summary>
+    /// Defensive length clamp used by the framework's stamp sites (<see cref="Action"/>
+    /// <see cref="ActionMaxLength"/>, <see cref="SubjectDisplayName"/>
+    /// <see cref="SubjectDisplayNameMaxLength"/>): a consumer-sourced value longer than the declared
+    /// column width is truncated rather than allowed to fault the audit INSERT and lose the row.
+    /// </summary>
+    internal static string? Truncate(string? value, int maxLength)
+        => value is not null && value.Length > maxLength ? value[..maxLength] : value;
 }
