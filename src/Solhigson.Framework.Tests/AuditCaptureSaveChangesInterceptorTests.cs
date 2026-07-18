@@ -595,6 +595,99 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         IncludedExists("undone-1").ShouldBeFalse(); // proves undone-1 was rolled back yet still over-captured
     }
 
+    // ── (n) changed-only UPDATE delta (raw-value equality, PRE-mask) ────────────
+    // A full-entity Modified save — every non-key property IsModified, the shape UserManager.UpdateAsync
+    // produces, reproduced here via Entry(e).State = EntityState.Modified — must hand off ONLY the
+    // genuinely-changed fields, compared on the RAW pre-mask values (a post-mask comparison would read
+    // "***" == "***" and drop a genuinely-changed sensitive field). Zero genuine changes ⇒ NO audit row
+    // (a no-op save is not an auditable change), extending the existing Modified no-delta no-row path.
+
+    [Fact]
+    public void FullEntityUpdate_WithTwoGenuineChangesOfN_HandsOffExactlyThoseTwoFieldDeltas()
+    {
+        Seed("inc-1", "Ada"); // Email/ApiKey/Nickname null, LoginCount 0
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            entity.Name = "Grace";
+            entity.Nickname = "Countess"; // null → value transition MUST emit
+            write.Entry(entity).State = EntityState.Modified; // marks EVERY non-key property IsModified
+            write.SaveChanges();
+        }
+
+        var row = sink.Received.ShouldHaveSingleItem();
+        using var doc = JsonDocument.Parse(row.Changes!);
+        doc.RootElement.ValueKind.ShouldBe(JsonValueKind.Array);
+        doc.RootElement.GetArrayLength().ShouldBe(2); // unchanged Email/ApiKey (null==null) and LoginCount (0==0) dropped
+
+        var byField = doc.RootElement.EnumerateArray().ToDictionary(c => c.GetProperty("field").GetString()!);
+        byField["Name"].GetProperty("old").GetString().ShouldBe("Ada");
+        byField["Name"].GetProperty("new").GetString().ShouldBe("Grace");
+        byField["Nickname"].GetProperty("old").ValueKind.ShouldBe(JsonValueKind.Null);
+        byField["Nickname"].GetProperty("new").GetString().ShouldBe("Countess");
+    }
+
+    [Fact]
+    public void FullEntityUpdate_WithNoGenuineChanges_HandsOffNoAuditRow()
+    {
+        Seed("inc-1", "Ada", email: "ada@x.io", loginCount: 7); // nonzero int exercises boxed 7 == 7
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            write.Entry(entity).State = EntityState.Modified; // all IsModified, zero value changes
+            write.SaveChanges(); // the business save itself still succeeds
+        }
+
+        sink.CallCount.ShouldBe(0); // NO row — not an empty [] payload
+        sink.Received.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void FullEntityUpdate_OfAMaskedField_EmitsItMaskedAndDropsTheUnchangedMaskedSibling()
+    {
+        Seed("inc-1", "Ada", email: "ada@old.io", apiKey: "sk-live-1");
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            entity.Email = "ada@new.io"; // genuinely-changed [PersonalData] field
+            write.Entry(entity).State = EntityState.Modified; // ApiKey also IsModified, value unchanged
+            write.SaveChanges();
+        }
+
+        using var doc = JsonDocument.Parse(sink.Received.ShouldHaveSingleItem().Changes!);
+        var change = doc.RootElement.EnumerateArray().ShouldHaveSingleItem(); // ApiKey dropped ⇒ equality ran on RAW values
+        change.GetProperty("field").GetString().ShouldBe("Email");
+        change.GetProperty("old").GetString().ShouldBe(AuditFieldMasker.MaskMarker); // still masked, NOT "ada@old.io"
+        change.GetProperty("new").GetString().ShouldBe(AuditFieldMasker.MaskMarker);
+    }
+
+    [Fact]
+    public void FullEntityUpdate_OfAValueTypeProperty_EmitsItsDeltaUnderBoxedValueEquality()
+    {
+        Seed("inc-1", "Ada", loginCount: 3);
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            entity.LoginCount = 4; // boxed int comparison must use VALUE semantics, not reference equality
+            write.Entry(entity).State = EntityState.Modified;
+            write.SaveChanges();
+        }
+
+        using var doc = JsonDocument.Parse(sink.Received.ShouldHaveSingleItem().Changes!);
+        var change = doc.RootElement.EnumerateArray().ShouldHaveSingleItem(); // unchanged string siblings dropped too
+        change.GetProperty("field").GetString().ShouldBe("LoginCount");
+        change.GetProperty("old").GetInt32().ShouldBe(3);
+        change.GetProperty("new").GetInt32().ShouldBe(4);
+    }
+
     // ── infrastructure ─────────────────────────────────────────────────────────
 
     private TestAuditDbContext CreateContext(
@@ -627,10 +720,10 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         return (new TestAuditDbContext(opt), capture);
     }
 
-    private void Seed(string id, string name, string? email = null)
+    private void Seed(string id, string name, string? email = null, string? apiKey = null, int loginCount = 0)
     {
         using var seed = CreateContext(new RecordingAuditSink());
-        seed.Add(NewIncluded(id, name, email: email));
+        seed.Add(NewIncluded(id, name, email: email, apiKey: apiKey, loginCount: loginCount));
         seed.SaveChanges();
     }
 
@@ -689,7 +782,8 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         string? email = null,
         string? apiKey = null,
         string? internalNote = null,
-        string? nickname = null) => new()
+        string? nickname = null,
+        int loginCount = 0) => new()
     {
         Id = id,
         Name = name,
@@ -697,6 +791,7 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         ApiKey = apiKey,
         InternalNote = internalNote,
         Nickname = nickname,
+        LoginCount = loginCount,
     };
 
     public void Dispose() => _connection.Dispose();
@@ -746,6 +841,9 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         public string? InternalNote { get; set; }
 
         public string? Nickname { get; set; }
+
+        /// <summary>Non-string value type: pins boxed VALUE-equality (not reference) in the changed-only delta.</summary>
+        public int LoginCount { get; set; }
     }
 
     private sealed class RegistryIncludedEntity

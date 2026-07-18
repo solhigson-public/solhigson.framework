@@ -709,6 +709,15 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
                 continue;
             }
 
+            // Value-unchanged skip, on the RAW pre-mask values: a full-entity Modified save (every property
+            // IsModified — the UserManager.UpdateAsync shape) must emit only genuine changes, and a post-mask
+            // comparison would read "***" == "***" and drop a genuinely-changed sensitive field. Zero
+            // survivors leave `changes` null ⇒ no audit row (the Modified no-delta path in MaterializeAuditRow).
+            if (Equals(propertyEntry.OriginalValue, propertyEntry.CurrentValue))
+            {
+                continue;
+            }
+
             // Both sides masked (pin item 5): a new-side-only mask would leak the pre-change plaintext.
             var oldValue = MaskIfSensitive(propertyEntry, propertyEntry.OriginalValue);
             var newValue = MaskIfSensitive(propertyEntry, propertyEntry.CurrentValue);
