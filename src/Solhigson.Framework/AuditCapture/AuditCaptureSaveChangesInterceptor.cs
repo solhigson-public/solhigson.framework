@@ -144,10 +144,12 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
     private readonly IAuditActorProvider _actorProvider;
     private readonly AuditCaptureRegistry _registry;
     private readonly AuditFieldMasker _masker;
+    private readonly bool _requireAttributedActor;
     private readonly IAuditSink? _sink;
 
     /// <summary>
-    /// Resolves the actor seam, the fluent registry, the masking options, and (optionally) the out-of-band
+    /// Resolves the actor seam, the fluent registry, the capture options (masking overlay + attribution
+    /// gate), and (optionally) the out-of-band
     /// <see cref="IAuditSink"/>. <paramref name="actorProvider"/> MUST be singleton-safe (the interceptor is
     /// captured across scopes by pooled contexts). <paramref name="sink"/> is OPTIONAL: the framework does not
     /// register a concrete sink, so it resolves to <c>null</c> in a framework-only container (the interceptor
@@ -163,6 +165,8 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
         _actorProvider = actorProvider ?? throw new ArgumentNullException(nameof(actorProvider));
         _registry = registry ?? throw new ArgumentNullException(nameof(registry));
         _masker = new AuditFieldMasker(options);
+        // Mirrors AuditFieldMasker's documented null tolerance: a null options instance means defaults (gate off).
+        _requireAttributedActor = options?.RequireAttributedActor ?? false;
         _sink = sink;
     }
 
@@ -209,6 +213,25 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
 
             List<AuditTrail>? rows = null;
             var actor = _actorProvider.GetCurrentActor();
+
+            // Attribution gate (opt-in via AuditCaptureOptions.RequireAttributedActor): a save with no
+            // resolved user identity (null/whitespace ActorUserId — background jobs, startup, anonymous
+            // requests) materializes NO DataChange rows. ONE skip here, before the per-entry loop, covers
+            // BOTH payload shapes (Snapshot and Changes) and bypasses every downstream consumer seam
+            // (e.g. IAuditSubjectNamed getters). User identity IS the attribution fact; SourceType is
+            // transport and is never consulted. The explicit IAuditTrailService.LogAsync path is never
+            // gated. A legitimate skip is NOT a failure — no audit_capture_failed, no log. Mirrors the
+            // zero-rows exit below: reset a prior re-fire's in-flight contribution (F1) and leave rows
+            // already SEALED by prior saves in an open explicit transaction intact.
+            if (_requireAttributedActor && string.IsNullOrWhiteSpace(actor.ActorUserId))
+            {
+                if (PendingByContext.TryGetValue(context, out var gated))
+                {
+                    gated.Current.Clear();
+                }
+
+                return;
+            }
 
             foreach (var entry in context.ChangeTracker.Entries())
             {

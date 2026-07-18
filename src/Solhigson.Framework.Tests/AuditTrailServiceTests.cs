@@ -503,6 +503,38 @@ public sealed class AuditTrailServiceTests : IDisposable
         row.SubjectDisplayName.ShouldBe(new string('s', 256));
     }
 
+    // ── (16) the interceptor's attribution gate NEVER gates the explicit path ──
+    // RequireAttributedActor gates ONLY AuditCaptureSaveChangesInterceptor's DataChange capture; LogAsync
+    // has no dependency on AuditCaptureOptions at all (ctor deps: TContext + IAuditSink?), so an explicit
+    // event from AuditActor.UnattributedActor still writes even when the gate-ON interceptor is attached
+    // to the very context the transitional fallback persists through — the DSAR shape. The fallback's
+    // inline SaveChangesAsync fires that gated interceptor with an unattributed provider, proving
+    // structurally that the gate skips DataChange MATERIALIZATION only and never blocks a save.
+
+    [Fact]
+    public async Task LogAsync_WithUnattributedActor_StillWritesTheRow_WhileTheInterceptorGateIsOn()
+    {
+        using (var ctx = CreateMappedContext(
+            withF2Interceptors: true,
+            captureOptions: new AuditCaptureOptions { RequireAttributedActor = true }))
+        {
+            var service = new AuditTrailService<ServiceAuditDbContext>(ctx);
+            await service.LogAsync(
+                AuditEventCategory.SecurityEvent,
+                entityType: "User",
+                entityId: SubjectUserId,
+                actor: AuditActor.UnattributedActor,
+                payloadOrDescriptor: new { eventType = "dsar.data.exported" },
+                cancellationToken: CancellationToken.None);
+        }
+
+        var row = SingleAuditRow(); // written via the fallback's SaveChangesAsync THROUGH the gated interceptor
+        row.Category.ShouldBe(AuditEventCategory.SecurityEvent);
+        row.ActorUserId.ShouldBeNull();                        // unattributed — and STILL written
+        row.UserDisplayName.ShouldBe(AuditActor.Unattributed);
+        GetDiscriminator(row).ShouldBe("dsar.data.exported");
+    }
+
     // ── infrastructure ─────────────────────────────────────────────────────────
 
     /// <summary>
@@ -552,7 +584,9 @@ public sealed class AuditTrailServiceTests : IDisposable
         public CyclicDescriptor? Self { get; set; }
     }
 
-    private ServiceAuditDbContext CreateMappedContext(bool withF2Interceptors = false)
+    private ServiceAuditDbContext CreateMappedContext(
+        bool withF2Interceptors = false,
+        AuditCaptureOptions? captureOptions = null)
     {
         var optBuilder = new DbContextOptionsBuilder<ServiceAuditDbContext>().UseSqlite(_connection);
         if (withF2Interceptors)
@@ -561,7 +595,7 @@ public sealed class AuditTrailServiceTests : IDisposable
                 new AuditCaptureSaveChangesInterceptor(
                     new UnattributedAuditActorProvider(),
                     new AuditCaptureRegistry(),
-                    new AuditCaptureOptions()),
+                    captureOptions ?? new AuditCaptureOptions()),
                 new AuditTrailAppendOnlyInterceptor());
         }
 

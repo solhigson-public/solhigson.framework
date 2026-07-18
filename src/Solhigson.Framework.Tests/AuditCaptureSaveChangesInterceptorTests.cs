@@ -814,6 +814,78 @@ public sealed class AuditCaptureSaveChangesInterceptorTests : IDisposable
         ThrowingNamedExists("throw-1").ShouldBeTrue(); // the business write still committed
     }
 
+    // ── (p) attribution gate (RequireAttributedActor) ──────────────────────────
+    // Opt-in capture gate: with RequireAttributedActor on, a save whose resolved actor carries no user
+    // identity (null/whitespace ActorUserId — background jobs, startup, anonymous requests) materializes
+    // NO DataChange rows, decided ONCE before the per-entry loop so a single skip covers BOTH payload
+    // shapes (Snapshot AND Changes) and no downstream consumer seam runs. The predicate keys on
+    // ActorUserId — user identity IS the attribution fact; SourceType is transport (UnattributedActor
+    // carries a NON-null SourceType yet MUST gate, so these tests fail under any SourceType-keyed
+    // variant). A legitimate skip is not a failure: no audit_capture_failed metric. Default false:
+    // capture is unchanged unless a consumer opts in (the (f) unattributed test above pins the
+    // option-off behaviour end-to-end). The explicit LogAsync path is NEVER gated — pinned in
+    // AuditTrailServiceTests.
+
+    [Fact]
+    public void RequireAttributedActor_DefaultsToFalse_SoConsumersKeepCurrentCaptureBehaviour()
+    {
+        new AuditCaptureOptions().RequireAttributedActor.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void GateOn_UnattributedActorInsert_HandsOffNoRow_NoFailureMetric_AndTheBusinessSaveStillCommits()
+    {
+        var sink = new RecordingAuditSink();
+        var failures = CountCaptureFailed(() =>
+        {
+            using var write = CreateContext(sink,
+                actor: new UnattributedAuditActorProvider(),
+                options: new AuditCaptureOptions { RequireAttributedActor = true });
+            write.Add(NewIncluded("inc-1", name: "Ada"));
+            write.SaveChanges();
+        });
+
+        sink.CallCount.ShouldBe(0);             // nothing handed off — the Snapshot shape is gated
+        sink.Received.ShouldBeEmpty();
+        failures.ShouldBe(0);                   // a legitimate skip is NOT a failure (no audit_capture_failed)
+        IncludedExists("inc-1").ShouldBeTrue(); // the gate skips the AUDIT, never the business save
+    }
+
+    [Fact]
+    public void GateOn_UnattributedActorUpdate_HandsOffNoRow_TheSingleGateCoversTheChangesShapeToo()
+    {
+        Seed("inc-1", "Ada");
+
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink,
+            actor: new UnattributedAuditActorProvider(),
+            options: new AuditCaptureOptions { RequireAttributedActor = true }))
+        {
+            var entity = write.Set<IncludedEntity>().Single(x => x.Id == "inc-1");
+            entity.Name = "Grace"; // a genuine delta that WOULD emit a Changes row un-gated
+            write.SaveChanges();
+        }
+
+        sink.Received.ShouldBeEmpty(); // gated before materialization — Changes shape covered by the same check
+    }
+
+    [Fact]
+    public void GateOn_AttributedActor_StillHandsOffTheRow()
+    {
+        var sink = new RecordingAuditSink();
+        using (var write = CreateContext(sink,
+            options: new AuditCaptureOptions { RequireAttributedActor = true }))
+        {
+            write.Add(NewIncluded("inc-1", name: "Ada"));
+            write.SaveChanges();
+        }
+
+        // _fullActor resolves a non-null ActorUserId, so the gate passes the save through untouched.
+        var row = sink.Received.ShouldHaveSingleItem();
+        row.ActorUserId.ShouldBe(ActorUserId);
+        row.EntityId.ShouldBe("inc-1");
+    }
+
     // ── infrastructure ─────────────────────────────────────────────────────────
 
     private TestAuditDbContext CreateContext(
