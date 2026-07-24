@@ -77,7 +77,13 @@ public class SolhigsonConfigurationService(IRepositoryWrapper repositoryWrapper)
         var query = RepositoryWrapper.DbContext.AppSettings.AsNoTracking().AsQueryable();
         if (!string.IsNullOrWhiteSpace(name))
         {
-            query = query.Where(t => t.Name.Contains(name));
+            // Case-INsensitive substring: lower both the column and the term so the match ignores case
+            // regardless of the consumer's database collation. This framework targets Sqlite + SqlServer;
+            // the motivating case is a downstream consumer on a case-sensitive collation (e.g. Postgres
+            // "character varying"), which would otherwise lose the case-insensitive behavior SQL Server's
+            // default collation gave for free. Provider-portable via LOWER() — NOT EF.Functions.ILike
+            // (Npgsql-only). The term is lowered client-side before binding; the column lowers as LOWER("Name").
+            query = query.Where(t => t.Name.ToLower().Contains(name.ToLower()));
         }
 
         var result = await query.ToPagedListAsync(page, pageSize);
@@ -127,7 +133,13 @@ public class SolhigsonConfigurationService(IRepositoryWrapper repositoryWrapper)
         var query = RepositoryWrapper.DbContext.NotificationTemplates.AsNoTracking().AsQueryable();
         if (!string.IsNullOrWhiteSpace(name))
         {
-            query = query.Where(t => t.Name.Contains(name));
+            // Case-INsensitive substring: lower both the column and the term so the match ignores case
+            // regardless of the consumer's database collation. This framework targets Sqlite + SqlServer;
+            // the motivating case is a downstream consumer on a case-sensitive collation (e.g. Postgres
+            // "character varying"), which would otherwise lose the case-insensitive behavior SQL Server's
+            // default collation gave for free. Provider-portable via LOWER() — NOT EF.Functions.ILike
+            // (Npgsql-only). The term is lowered client-side before binding; the column lowers as LOWER("Name").
+            query = query.Where(t => t.Name.ToLower().Contains(name.ToLower()));
         }
 
         var result = await query.ToPagedListAsync(page, pageSize);
