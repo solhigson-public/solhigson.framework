@@ -26,6 +26,16 @@ public class ConfigurationWrapper(
     public IConfiguration Configuration { get; } = configuration;
     private readonly AsyncLock _asyncLock = new(1);
 
+    // Opt-in (default OFF): when "Solhigson:SynchronousDefaultInsert" is true, GetConfig AWAITS the
+    // auto-default AppSetting insert instead of fire-and-forgetting it. Read ONCE at construction via the
+    // IConfiguration indexer on the primary-ctor parameter — Microsoft.Extensions.Configuration.Binder is
+    // NOT referenced by this project, so GetValue<bool> would not compile; the indexer + bool.TryParse is
+    // the file's guaranteed idiom (see Configuration[configKey] below). A null/absent/invalid value yields
+    // false with no NRE. The test substrate flips this ON so the default-insert row is deterministically
+    // visible within the borrowing test scope; production leaves it OFF -> byte-identical fire-and-forget.
+    private readonly bool _synchronousDefaultInsert =
+        bool.TryParse(configuration["Solhigson:SynchronousDefaultInsert"], out var b) && b;
+
     public async ValueTask<T> GetFromAppSettingFileOnlyAsync<T>(string group, string? key = null, string? defaultValue = null)
     {
         var setting = await GetConfigInternalAsync(group, key, defaultValue, true);
@@ -106,7 +116,14 @@ public class ConfigurationWrapper(
             throw new Exception($"Configuration [{configKey}] not found in appSettings or database.");
         }
 
-        _ = _asyncLock.WithLockAsync(async _ => await AddSettingToDbAsync(configKey, defaultValue));
+        if (_synchronousDefaultInsert)
+        {
+            await _asyncLock.WithLockAsync(async _ => await AddSettingToDbAsync(configKey, defaultValue));
+        }
+        else
+        {
+            _ = _asyncLock.WithLockAsync(async _ => await AddSettingToDbAsync(configKey, defaultValue));
+        }
         return defaultValue;
 
     }
