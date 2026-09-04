@@ -23,6 +23,7 @@
 
 
     <ItemGroup>
+      <ProjectReference Include="..\Solhigson.Framework.EfCoreTool\Solhigson.Framework.EfCoreTool.csproj" />
       <ProjectReference Include="..\Solhigson.Framework.Playground\Solhigson.Framework.Playground.csproj" />
       <ProjectReference Include="..\Solhigson.Framework\Solhigson.Framework.csproj" />
     </ItemGroup>

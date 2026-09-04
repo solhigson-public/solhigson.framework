@@ -18,6 +18,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Solhigson.Framework.Tests" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Compile Remove="Templates\IPlaceholderRepository.generated.cs" />
         <EmbeddedResource Include="Templates\IPlaceholderCachedRepositoryBase.cs" />
         <EmbeddedResource Include="Templates\IPlaceholderCachedRepositoryBase.generated.cs" />

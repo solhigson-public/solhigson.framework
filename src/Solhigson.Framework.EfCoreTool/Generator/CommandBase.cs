@@ -295,7 +295,7 @@ internal abstract class CommandBase
         SaveFile(resource, path);
     }
 
-    private static void SaveFile(string file, string path)
+    internal static void SaveFile(string file, string path)
     {
         Console.WriteLine($"Attempting to generate path: {path}");
         var directory = Path.GetDirectoryName(path);
@@ -310,16 +310,50 @@ internal abstract class CommandBase
             return;
         }
 
-        if (File.Exists(path))
+        if (IsUnchangedOnDisk(file, path))
         {
-            File.Delete(path);
+            Console.WriteLine($"Unchanged, skipping write: {path}");
+            return;
         }
 
-        using var fileStream = File.OpenWrite(path);
-        using var streamWriter = new StreamWriter(fileStream);
-        streamWriter.Write(file);
+        File.WriteAllText(path, file);
         Console.WriteLine($"Generated: {path}");
     }
+
+    /*
+     * The generated payload carries no timestamp (GetComment is called with includeDate: false for
+     * generated files), so the bytes are a sound identity for "nothing changed", and rewriting an
+     * identical file only churns modification times and downstream build inputs.
+     *
+     * Line endings are normalised for the COMPARISON ONLY. The payload's endings are whatever the
+     * checkout that built this package baked into the embedded templates; the on-disk copy's endings
+     * are whatever the consuming repository's core.autocrlf produced. Normalising BOTH sides is what
+     * makes the compare independent of either, instead of rewriting every generated file on every
+     * run. The unchanged path leaves the on-disk bytes exactly as they are; the changed path writes
+     * the unmodified payload.
+     */
+    private static bool IsUnchangedOnDisk(string file, string path)
+    {
+        if (!File.Exists(path))
+        {
+            return false;
+        }
+
+        try
+        {
+            var existing = File.ReadAllText(path);
+            return string.Equals(NormaliseLineEndings(existing), NormaliseLineEndings(file),
+                StringComparison.Ordinal);
+        }
+        catch (Exception e)
+        {
+            // Unreadable for any reason: regenerate rather than silently skipping the write.
+            Console.WriteLine($"Could not read existing file for comparison, regenerating: {e.Message}");
+            return false;
+        }
+    }
+
+    private static string NormaliseLineEndings(string value) => value.Replace("\r\n", "\n");
 
     private static string GetComment(string comment, bool includeDate = true)
     {
