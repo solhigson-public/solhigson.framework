@@ -12,6 +12,7 @@ using NLog;
 using Solhigson.Framework.Extensions;
 using Solhigson.Framework.Infrastructure;
 using Solhigson.Framework.Logging;
+using Solhigson.Framework.Web.Api;
 using Solhigson.Utilities;
 
 namespace Solhigson.Framework.Web.Middleware;
@@ -20,9 +21,14 @@ public sealed class ApiTraceMiddleware : IMiddleware
 {
     private static readonly LogWrapper Logger = Logging.LogManager.GetLogger(nameof(ApiTraceMiddleware));
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
+    private readonly IApiTraceSink _sink;
 
-    public ApiTraceMiddleware()
+    // Optional so that no existing construction path can break: the middleware is only ever resolved
+    // from the container (Autofac injects the registered sink), but a consumer that registers the type
+    // itself without an IApiTraceSink still gets the log-emitting default, i.e. today's behaviour.
+    public ApiTraceMiddleware(IApiTraceSink? sink = null)
     {
+        _sink = sink ?? new LoggingApiTraceSink();
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
     }
 
@@ -45,27 +51,61 @@ public sealed class ApiTraceMiddleware : IMiddleware
         //...and use that for the temporary response body
         context.Response.Body = responseBody;
 
-        //Continue down the Middleware pipeline, eventually returning to this class
-        await next(context);
+        try
+        {
+            //Continue down the Middleware pipeline, eventually returning to this class
+            await next(context);
 
-        //Format the response from the server
-        await GetResponseData(context.Response, traceData);
+            //Format the response from the server
+            await GetResponseData(context.Response, traceData);
 
-        var status = HelperFunctions.IsServiceUp(context.Response)
-            ? Constants.ServiceStatus.Up
-            : Constants.ServiceStatus.Down;
+            var status = HelperFunctions.IsServiceUp(context.Response)
+                ? Constants.ServiceStatus.Up
+                : Constants.ServiceStatus.Down;
 
-        var action = context.GetRouteData().Values["action"]?.ToString();
-        var desc = string.IsNullOrWhiteSpace(action)
-            ? "Inbound"
-            : HelperFunctions.SeparatePascalCaseWords(action);
+            var action = context.GetRouteData().Values["action"]?.ToString();
+            var desc = string.IsNullOrWhiteSpace(action)
+                ? "Inbound"
+                : HelperFunctions.SeparatePascalCaseWords(action);
 
-        this.SetCurrentLogUserEmail(traceData.GetUserIdentity());
-        Logger.LogInformation("{description}, {url}, {serviceName}, {serviceType}, {status}, {traceData}", desc, traceData.Url, 
-            Constants.ServiceType.Self, Constants.Group.ServiceStatus, status, traceData);
+            this.SetCurrentLogUserEmail(traceData.GetUserIdentity());
 
-        //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
-        await responseBody.CopyToAsync(originalBodyStream);
+            // The literals below are exactly what this middleware logged as {serviceName} / {serviceType}
+            // before the sink seam existed; consumers filter on them, so they are carried on the payload
+            // rather than re-derived.
+            traceData.Direction = ApiTraceDirection.Inbound;
+            traceData.ServiceName = Constants.ServiceType.Self;
+            traceData.ServiceType = Constants.Group.ServiceStatus;
+            traceData.ServiceDescription = desc;
+            traceData.Status = status;
+            traceData.ChainId = this.GetCurrentLogChainId();
+            traceData.UserIdentity = traceData.GetUserIdentity();
+
+            // A consumer-replaceable sink must never break the request it is tracing, and must never
+            // skip the response copy below: a throwing sink degrades to no trace.
+            try
+            {
+                _sink.Save(traceData);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "While saving api trace data for url: {url}", traceData.Url);
+            }
+
+            //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
+            await responseBody.CopyToAsync(originalBodyStream);
+        }
+        finally
+        {
+            // Restore the real response stream however next() exited. If it THREW, the buffer above is
+            // disposed on the way out of this method while context.Response.Body still pointed at it,
+            // and the outer exception handler (which sits outside this middleware) would write its
+            // error payload into a disposed stream: a client-visible empty 500. The buffered bytes are
+            // deliberately NOT copied out on that path — the response is half-written and unstarted, so
+            // the handler gets a clean stream to write its own body into. The exception itself is
+            // untouched and propagates unchanged.
+            context.Response.Body = originalBodyStream;
+        }
     }
 
     private async Task<ApiTraceData> GetRequestData(HttpRequest request, string url)
@@ -76,16 +116,19 @@ public sealed class ApiTraceMiddleware : IMiddleware
             //This line allows us to set the reader for the request back at the beginning of its stream.
             request.EnableBuffering();
 
-            //We now need to read the request stream.  First, we create a new byte[] with the same length as the request stream...
-            var buffer = new byte[Convert.ToInt32(request.ContentLength)];
-
+            //Copy the whole body out, then read the copy back in full, taking its length from the copy
+            //itself. Content-Length is ABSENT on a chunked or streamed request, so the buffer this used
+            //to size from it came out empty and the body was traced as "" with no error at all.
+            //Same shape as GetResponseData below.
             await request.Body.CopyToAsync(bodyStream);
             bodyStream.Position = 0;
 
-            await bodyStream.ReadAsync(buffer, 0, buffer.Length);
+            using (var reader = new StreamReader(bodyStream, Encoding.UTF8, leaveOpen: true))
+            {
+                requestContent = await reader.ReadToEndAsync();
+            }
 
-            requestContent = Encoding.UTF8.GetString(buffer);
-
+            //Rewind the request body so the rest of the pipeline still reads it.
             request.Body.Position = 0;
         }
 

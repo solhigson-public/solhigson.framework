@@ -14,10 +14,16 @@ using Solhigson.Utilities;
 
 namespace Solhigson.Framework.Web.Api;
 
-public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfiguration apiConfiguration)
+public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfiguration apiConfiguration,
+    IApiTraceSink? sink = null)
     : IApiRequestService
 {
     private readonly LogWrapper _logger = Logging.LogManager.GetLogger(nameof(ApiRequestService));
+
+    // Optional by design: consumers construct this service directly with two arguments, and this
+    // repo's own test subclass calls a two-argument base constructor. Null falls back to the
+    // log-emitting default, which is exactly what this class did before the sink seam existed.
+    private readonly IApiTraceSink _sink = sink ?? new LoggingApiTraceSink();
 
     public async Task<ApiRequestResponse> SendAsync(ApiRequest request, CancellationToken ct = default)
     {
@@ -166,6 +172,14 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
             ? HelperFunctions.ToJsonObject(response.HttpResponseMessage.Headers)
             : null;
 
+        var status = HelperFunctions.IsServiceUp(response.HttpStatusCode)
+            ? Constants.ServiceStatus.Up
+            : Constants.ServiceStatus.Down;
+
+        var desc = string.IsNullOrWhiteSpace(apiRequest.ServiceDescription)
+            ? "Outbound"
+            : apiRequest.ServiceDescription;
+
         var traceData = new ApiTraceData
         {
             RequestTime = response.StartTime,
@@ -181,18 +195,39 @@ public class ApiRequestService(IHttpClientFactory httpClientFactory, ApiConfigur
             ResponseHeaders = responseHeaders,
             StatusCode = ((int)response.HttpStatusCode).ToString(),
             StatusCodeDescription = response.HttpStatusCode.ToString(),
+            ServiceName = serviceName,
+            ServiceType = serviceType,
+            ServiceDescription = desc,
+            Status = status,
+            Direction = ApiTraceDirection.Outbound,
+            ChainId = ServiceProviderWrapper.GetCurrentLogChainId(),
+
+            // NOT ApiTraceData.GetUserIdentity(): on the outbound path RequestHeaders holds the
+            // OUTGOING request's headers, which never carry the caller's identity header. The
+            // identity of the current request lives in the scoped log properties.
+            UserIdentity = ServiceProviderWrapper.GetCurrentLogUserEmail(),
+            ExceptionType = response.HttpCallResult.ErrorType,
+
+            // Reason is NOT an exception message on the non-exception outcomes: GetHttpCallResult
+            // passes resp.ReasonPhrase, so it reads "OK" on a 200 and "Not Found" on a 404. Only the
+            // exception mapping (MapToResult) produces a real message, and it always sets ErrorType
+            // alongside it — so ErrorType is the gate, which also guarantees the pair is never
+            // half-filled (a message without a type is exactly the shape that misleads a consumer).
+            ExceptionMessage = response.HttpCallResult.ErrorType is null
+                ? null
+                : response.HttpCallResult.Reason,
         };
 
-        var status = HelperFunctions.IsServiceUp(response.HttpStatusCode)
-            ? Constants.ServiceStatus.Up
-            : Constants.ServiceStatus.Down;
-
-        var desc = string.IsNullOrWhiteSpace(apiRequest.ServiceDescription)
-            ? "Outbound"
-            : apiRequest.ServiceDescription;
-
-        _logger.LogInformation("{description}, {url}, {serviceName}, {serviceType}, {status}, {traceData}", desc,
-            traceData.Url, serviceName, serviceType, status, traceData);
+        // The sink is consumer-replaceable, so it is never allowed to break the call it is tracing:
+        // a throwing sink degrades to no trace, exactly as if tracing were switched off.
+        try
+        {
+            _sink.Save(traceData);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "While saving api trace data for url: {url}", traceData.Url);
+        }
     }
 
     protected virtual void ExtractObject<T>(ApiRequestResponse<T> apiRequestResponse, string format)

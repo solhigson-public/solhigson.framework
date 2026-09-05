@@ -100,6 +100,13 @@ public class SolhigsonAutofacModule : Module
         builder.RegisterInstance(new ApiConfiguration()).AsSelf().SingleInstance()
             .PreserveExistingDefaults();
 
+        // API-trace sink seam. PreserveExistingDefaults() so a consumer's own sink (one that persists
+        // traces to its own store) wins over this log-emitting default, the same idiom as the audit
+        // seams below. The default reproduces the log line both trace call sites emitted inline before
+        // the seam, under the same logger names, so a consumer that registers nothing sees no change.
+        builder.RegisterType<LoggingApiTraceSink>().As<IApiTraceSink>().SingleInstance()
+            .PreserveExistingDefaults();
+
         builder.RegisterType<ApiRequestService>().As<IApiRequestService>().InstancePerLifetimeScope()
             .PropertiesAutowired(PropertyWiringOptions.AllowCircularDependencies);
 
