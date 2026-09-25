@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics.Metrics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Solhigson.Framework.Data.Attributes;
 using Solhigson.Framework.Logging;
 using Solhigson.Framework.Persistence.EntityModels;
@@ -126,7 +128,8 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
     private const string CaptureBuildReason = "capture-build";
     private const string HandoffReason = "handoff";
 
-    private static readonly LogWrapper Logger = LogManager.GetLogger(nameof(AuditCaptureSaveChangesInterceptor));
+    // No static LogWrapper field: the logger is resolved at call time (AuditCaptureLog.Current()), because a
+    // wrapper built before LogManager.SetLoggerFactory is null-backed for the process lifetime (see AuditCaptureLog).
 
     private static readonly JsonSerializerOptions PayloadJsonOptions = new()
     {
@@ -200,6 +203,11 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
         {
             return;
         }
+
+        // One-time inert-attribute scan for this model (warn only). Runs AFTER the activation gate so a model
+        // that never captures is never scanned, and in its own swallow-all boundary so a scan failure can
+        // neither block the save nor cost this save's audit rows.
+        WarnOnInertAuditAttributesOnce(context.Model, AuditCaptureAttributeScan.Scan);
 
         try
         {
@@ -279,6 +287,80 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
             // (a guaranteed single-event audit loss — §2 M3). Current is written atomically only after a fully
             // successful build, so no partial in-flight state exists to unwind.
             LogAndCountFailure(ex, CaptureBuildReason);
+        }
+    }
+
+    // ── Inert audit-attribute scan (once per model, warn only) ─────────────────
+
+    /// <summary>
+    /// Runs <paramref name="scan"/> at most once per <paramref name="model"/> (memoized in
+    /// <see cref="AuditCaptureAttributeScan"/>'s static per-model table, NEVER instance state — this singleton is
+    /// captured across pooled contexts) and logs one structured warning per inert (base type, attribute) pair.
+    /// WARN only, in every environment: a misplaced attribute is a configuration defect to surface, never a
+    /// reason to block a save. The model is NOT claimed until a logger binds to <see cref="LogManager"/>'s current
+    /// factory: a consumer that saves (e.g. runs migrations) before configuring logging, or whose factory throws on
+    /// <c>CreateLogger</c>, would otherwise spend the one scan on a warning that goes nowhere. The whole body is
+    /// swallow-all and every log call goes through the never-throwing <see cref="AuditCaptureLog"/>; a throw is
+    /// logged and the save proceeds. The lock-free <see cref="AuditCaptureAttributeScan.IsClaimed"/> check MUST
+    /// stay before <see cref="AuditCaptureAttributeScan.TryClaim"/> (pinned by a source test): TryClaim takes the
+    /// table's lock, and this runs on every gated save.
+    /// </summary>
+    private InertAttributeScanOutcome WarnOnInertAuditAttributesOnce(
+        IModel model,
+        Func<IModel, IReadOnlyList<InertAuditAttributeFinding>> scan)
+    {
+        try
+        {
+            // Lock-free fast path: every gated save after the first lands here.
+            if (AuditCaptureAttributeScan.IsClaimed(model))
+            {
+                return InertAttributeScanOutcome.AlreadyClaimed;
+            }
+
+            // Bind the logger BEFORE claiming, so a missing or failing factory does not consume the one scan.
+            if (!AuditCaptureLog.TryCreateBound(out var logger))
+            {
+                return InertAttributeScanOutcome.DeferredNoUsableLogger;
+            }
+
+            // Claimed BEFORE scanning, so a throwing scan is not retried on every subsequent save.
+            if (!AuditCaptureAttributeScan.TryClaim(model))
+            {
+                return InertAttributeScanOutcome.AlreadyClaimed;
+            }
+
+            foreach (var finding in scan(model))
+            {
+                // Effective membership of each concrete type TODAY, through BOTH channels (own attribute and
+                // the fluent registry), so the reader can tell whether moving the attribute changes behaviour.
+                var effective = string.Join("; ", finding.ConcreteTypes.Select(t =>
+                    AuditCaptureAttributeScan.DisplayName(t) + ": " + (IsCaptureEligible(t) ? "captured" : "not captured")));
+
+                var precedence = finding.CarriesBothAttributes
+                    ? " This base carries BOTH [SolhigsonAuditInclude] and [SolhigsonAuditIgnore]; an ignore wins "
+                      + "over an include, so moving both leaves the concrete type(s) NOT captured."
+                    : string.Empty;
+
+                logger.LogWarning(
+                    "Inert audit attribute {AuditAttribute} on unmapped base type {InertType}: audit eligibility "
+                    + "resolves on the concrete mapped entity type only (the attribute is Inherited=false and is "
+                    + "probed with inherit:false), so this placement has no effect. Move it to the concrete mapped "
+                    + "type(s) {ConcreteTypes}. Effective capture today: {EffectiveCapture}.{PrecedenceNote}",
+                    finding.AttributeName,
+                    AuditCaptureAttributeScan.DisplayName(finding.InertType),
+                    string.Join(", ", finding.ConcreteTypes.Select(AuditCaptureAttributeScan.DisplayName)),
+                    effective,
+                    precedence);
+            }
+
+            return InertAttributeScanOutcome.Scanned;
+        }
+        catch (Exception ex)
+        {
+            // Never-block: the scan is diagnostics only. No audit_capture_failed increment — no audit row is lost.
+            AuditCaptureLog.Current().LogError(ex,
+                "Inert audit-attribute scan failed and was swallowed under the never-block invariant.");
+            return InertAttributeScanOutcome.Swallowed;
         }
     }
 
@@ -609,9 +691,17 @@ public sealed class AuditCaptureSaveChangesInterceptor : SaveChangesInterceptor,
     internal void SimulateTransactionRolledBack(DbContext context, Guid transactionId)
         => DiscardIfDeferred(context, transactionId);
 
+    /// <summary>Test seam: drives the once-per-model inert-attribute scan with the production scanner.</summary>
+    internal InertAttributeScanOutcome SimulateInertAttributeScan(IModel model)
+        => WarnOnInertAuditAttributesOnce(model, AuditCaptureAttributeScan.Scan);
+
+    /// <summary>Test seam: drives the once-per-model inert-attribute scan with an injected (e.g. throwing) scanner.</summary>
+    internal InertAttributeScanOutcome SimulateInertAttributeScan(IModel model, Func<IModel, IReadOnlyList<InertAuditAttributeFinding>> scan)
+        => WarnOnInertAuditAttributesOnce(model, scan);
+
     private static void LogAndCountFailure(Exception exception, string reason)
     {
-        Logger.LogError(exception,
+        AuditCaptureLog.Current().LogError(exception,
             "Audit capture failed and was swallowed under the never-block invariant (reason: {Reason}); "
             + "accepted single-event audit loss (§2 M3).",
             reason);
