@@ -532,7 +532,7 @@ public static class HelperFunctions
     {
         try
         {
-            var obj = httpContext?.Session.GetString(key) ?? Thread.GetData(Thread.GetNamedDataSlot(key)) as string;
+            var obj = httpContext?.Session.GetString(key);
             if (obj?.Contains('{') == true)
             {
                 return obj.DeserializeFromJson<T>();
@@ -581,10 +581,6 @@ public static class HelperFunctions
             {
                 httpContext.Session.SetString(key, data);
             }
-            else
-            {
-                Thread.SetData(Thread.GetNamedDataSlot(key), data);
-            }
         }
         catch (Exception e)
         {
@@ -599,10 +595,6 @@ public static class HelperFunctions
             if (httpContext?.Session is not null)
             {
                 httpContext.Session.Remove(key);
-            }
-            else
-            {
-                Thread.SetData(Thread.GetNamedDataSlot(key), null);
             }
         }
         catch (Exception e)
