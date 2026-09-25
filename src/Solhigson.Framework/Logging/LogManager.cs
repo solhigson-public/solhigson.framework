@@ -15,6 +15,9 @@ public static class LogManager
     private static ILogger? _logger;
     internal static string? ServiceName;
 
+    /// <summary>The factory installed by <see cref="SetLoggerFactory"/>, or null before it runs.</summary>
+    internal static ILoggerFactory? CurrentLoggerFactory => _loggerFactory;
+
     public static void SetLoggerFactory(ILoggerFactory loggerFactory, string? serviceName = null)
     {   
         _loggerFactory = loggerFactory;
