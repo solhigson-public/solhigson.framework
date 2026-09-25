@@ -7,7 +7,8 @@
         <Description>Utility Library</Description>
         <IsPackable>true</IsPackable>
         <Version>1.0.0</Version>
-        <PackageVersion>10.1.0</PackageVersion>
+        <PackageVersion>10.2.0</PackageVersion>
+        <PackageReleaseNotes>10.2.0: HelperFunctions.SafeGetSessionData, SafeSetSessionData and SafeRemoveSessionData no longer use thread named data slots (Thread.GetNamedDataSlot / Thread.SetData / Thread.GetData). Reads never consult a thread slot: a read through a null context, or through a live session that lacks the key, returns null; a write or remove without a session is a silent no-op. The HTTP-session path is unchanged when the key is present.</PackageReleaseNotes>
         <PackageProjectUrl>https://github.com/solhigson-public/solhigson.framework</PackageProjectUrl>
         <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
         <LangVersion>14</LangVersion>
