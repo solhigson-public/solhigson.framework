@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
 using Microsoft.IO;
 using NLog;
 using Solhigson.Framework.Extensions;
@@ -19,28 +20,54 @@ namespace Solhigson.Framework.Web.Middleware;
 
 public sealed class ApiTraceMiddleware : IMiddleware
 {
-    private static readonly LogWrapper Logger = Logging.LogManager.GetLogger(nameof(ApiTraceMiddleware));
+    private readonly LogWrapper _logger;
     private readonly RecyclableMemoryStreamManager _recyclableMemoryStreamManager;
     private readonly IApiTraceSink _sink;
+    private readonly ApiConfiguration? _apiConfiguration;
+    private readonly InboundTracePathPatterns _includePatterns;
+    private readonly InboundTracePathPatterns _excludePatterns;
 
-    // Optional so that no existing construction path can break: the middleware is only ever resolved
-    // from the container (Autofac injects the registered sink), but a consumer that registers the type
-    // itself without an IApiTraceSink still gets the log-emitting default, i.e. today's behaviour.
-    public ApiTraceMiddleware(IApiTraceSink? sink = null)
+    // The configuration comes from the container (SolhigsonAutofacModule registers a default instance,
+    // a consumer's own registration wins); both are singletons, which is why the switch and the lists
+    // are functions called per request rather than values read here.
+    // Both parameters are optional so that no construction path can break a request: a consumer that
+    // registers the type itself (plain MS-DI, no ApiConfiguration registered) gets a null
+    // configuration, which means inbound tracing is OFF, and a consumer with no IApiTraceSink gets the
+    // log-emitting default.
+    public ApiTraceMiddleware(ApiConfiguration? apiConfiguration = null, IApiTraceSink? sink = null)
+        : this(apiConfiguration, sink, null)
     {
+    }
+
+    /// <summary>
+    /// Test seam: <paramref name="loggerFactory"/> builds an unshared logger under the same name, since
+    /// <see cref="Logging.LogManager"/> caches one wrapper per name for the life of the process.
+    /// </summary>
+    internal ApiTraceMiddleware(ApiConfiguration? apiConfiguration, IApiTraceSink? sink,
+        ILoggerFactory? loggerFactory)
+    {
+        _logger = loggerFactory is null
+            ? Logging.LogManager.GetLogger(nameof(ApiTraceMiddleware))
+            : new LogWrapper(nameof(ApiTraceMiddleware), loggerFactory);
+        _apiConfiguration = apiConfiguration;
         _sink = sink ?? new LoggingApiTraceSink();
         _recyclableMemoryStreamManager = new RecyclableMemoryStreamManager();
+        _includePatterns = new InboundTracePathPatterns("include", _logger);
+        _excludePatterns = new InboundTracePathPatterns("exclude", _logger);
     }
+
+    internal InboundTracePathPatterns IncludePatterns => _includePatterns;
+    internal InboundTracePathPatterns ExcludePatterns => _excludePatterns;
 
     public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        var url = context.Request.GetDisplayUrl();
-        if (!url.ToLower().Contains("api/")) //only log api calls [hack, should fix this later :)]
+        if (!ShouldTraceInbound(context.Request))
         {
             await next(context);
             return;
         }
 
+        var url = context.Request.GetDisplayUrl();
         var traceData = await GetRequestData(context.Request, url);
 
         //Copy a pointer to the original response body stream
@@ -89,7 +116,7 @@ public sealed class ApiTraceMiddleware : IMiddleware
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "While saving api trace data for url: {url}", traceData.Url);
+                _logger.LogError(e, "While saving api trace data for url: {url}", traceData.Url);
             }
 
             //Copy the contents of the new memory stream (which contains the response) to the original stream, which is then returned to the client.
@@ -105,6 +132,58 @@ public sealed class ApiTraceMiddleware : IMiddleware
             // the handler gets a clean stream to write its own body into. The exception itself is
             // untouched and propagates unchanged.
             context.Response.Body = originalBodyStream;
+        }
+    }
+
+    /// <summary>
+    /// Traces only when the switch returns true, the request path matches at least one include pattern
+    /// and no exclude pattern. Reads <see cref="HttpRequest.Path"/> only, never host or query string.
+    /// The switch is read first and the list functions are not called while it is off. There is no
+    /// fallback: a null or empty include list traces nothing, and so does a null configuration. A
+    /// throwing consumer function degrades to no trace, since tracing must never break the request it
+    /// would trace.
+    /// </summary>
+    private bool ShouldTraceInbound(HttpRequest request)
+    {
+        if (_apiConfiguration is null)
+        {
+            return false;
+        }
+
+        try
+        {
+            var enabled = _apiConfiguration.InboundTraceEnabled;
+            if (enabled is null || !enabled())
+            {
+                return false;
+            }
+
+            var include = _apiConfiguration.InboundIncludePaths;
+            if (include is null)
+            {
+                return false;
+            }
+
+            var path = request.Path.Value.AsSpan();
+            if (!_includePatterns.AnyMatch(include(), path))
+            {
+                return false;
+            }
+
+            var exclude = _apiConfiguration.InboundExcludePaths;
+            return exclude is null || !_excludePatterns.AnyMatch(exclude(), path);
+        }
+        catch (OperationCanceledException e)
+        {
+            // A consumer function observing an aborted request's cancellation is not a fault.
+            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Debug, "Cancelled while deciding whether to trace inbound path: {path}", e,
+                request.Path.Value);
+            return false;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "While deciding whether to trace inbound path: {path}", request.Path.Value);
+            return false;
         }
     }
 

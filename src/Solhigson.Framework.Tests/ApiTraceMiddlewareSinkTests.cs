@@ -33,7 +33,7 @@ public class ApiTraceMiddlewareSinkTests
     public async Task InboundRequest_CapturingSink_ReceivesTheInboundPayload()
     {
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext();
         context.Request.Headers[ApiTraceData.UserHttpHeaderIdentifier] = "caller@example.com";
 
@@ -66,7 +66,7 @@ public class ApiTraceMiddlewareSinkTests
     public async Task InboundRequest_ServerError_CarriesDownStatus()
     {
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext();
 
         await middleware.InvokeAsync(context, async c =>
@@ -82,7 +82,7 @@ public class ApiTraceMiddlewareSinkTests
     public async Task InboundRequest_ThrowingSink_IsSwallowedAndTheResponseStillReachesTheClient()
     {
         var sink = new ThrowingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext();
         var clientStream = new MemoryStream();
         context.Response.Body = clientStream;
@@ -103,7 +103,7 @@ public class ApiTraceMiddlewareSinkTests
     public async Task InboundRequest_ChunkedBodyWithoutContentLength_IsTracedInFull()
     {
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext(requestBody: RequestBody, setContentLength: false);
 
         await middleware.InvokeAsync(context, WriteOkResponse);
@@ -121,7 +121,7 @@ public class ApiTraceMiddlewareSinkTests
         // streamed request, so the buffer sized from it was empty and the whole body was traced as "".
         var largeBody = "{\"payload\":\"" + new string('x', 512 * 1024) + "\"}";
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext(requestBody: largeBody, setContentLength: false);
 
         await middleware.InvokeAsync(context, WriteOkResponse);
@@ -135,7 +135,7 @@ public class ApiTraceMiddlewareSinkTests
     public async Task InboundRequest_BodyIsStillReadableByTheDownstreamHandler()
     {
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext();
         string? seenByHandler = null;
 
@@ -160,7 +160,7 @@ public class ApiTraceMiddlewareSinkTests
         // the way out, so the outer exception handler writes its payload into a disposed stream and the
         // client gets an empty 500.
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext();
         var clientStream = new MemoryStream();
         context.Response.Body = clientStream;
@@ -195,24 +195,38 @@ public class ApiTraceMiddlewareSinkTests
             .GetField("_sink", BindingFlags.Instance | BindingFlags.NonPublic);
         field.ShouldNotBeNull();
         field.GetValue(middleware).ShouldBeSameAs(scope.Resolve<IApiTraceSink>());
+
+        // The configuration is the container's singleton, not a copy: the per-request functions a
+        // consumer sets on its registered instance are the ones the middleware calls.
+        var configField = typeof(ApiTraceMiddleware)
+            .GetField("_apiConfiguration", BindingFlags.Instance | BindingFlags.NonPublic);
+        configField.ShouldNotBeNull();
+        configField.GetValue(middleware).ShouldBeSameAs(scope.Resolve<ApiConfiguration>());
     }
 
     [Fact]
     public async Task NonApiUrl_IsNotTraced()
     {
+        // A non-empty include list, so the negative is decided by matching, not by an empty list.
         var sink = new CapturingSink();
-        var middleware = new ApiTraceMiddleware(sink);
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration(), sink);
         var context = BuildContext("/home/index");
 
         await middleware.InvokeAsync(context, WriteOkResponse);
 
         sink.Traces.ShouldBeEmpty();
+
+        // Positive control on the same route.
+        var control = new CapturingSink();
+        await new ApiTraceMiddleware(IncludedConfiguration("/home"), control)
+            .InvokeAsync(BuildContext("/home/index"), WriteOkResponse);
+        control.Traces.ShouldHaveSingleItem();
     }
 
     [Fact]
     public async Task NoSinkSupplied_FallsBackToTheDefaultSink_AndStillServesTheRequest()
     {
-        var middleware = new ApiTraceMiddleware();
+        var middleware = new ApiTraceMiddleware(ApiIncludedConfiguration());
         var context = BuildContext();
         var clientStream = new MemoryStream();
         context.Response.Body = clientStream;
@@ -223,6 +237,19 @@ public class ApiTraceMiddlewareSinkTests
     }
 
     #region Test Infrastructure
+
+    /// <summary>Switch on, include <c>/api</c>, no exclude list.</summary>
+    private static ApiConfiguration ApiIncludedConfiguration() => IncludedConfiguration("/api");
+
+    private static ApiConfiguration IncludedConfiguration(params string[] include)
+    {
+        IReadOnlyCollection<string> paths = include;
+        return new ApiConfiguration
+        {
+            InboundTraceEnabled = () => true,
+            InboundIncludePaths = () => paths,
+        };
+    }
 
     private static async Task WriteOkResponse(HttpContext context)
     {
