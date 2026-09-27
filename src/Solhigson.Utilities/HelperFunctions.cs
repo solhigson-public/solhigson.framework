@@ -62,12 +62,12 @@ public static class HelperFunctions
         @"\A(?:[a-z0-9A-Z!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9A-Z](?:[a-zA-Z0-9-]*[A-Za-z0-9])?\.)+[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?)\Z";
 
     public const string MatchPhoneNumberPattern =
-        @"^\\+?[0-9 ]{11,15}$";
+        @"^\+?[0-9 ]{11,15}$";
 
     private static readonly Regex EmailMatchRegex = new Regex(MatchEmailPattern,
         RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-    private static readonly Regex PhoneNumberMatchRegex = new Regex(MatchEmailPattern,
+    private static readonly Regex PhoneNumberMatchRegex = new Regex(MatchPhoneNumberPattern,
         RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     public static bool IsValidEmailAddress(string email, bool ignoreEmpty = false)
